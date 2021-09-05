@@ -11,11 +11,11 @@ String e = "正しい教室番号を入力してください";
 String search(cn){
   if(cn.length<4){
     if(cn[0] == 'E'){
-      try{
+      try{//文字列から数値への変換を試す
         int i = int.parse(cn.substring(1));
         if(min[1]<= i && i <= max[1])return "情報教育棟";
         else return e;
-      }catch(exception){
+      }catch(exception){//変換不可能な場合例外としてここに入る
         return e;
       }
     }
