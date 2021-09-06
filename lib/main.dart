@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
-List<int> min = [101,21,101,011,511,1,721,110,900,101,1101,1211,1311,1];
-List<int> max = [192,49,502,214,534,4,762,422,900,405,1109,1233,1341,3];
+List<int> min = [101,21,101,011,511,1,721,110,900,101,1101,1211,1311,1];//教室番号の最小値
+List<int> max = [192,49,502,214,534,4,762,422,900,405,1109,1233,1341,3];//教室番号の最大値
 List<String> name = ["1号館","情報教育棟","21KOMCEE West","21KOMCEE East","5号館",
   "コミニケーションプラザ(北)","7号館","8号館","講堂","10号館","11号館","12号館","13号館"];
 String e = "正しい教室番号を入力してください";
@@ -52,6 +52,7 @@ String search(cn){
   else if(cn.substring(0,3) == "実験室")return name[3];
   else if(cn.length > 4){
     if(cn == "18号館ホール")return "18号館";
+    else if(cn.substring(2,5) == "実験室")return name[3];
     else if(cn.substring(0,2) == '8-') {
       try {
         int i = int.parse(cn.substring(2));
@@ -144,7 +145,7 @@ class MyWidget extends StatefulWidget {
 class _MyWidgetState extends State<MyWidget> {
   // データを宣言
   String count = "";
-  String s = '教室番号を入力してください';
+  String s = '教室番号を入力してください';//デフォルトメッセージ
   // データを元にWidgetを作る
   @override
   Widget build(BuildContext context) {
@@ -152,12 +153,8 @@ class _MyWidgetState extends State<MyWidget> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         TextField(
-          //keyboardType: TextInputType.number,
-
           onChanged: (text){
-            //final value = int.tryParse(text);
-            //if(text == null)count = "Error";
-            count = text;
+            count = text;//入力内容を文字列として取得
           },
         ),
         TextButton(
