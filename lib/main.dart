@@ -117,7 +117,7 @@ String search(cn){
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -162,12 +162,12 @@ class _MyWidgetState extends State<MyWidget> {
             // データを更新する時は setState を呼ぶ
             setState(() {
               // データを更新
-              s = search(count);
+              s = search(count);//先ほど作った関数に入れて文字列を更新
             });
           },
           child: Text('検索'),
         ),
-        Text(s),
+        Text(s),//ここで表示
       ],
     );
   }
