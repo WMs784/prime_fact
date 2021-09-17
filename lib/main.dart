@@ -125,6 +125,9 @@ class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
       theme: ThemeData(primarySwatch: Colors.blue),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
+        appBar: AppBar(
+          title: Text("駒場教室検索"),//上部のバーに表示される
+        ),
         body: Center(
             child:MyWidget(),
         ),
