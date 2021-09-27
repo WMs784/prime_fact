@@ -8,7 +8,10 @@ class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        accentColor: Colors.purple,
+      ),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
