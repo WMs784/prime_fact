@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.myflutter_app">
    <application
-        android:label="駒場教室検索"
+        android:label="素因数分解計算機"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

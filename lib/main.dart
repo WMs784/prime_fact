@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'judge.dart';
 
 void main() => runApp(MyApp());
@@ -13,9 +14,18 @@ class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.teal[700],
+        brightness: Brightness.light,
+        primarySwatch: Colors.teal,
+        primaryColor: Colors.teal[700],
         accentColor: Colors.teal[300],
+        focusColor: Colors.teal[200],
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.teal,
+        primaryColor: Colors.teal[700],
+        accentColor: Colors.teal[300],
+        focusColor: Colors.teal[200],
       ),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -53,6 +63,7 @@ class _MyWidgetState extends State<MyWidget> {
       children: <Widget>[
         TextField(
           keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           onChanged: (text){
             try{
               count = int.parse(text);
@@ -62,13 +73,14 @@ class _MyWidgetState extends State<MyWidget> {
             }
           },
         ),
-        TextButton(
+        ElevatedButton(
           onPressed: () {
             // データを更新する時は setState を呼ぶ
             setState(() {
               // データを更新
               if(b)s = pri_fact(count);//先ほど作った関数に入れて文字列を更新
               else s = e;
+              //TextField text = '';
             });
           },
           child: Text('素因数分解'),
