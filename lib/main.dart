@@ -64,6 +64,8 @@ class _MyWidgetState extends State<MyWidget> {
         TextField(
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          textAlign: TextAlign.center,
+          maxLength: 18,
           onChanged: (text){
             try{
               count = int.parse(text);
