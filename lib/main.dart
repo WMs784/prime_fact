@@ -64,8 +64,11 @@ class _MyWidgetState extends State<MyWidget> {
         TextField(
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          //controller: _textEditingController,
+          style: TextStyle(fontSize: 25),
           textAlign: TextAlign.center,
           maxLength: 18,
+          maxLengthEnforced: false,
           onChanged: (text){
             try{
               count = int.parse(text);
@@ -80,14 +83,28 @@ class _MyWidgetState extends State<MyWidget> {
             // データを更新する時は setState を呼ぶ
             setState(() {
               // データを更新
+              //_textEditingController.clear();
               if(b)s = pri_fact(count);//先ほど作った関数に入れて文字列を更新
               else s = e;
               //TextField text = '';
             });
           },
-          child: Text('素因数分解'),
+          child: Text('素因数分解',
+            style: TextStyle(fontSize: 20),
+          ),
         ),
-        Text(s),//ここで表示
+        /*Text(s,
+          style: TextStyle(fontSize: 20),
+        ),*///ここで表示
+        SizedBox(
+          height: 50,//間隔を空ける
+        ),
+        FittedBox(
+          fit: BoxFit.fitWidth,
+          child: Text(s,
+          style: TextStyle(fontSize: 20),
+          ),
+        ),
       ],
     );
   }
