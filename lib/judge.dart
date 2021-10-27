@@ -1,5 +1,8 @@
 import 'dart:math';
 
+String setting = "言語設定";
+String s = '18桁以下の正整数を入力してください';//デフォルトメッセージ
+String e = '18桁以下の正整数を入力してください';
 int prime(int n){
   if(n <= 1)return 0;
   else if(n == 2)return 1;

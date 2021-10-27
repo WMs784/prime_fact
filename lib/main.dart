@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:styled_text/styled_text.dart';
+
 import 'judge.dart';
 
 void main() => runApp(MyApp());
@@ -29,11 +31,64 @@ class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
       ),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
+        body: MyLayout(),
+      ),
+    );
+  }
+}
+class MyLayout extends StatelessWidget {
+  @override
+  Widget build(BuildContext context){
+    return SafeArea(
+      child:Scaffold(
         appBar: AppBar(
           title: Text("素因数分解計算機"),//上部のバーに表示される
         ),
+        drawer: Drawer(
+          child: ListView(
+            children: <Widget>[
+              DrawerHeader(
+                child: StyledText(
+                  text: '<set/>&space;'+setting,
+                  style: TextStyle(
+                      fontSize: 24
+                  ),
+                  tags: {
+                    'set': StyledTextIconTag(
+                      Icons.settings,
+                      size: 30,
+                    ),
+                  },
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              ListTile(
+                title: Text("日本語"),
+                onTap: (){
+                  s = '18桁以下の正整数を入力してください';
+                  e = s;
+                  setting = "言語設定";
+                  Navigator.pop(context);
+                  main();
+                },
+              ),
+              ListTile(
+                title: Text("English"),
+                onTap: (){
+                  s = "Please enter the number less than 18 digits.";
+                  e = s;
+                  setting = "language setting";
+                  Navigator.pop(context);
+                  main();
+                },
+              ),
+            ],
+          ),
+        ),
         body: Center(
-            child:MyWidget(),
+          child:MyWidget(),
         ),
       ),
     );
@@ -53,8 +108,6 @@ class _MyWidgetState extends State<MyWidget> {
   // データを宣言
   int count = 0;
   bool b = true;
-  String s = '18桁以下の正整数を入力してください';//デフォルトメッセージ
-  String e = '18桁以下の正整数を入力してください';
   // データを元にWidgetを作る
   @override
   Widget build(BuildContext context) {
