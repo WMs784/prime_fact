@@ -95,20 +95,14 @@ class MyLayout extends StatelessWidget {
   }
 }
 
-// StatefulWidgetを継承するとStateを扱える
-// このWidgetを表示すると、Stateを元にUIが作成される
 class MyWidget extends StatefulWidget {
-  // 使用するStateを指定
   @override
   _MyWidgetState createState() => _MyWidgetState();
 }
 
-// Stateを継承して使う
 class _MyWidgetState extends State<MyWidget> {
-  // データを宣言
   int count = 0;
   bool b = true;
-  // データを元にWidgetを作る
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -117,7 +111,6 @@ class _MyWidgetState extends State<MyWidget> {
         TextField(
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          //controller: _textEditingController,
           style: TextStyle(fontSize: 25),
           textAlign: TextAlign.center,
           maxLength: 18,
@@ -132,22 +125,15 @@ class _MyWidgetState extends State<MyWidget> {
         ),
         ElevatedButton(
           onPressed: () {
-            // データを更新する時は setState を呼ぶ
             setState(() {
-              // データを更新
-              //_textEditingController.clear();
-              if(b)s = pri_fact(count);//先ほど作った関数に入れて文字列を更新
+              if(b)s = pri_fact(count);
               else s = e;
-              //TextField text = '';
             });
           },
           child: Text('素因数分解',
             style: TextStyle(fontSize: 20),
           ),
         ),
-        /*Text(s,
-          style: TextStyle(fontSize: 20),
-        ),*///ここで表示
         SizedBox(
           height: 50,//間隔を空ける
         ),
