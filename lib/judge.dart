@@ -25,10 +25,7 @@ String pri_fact(int n){
   String d = s+"は素数ではありません";
   if(i == 0)return d;
   else if(i == 1)return s+"は素数です！";
-  //else return s+"は素数ではありません";
   while(prime(n) > 1){
-    //var a = 1;
-    //if(fact.containsKey(prime(n)))a = fact[prime(n)]+1;
     fact.update(prime(n), (int value) => value+1, ifAbsent: () => 1);
     n ~/= prime(n);
   }
