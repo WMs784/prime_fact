@@ -5,7 +5,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'judge.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() => runApp(MyApp());
 
@@ -146,7 +145,7 @@ class _MyWidgetState extends State<MyWidget> {
         ElevatedButton(
           onPressed: () {
             setState(() {
-              if(b)s = pri_fact(count);
+              if(b)s = pri_fact(count, context);
               else s = e;
             });
           },

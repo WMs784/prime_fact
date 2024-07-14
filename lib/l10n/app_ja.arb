@@ -3,5 +3,7 @@
   "title": "素因数分解計算機",
    "settings": "設定",
    "button": "素因数分解",
-   "description": "18桁以下の正整数を入力してください"
+   "description": "18桁以下の正整数を入力してください",
+   "isPrime": "は素数です！",
+   "isNotPrime": "は素数ではありません"
 }
