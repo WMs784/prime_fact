@@ -158,7 +158,7 @@ class _MyWidgetState extends State<MyWidget> {
         ),
         FittedBox(
           fit: BoxFit.fitWidth,
-          child: Text(s,
+          child: Text(message(s, context),
             style: TextStyle(fontSize: 20),
           ),
         ),

@@ -2,11 +2,11 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-String setting = "言語設定";
 String s = '18桁以下の正整数を入力してください';//デフォルトメッセージ
 String e = '18桁以下の正整数を入力してください';
-String message(BuildContext context){
-  return AppLocalizations.of(context)!.description;
+String message(String message, BuildContext context){
+  if(message == '18桁以下の正整数を入力してください') return AppLocalizations.of(context)!.description;
+  else return message;
 }
 int prime(int n){
   if(n <= 1)return 0;
