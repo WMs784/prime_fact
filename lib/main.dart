@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:styled_text/styled_text.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'judge.dart';
 
 void main() => runApp(MyApp());
-
-/*<color name="teal_200">#FF03DAC5</color>
-<color name="teal_700">#FF018786</color>*/
-//const int _kPurplePrimaryValue = ;
 
 class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
   @override
@@ -30,6 +28,16 @@ class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
         focusColor: Colors.teal[200],
       ),
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        Locale('ja', ''), //日本語
+        Locale('en', ''), //英語
+      ],
       home: Scaffold(
         body: MyLayout(),
       ),
@@ -42,21 +50,23 @@ class MyLayout extends StatelessWidget {
     return SafeArea(
       child:Scaffold(
         appBar: AppBar(
-          title: Text("素因数分解計算機"),//上部のバーに表示される
+          title: Text(AppLocalizations.of(context)!.title),
         ),
         drawer: Drawer(
           child: ListView(
             children: <Widget>[
               DrawerHeader(
                 child: StyledText(
-                  text: '<set/>&space;'+setting,
+                  text: '<set/>&space;'+AppLocalizations.of(context)!.settings,
                   style: TextStyle(
-                      fontSize: 24
+                      fontSize: 24,
+                      color: Colors.white,
                   ),
                   tags: {
                     'set': StyledTextIconTag(
                       Icons.settings,
                       size: 30,
+                      color: Colors.white,
                     ),
                   },
                 ),
@@ -64,12 +74,20 @@ class MyLayout extends StatelessWidget {
                   color: Theme.of(context).primaryColor,
                 ),
               ),
+              // DropdownButton<String>(
+              //   items: [
+              //     DropdownMenuItem(value: "en", child: Text("English")),
+              //     DropdownMenuItem(value: "ja", child: Text("日本語")),
+              //   ],
+              //   onChanged: (value) {
+              //     widget.onLanguageChanged(value!);
+              //   },
+              // ),
               ListTile(
                 title: Text("日本語"),
                 onTap: (){
                   s = '18桁以下の正整数を入力してください';
                   e = s;
-                  setting = "言語設定";
                   Navigator.pop(context);
                   main();
                 },
@@ -79,7 +97,6 @@ class MyLayout extends StatelessWidget {
                 onTap: (){
                   s = "Please enter the number less than 18 digits.";
                   e = s;
-                  setting = "language setting";
                   Navigator.pop(context);
                   main();
                 },
@@ -103,6 +120,8 @@ class MyWidget extends StatefulWidget {
 class _MyWidgetState extends State<MyWidget> {
   int count = 0;
   bool b = true;
+
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -126,11 +145,11 @@ class _MyWidgetState extends State<MyWidget> {
         ElevatedButton(
           onPressed: () {
             setState(() {
-              if(b)s = pri_fact(count);
+              if(b)s = pri_fact(count, context);
               else s = e;
             });
           },
-          child: Text('素因数分解',
+          child: Text(AppLocalizations.of(context)!.button,
             style: TextStyle(fontSize: 20),
           ),
         ),
@@ -139,7 +158,7 @@ class _MyWidgetState extends State<MyWidget> {
         ),
         FittedBox(
           fit: BoxFit.fitWidth,
-          child: Text(s,
+          child: Text(message(s, context),
             style: TextStyle(fontSize: 20),
           ),
         ),

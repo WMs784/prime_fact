@@ -1,0 +1,9 @@
+{
+  "@@locale": "en",
+  "title": "Prime Factorizationer",
+  "settings": "Settings",
+  "button": "calculate",
+  "description": "Please enter a positive integer of 18 digits or less",
+  "isPrime": " is a prime number!",
+  "isNotPrime": " is not a prime number"
+}

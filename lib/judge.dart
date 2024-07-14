@@ -1,8 +1,13 @@
 import 'dart:math';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-String setting = "言語設定";
 String s = '18桁以下の正整数を入力してください';//デフォルトメッセージ
 String e = '18桁以下の正整数を入力してください';
+String message(String message, BuildContext context){
+  if(message == '18桁以下の正整数を入力してください') return AppLocalizations.of(context)!.description;
+  else return message;
+}
 int prime(int n){
   if(n <= 1)return 0;
   else if(n == 2)return 1;
@@ -16,15 +21,15 @@ int prime(int n){
     return 1;
   }
 }
-String pri_fact(int n){
-  String e = '18桁以下の正整数を入力してください';
+String pri_fact(int n, BuildContext context){
+  String e = AppLocalizations.of(context)!.description;
   if(n == null)return e;
   final fact = <int,int>{};
   int i = prime(n);
   String s = n.toString();
-  String d = s+"は素数ではありません";
+  String d = s+AppLocalizations.of(context)!.isNotPrime;
   if(i == 0)return d;
-  else if(i == 1)return s+"は素数です！";
+  else if(i == 1)return s+AppLocalizations.of(context)!.isPrime  ;
   while(prime(n) > 1){
     fact.update(prime(n), (int value) => value+1, ifAbsent: () => 1);
     n ~/= prime(n);
