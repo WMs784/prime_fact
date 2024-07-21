@@ -1,9 +1,13 @@
 {
   "@@locale": "en",
   "title": "Prime Factorizationer",
-  "settings": "Settings",
+  "info": "App Info",
   "button": "calculate",
   "description": "Please enter a positive integer of 18 digits or less",
   "isPrime": " is a prime number!",
-  "isNotPrime": " is not a prime number"
+  "isNotPrime": " is not a prime number",
+  "privacyPolicy": "Privacy Policy",
+  "review": "Review This App",
+  "contact": "Contact Us",
+  "aboutUs": "About Us"
 }
