@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import 'judge.dart';
 
@@ -57,14 +59,14 @@ class MyLayout extends StatelessWidget {
             children: <Widget>[
               DrawerHeader(
                 child: StyledText(
-                  text: '<set/>&space;'+AppLocalizations.of(context)!.settings,
+                  text: '<set/>&space;'+AppLocalizations.of(context)!.info,
                   style: TextStyle(
                       fontSize: 24,
                       color: Colors.white,
                   ),
                   tags: {
                     'set': StyledTextIconTag(
-                      Icons.settings,
+                      Icons.info,
                       size: 30,
                       color: Colors.white,
                     ),
@@ -74,33 +76,30 @@ class MyLayout extends StatelessWidget {
                   color: Theme.of(context).primaryColor,
                 ),
               ),
-              // DropdownButton<String>(
-              //   items: [
-              //     DropdownMenuItem(value: "en", child: Text("English")),
-              //     DropdownMenuItem(value: "ja", child: Text("日本語")),
-              //   ],
-              //   onChanged: (value) {
-              //     widget.onLanguageChanged(value!);
-              //   },
-              // ),
               ListTile(
-                title: Text("日本語"),
+                title: Text(AppLocalizations.of(context)!.privacyPolicy),
                 onTap: (){
-                  s = '18桁以下の正整数を入力してください';
-                  e = s;
-                  Navigator.pop(context);
-                  main();
+                  launchUrlString("https://wms784.github.io/prime_fact/");
                 },
               ),
               ListTile(
-                title: Text("English"),
+                title: Text(AppLocalizations.of(context)!.review),
                 onTap: (){
-                  s = "Please enter the number less than 18 digits.";
-                  e = s;
-                  Navigator.pop(context);
-                  main();
+                  launchUrlString("https://play.google.com/store/apps/details?id=project.My_prime_nember");
                 },
               ),
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.contact),
+                onTap: (){
+                  launchUrlString("https://forms.gle/YvXNAPHupB1wJFCR8");
+                },
+              ),
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.aboutUs),
+                onTap: (){
+                  launchUrlString("https://play.google.com/store/apps/dev?id=6078644560561044674");
+                },
+              )
             ],
           ),
         ),
