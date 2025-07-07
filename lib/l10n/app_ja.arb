@@ -1,9 +1,13 @@
 {
   "@@locale": "ja",
   "title": "素因数分解計算機",
-   "settings": "設定",
+   "info": "アプリ情報",
    "button": "素因数分解",
    "description": "18桁以下の正整数を入力してください",
    "isPrime": "は素数です！",
-   "isNotPrime": "は素数ではありません"
+   "isNotPrime": "は素数ではありません",
+   "privacyPolicy": "プライバシーポリシー",
+   "review": "評価する",
+   "contact": "お問い合わせ",
+   "aboutUs": "開発者情報"
 }
