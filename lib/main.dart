@@ -17,16 +17,21 @@ class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
       title: 'Flutter Demo',
       theme: ThemeData(
         brightness: Brightness.light,
-        primarySwatch: Colors.teal,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.teal,
+          primary: Colors.teal[700]!,
+        ),
         primaryColor: Colors.teal[700],
-        // accentColor: Colors.teal[300],
         focusColor: Colors.teal[200],
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        primarySwatch: Colors.teal,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.teal,
+          brightness: Brightness.dark,
+          primary: Colors.teal[300]!,
+        ),
         primaryColor: Colors.teal[700],
-        // accentColor: Colors.teal[300],
         focusColor: Colors.teal[200],
       ),
       debugShowCheckedModeBanner: false,
