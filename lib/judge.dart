@@ -1,14 +1,4 @@
-import 'package:flutter/cupertino.dart';
-import 'package:prime_fact/l10n/app_localizations.dart';
-
-const String _defaultMessage = '30桁以下の正整数を入力してください';
-String s = _defaultMessage;
-String e = _defaultMessage;
-
-String message(String msg, BuildContext context) {
-  if (msg == _defaultMessage) return AppLocalizations.of(context)!.description;
-  return msg;
-}
+String s = '';
 
 BigInt _gcd(BigInt a, BigInt b) {
   while (b != BigInt.zero) {
