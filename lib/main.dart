@@ -28,6 +28,12 @@ class MyApp extends StatelessWidget {
         ),
         primaryColor: Colors.teal[700],
         focusColor: Colors.teal[200],
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.teal[700],
+            foregroundColor: Colors.white,
+          ),
+        ),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
@@ -38,6 +44,12 @@ class MyApp extends StatelessWidget {
         ),
         primaryColor: Colors.teal[700],
         focusColor: Colors.teal[200],
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.teal[200],
+            foregroundColor: Colors.grey[900],
+          ),
+        ),
       ),
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
@@ -184,6 +196,10 @@ class _MyWidgetState extends State<MyWidget> {
           style: const TextStyle(fontSize: 25),
           textAlign: TextAlign.center,
           maxLength: 18,
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context)!.description,
+            hintTextDirection: TextDirection.ltr,
+          ),
           onChanged: (text) {
             try {
               count = int.parse(text);
