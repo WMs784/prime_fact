@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:prime_fact/l10n/app_localizations.dart';
 
 String s = '18桁以下の正整数を入力してください';//デフォルトメッセージ
 String e = '18桁以下の正整数を入力してください';

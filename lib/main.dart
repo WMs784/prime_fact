@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -17,16 +17,21 @@ class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
       title: 'Flutter Demo',
       theme: ThemeData(
         brightness: Brightness.light,
-        primarySwatch: Colors.teal,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.teal,
+          primary: Colors.teal[700]!,
+        ),
         primaryColor: Colors.teal[700],
-        // accentColor: Colors.teal[300],
         focusColor: Colors.teal[200],
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        primarySwatch: Colors.teal,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.teal,
+          brightness: Brightness.dark,
+          primary: Colors.teal[300]!,
+        ),
         primaryColor: Colors.teal[700],
-        // accentColor: Colors.teal[300],
         focusColor: Colors.teal[200],
       ),
       debugShowCheckedModeBanner: false,
