@@ -1,5 +1,5 @@
 class HistoryEntry {
-  final int input;
+  final String input;
   final String result;
   final DateTime timestamp;
 
@@ -16,7 +16,7 @@ class HistoryEntry {
   };
 
   factory HistoryEntry.fromJson(Map<String, dynamic> json) => HistoryEntry(
-    input: json['input'] as int,
+    input: json['input'].toString(),
     result: json['result'] as String,
     timestamp: DateTime.parse(json['timestamp'] as String),
   );

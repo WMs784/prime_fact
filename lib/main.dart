@@ -181,7 +181,7 @@ class MyWidget extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<MyWidget> {
-  int count = 0;
+  BigInt _count = BigInt.zero;
   bool b = true;
   bool _isLoading = false;
 
@@ -195,7 +195,7 @@ class _MyWidgetState extends State<MyWidget> {
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           style: const TextStyle(fontSize: 25),
           textAlign: TextAlign.center,
-          maxLength: 18,
+          maxLength: 30,
           decoration: InputDecoration(
             hintText: AppLocalizations.of(context)!.description,
             hintTextDirection: TextDirection.ltr,
@@ -206,7 +206,7 @@ class _MyWidgetState extends State<MyWidget> {
           ),
           onChanged: (text) {
             try {
-              count = int.parse(text);
+              _count = BigInt.parse(text);
               b = true;
             } catch (exception) {
               b = false;
@@ -224,7 +224,7 @@ class _MyWidgetState extends State<MyWidget> {
                   final loc = AppLocalizations.of(context)!;
                   final isNotPrime = loc.isNotPrime;
                   final isPrime = loc.isPrime;
-                  final inputNumber = count;
+                  final inputNumber = _count;
 
                   setState(() => _isLoading = true);
 
@@ -239,7 +239,7 @@ class _MyWidgetState extends State<MyWidget> {
                   });
 
                   widget.onCalculated?.call(HistoryEntry(
-                    input: inputNumber,
+                    input: inputNumber.toString(),
                     result: result,
                     timestamp: DateTime.now(),
                   ));
