@@ -200,7 +200,7 @@ class _MyWidgetState extends State<MyWidget> {
             hintText: AppLocalizations.of(context)!.description,
             hintTextDirection: TextDirection.ltr,
             hintStyle: TextStyle(
-              fontSize: 14,
+              fontSize: 18,
               color: Theme.of(context).hintColor,
             ),
           ),
