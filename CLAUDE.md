@@ -67,7 +67,20 @@ flutter pub get
 
 # Generate localization files
 flutter gen-l10n
+
+# Enable pre-commit hooks (run once after cloning)
+git config core.hooksPath .githooks
 ```
+
+## Git Hooks
+
+Pre-commit hooks are stored in `.githooks/` and run `flutter analyze` and `flutter test` before each commit. Enable them once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+To skip in an emergency: `git commit --no-verify`
 
 ## Architecture
 

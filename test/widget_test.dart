@@ -4,7 +4,7 @@ import 'package:prime_fact/main.dart';
 
 void main() {
   testWidgets('App renders calculator UI', (WidgetTester tester) async {
-    await tester.pumpWidget(MyApp());
+    await tester.pumpWidget(const MyApp());
     await tester.pump();
 
     expect(find.byType(TextField), findsOneWidget);
@@ -12,7 +12,7 @@ void main() {
   });
 
   testWidgets('Input field rejects non-numeric input', (WidgetTester tester) async {
-    await tester.pumpWidget(MyApp());
+    await tester.pumpWidget(const MyApp());
     await tester.pump();
 
     final field = find.byType(TextField);

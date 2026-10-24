@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+echo "--- flutter analyze ---"
+flutter analyze
+echo ""
+
+echo "--- flutter test ---"
+flutter test
+echo ""
+
+echo "Pre-commit checks passed."
