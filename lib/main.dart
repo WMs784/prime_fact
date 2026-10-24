@@ -11,9 +11,11 @@ import 'history_entry.dart';
 import 'history_repository.dart';
 import 'history_page.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -38,17 +40,17 @@ class MyApp extends StatelessWidget {
         focusColor: Colors.teal[200],
       ),
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: [
+      localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: [
+      supportedLocales: const [
         Locale('ja', ''),
         Locale('en', ''),
       ],
-      home: Scaffold(
+      home: const Scaffold(
         body: MyLayout(),
       ),
     );
@@ -56,8 +58,10 @@ class MyApp extends StatelessWidget {
 }
 
 class MyLayout extends StatefulWidget {
+  const MyLayout({Key? key}) : super(key: key);
+
   @override
-  _MyLayoutState createState() => _MyLayoutState();
+  State<MyLayout> createState() => _MyLayoutState();
 }
 
 class _MyLayoutState extends State<MyLayout> {
@@ -87,9 +91,12 @@ class _MyLayoutState extends State<MyLayout> {
           child: ListView(
             children: <Widget>[
               DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                ),
                 child: StyledText(
-                  text: '<set/>&space;' + loc.info,
-                  style: TextStyle(
+                  text: '<set/>&space;${loc.info}',
+                  style: const TextStyle(
                     fontSize: 24,
                     color: Colors.white,
                   ),
@@ -101,12 +108,9 @@ class _MyLayoutState extends State<MyLayout> {
                     ),
                   },
                 ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                ),
               ),
               ListTile(
-                leading: Icon(Icons.history),
+                leading: const Icon(Icons.history),
                 title: Text(loc.history),
                 onTap: () {
                   Navigator.pop(context);
@@ -121,27 +125,27 @@ class _MyLayoutState extends State<MyLayout> {
               ListTile(
                 title: Text(loc.privacyPolicy),
                 onTap: () {
-                  launchUrlString("https://wms784.github.io/prime_fact/");
+                  launchUrlString('https://wms784.github.io/prime_fact/');
                 },
               ),
               ListTile(
                 title: Text(loc.review),
                 onTap: () {
                   launchUrlString(
-                      "https://play.google.com/store/apps/details?id=project.My_prime_nember");
+                      'https://play.google.com/store/apps/details?id=project.My_prime_nember');
                 },
               ),
               ListTile(
                 title: Text(loc.contact),
                 onTap: () {
-                  launchUrlString("https://forms.gle/YvXNAPHupB1wJFCR8");
+                  launchUrlString('https://forms.gle/YvXNAPHupB1wJFCR8');
                 },
               ),
               ListTile(
                 title: Text(loc.aboutUs),
                 onTap: () {
                   launchUrlString(
-                      "https://play.google.com/store/apps/dev?id=6078644560561044674");
+                      'https://play.google.com/store/apps/dev?id=6078644560561044674');
                 },
               ),
             ],
@@ -161,7 +165,7 @@ class MyWidget extends StatefulWidget {
   const MyWidget({Key? key, this.onCalculated}) : super(key: key);
 
   @override
-  _MyWidgetState createState() => _MyWidgetState();
+  State<MyWidget> createState() => _MyWidgetState();
 }
 
 class _MyWidgetState extends State<MyWidget> {
@@ -177,7 +181,7 @@ class _MyWidgetState extends State<MyWidget> {
         TextField(
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: TextStyle(fontSize: 25),
+          style: const TextStyle(fontSize: 25),
           textAlign: TextAlign.center,
           maxLength: 18,
           onChanged: (text) {
@@ -222,17 +226,17 @@ class _MyWidgetState extends State<MyWidget> {
                 },
           child: Text(
             AppLocalizations.of(context)!.button,
-            style: TextStyle(fontSize: 20),
+            style: const TextStyle(fontSize: 20),
           ),
         ),
-        SizedBox(height: 50),
+        const SizedBox(height: 50),
         _isLoading
-            ? CircularProgressIndicator()
+            ? const CircularProgressIndicator()
             : FittedBox(
                 fit: BoxFit.fitWidth,
                 child: Text(
                   message(s, context),
-                  style: TextStyle(fontSize: 20),
+                  style: const TextStyle(fontSize: 20),
                 ),
               ),
       ],
