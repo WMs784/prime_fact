@@ -188,7 +188,7 @@ class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -259,11 +259,10 @@ class _MyWidgetState extends State<MyWidget> {
                     Expanded(
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
-                        alignment: Alignment.center,
+                        alignment: Alignment.centerLeft,
                         child: Text(
                           message(s, context),
                           style: const TextStyle(fontSize: 20),
-                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
