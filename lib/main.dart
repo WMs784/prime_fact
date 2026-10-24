@@ -199,6 +199,10 @@ class _MyWidgetState extends State<MyWidget> {
           decoration: InputDecoration(
             hintText: AppLocalizations.of(context)!.description,
             hintTextDirection: TextDirection.ltr,
+            hintStyle: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).hintColor,
+            ),
           ),
           onChanged: (text) {
             try {
