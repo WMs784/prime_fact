@@ -187,79 +187,90 @@ class _MyWidgetState extends State<MyWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        TextField(
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: const TextStyle(fontSize: 25),
-          textAlign: TextAlign.center,
-          maxLength: 30,
-          decoration: InputDecoration(
-            hintText: AppLocalizations.of(context)!.description,
-            hintTextDirection: TextDirection.ltr,
-            hintStyle: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).hintColor,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          TextField(
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            style: const TextStyle(fontSize: 18),
+            textAlign: TextAlign.center,
+            maxLength: 30,
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context)!.description,
+              hintTextDirection: TextDirection.ltr,
+              hintStyle: TextStyle(
+                fontSize: 18,
+                color: Theme.of(context).hintColor,
+              ),
+            ),
+            onChanged: (text) {
+              try {
+                _count = BigInt.parse(text);
+                b = true;
+              } catch (exception) {
+                b = false;
+              }
+            },
+          ),
+          ElevatedButton(
+            onPressed: _isLoading
+                ? null
+                : () async {
+                    if (!b) {
+                      setState(() => s = e);
+                      return;
+                    }
+                    final loc = AppLocalizations.of(context)!;
+                    final isNotPrime = loc.isNotPrime;
+                    final isPrime = loc.isPrime;
+                    final inputNumber = _count;
+
+                    setState(() => _isLoading = true);
+
+                    final result = await compute(
+                      pri_fact_isolate,
+                      [inputNumber, isNotPrime, isPrime],
+                    );
+
+                    setState(() {
+                      s = result;
+                      _isLoading = false;
+                    });
+
+                    widget.onCalculated?.call(HistoryEntry(
+                      input: inputNumber.toString(),
+                      result: result,
+                      timestamp: DateTime.now(),
+                    ));
+                  },
+            child: Text(
+              AppLocalizations.of(context)!.button,
+              style: const TextStyle(fontSize: 20),
             ),
           ),
-          onChanged: (text) {
-            try {
-              _count = BigInt.parse(text);
-              b = true;
-            } catch (exception) {
-              b = false;
-            }
-          },
-        ),
-        ElevatedButton(
-          onPressed: _isLoading
-              ? null
-              : () async {
-                  if (!b) {
-                    setState(() => s = e);
-                    return;
-                  }
-                  final loc = AppLocalizations.of(context)!;
-                  final isNotPrime = loc.isNotPrime;
-                  final isPrime = loc.isPrime;
-                  final inputNumber = _count;
-
-                  setState(() => _isLoading = true);
-
-                  final result = await compute(
-                    pri_fact_isolate,
-                    [inputNumber, isNotPrime, isPrime],
-                  );
-
-                  setState(() {
-                    s = result;
-                    _isLoading = false;
-                  });
-
-                  widget.onCalculated?.call(HistoryEntry(
-                    input: inputNumber.toString(),
-                    result: result,
-                    timestamp: DateTime.now(),
-                  ));
-                },
-          child: Text(
-            AppLocalizations.of(context)!.button,
-            style: const TextStyle(fontSize: 20),
-          ),
-        ),
-        const SizedBox(height: 50),
-        _isLoading
-            ? const CircularProgressIndicator()
-            : FittedBox(
-                fit: BoxFit.fitWidth,
-                child: Text(
-                  message(s, context),
-                  style: const TextStyle(fontSize: 20),
+          const SizedBox(height: 50),
+          _isLoading
+              ? const CircularProgressIndicator()
+              : Row(
+                  children: [
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.center,
+                        child: Text(
+                          message(s, context),
+                          style: const TextStyle(fontSize: 20),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-      ],
+        ],
+      ),
     );
   }
 }

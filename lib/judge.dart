@@ -123,6 +123,7 @@ void _factorHelper(BigInt n, Map<BigInt, int> factors) {
 }
 
 // args = [n (BigInt), isNotPrimeStr, isPrimeStr]
+// ignore: non_constant_identifier_names
 String pri_fact_isolate(List<dynamic> args) {
   final BigInt n = args[0] as BigInt;
   final String isNotPrime = args[1] as String;
