@@ -34,9 +34,10 @@ String pri_fact_isolate(List<dynamic> args){
   String d = s + isNotPrime;
   if(i == 0)return d;
   else if(i == 1)return s + isPrime;
-  while(prime(n) > 1){
-    fact.update(prime(n), (int value) => value+1, ifAbsent: () => 1);
-    n ~/= prime(n);
+  int p;
+  while((p = prime(n)) > 1){
+    fact.update(p, (int value) => value+1, ifAbsent: () => 1);
+    n ~/= p;
   }
   fact.update(n, (int value) => value+1, ifAbsent: () => 1);
   s += '=';
