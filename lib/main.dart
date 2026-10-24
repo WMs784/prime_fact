@@ -94,76 +94,78 @@ class _MyLayoutState extends State<MyLayout> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(loc.title),
-        ),
-        drawer: Drawer(
-          child: ListView(
-            children: <Widget>[
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(loc.title),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+              ),
+              child: StyledText(
+                text: '<set/>&space;${loc.info}',
+                style: const TextStyle(
+                  fontSize: 24,
+                  color: Colors.white,
                 ),
-                child: StyledText(
-                  text: '<set/>&space;${loc.info}',
-                  style: const TextStyle(
-                    fontSize: 24,
+                tags: {
+                  'set': StyledTextIconTag(
+                    Icons.info,
+                    size: 30,
                     color: Colors.white,
                   ),
-                  tags: {
-                    'set': StyledTextIconTag(
-                      Icons.info,
-                      size: 30,
-                      color: Colors.white,
-                    ),
-                  },
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.history),
-                title: Text(loc.history),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => HistoryPage(history: _history),
-                    ),
-                  );
                 },
               ),
-              ListTile(
-                title: Text(loc.privacyPolicy),
-                onTap: () {
-                  launchUrlString('https://wms784.github.io/prime_fact/');
-                },
-              ),
-              ListTile(
-                title: Text(loc.review),
-                onTap: () {
-                  launchUrlString(
-                      'https://play.google.com/store/apps/details?id=project.My_prime_nember');
-                },
-              ),
-              ListTile(
-                title: Text(loc.contact),
-                onTap: () {
-                  launchUrlString('https://forms.gle/YvXNAPHupB1wJFCR8');
-                },
-              ),
-              ListTile(
-                title: Text(loc.aboutUs),
-                onTap: () {
-                  launchUrlString(
-                      'https://play.google.com/store/apps/dev?id=6078644560561044674');
-                },
-              ),
-            ],
-          ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: Text(loc.history),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => HistoryPage(history: _history),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              title: Text(loc.privacyPolicy),
+              onTap: () {
+                launchUrlString('https://wms784.github.io/prime_fact/');
+              },
+            ),
+            ListTile(
+              title: Text(loc.review),
+              onTap: () {
+                launchUrlString(
+                    'https://play.google.com/store/apps/details?id=project.My_prime_nember');
+              },
+            ),
+            ListTile(
+              title: Text(loc.contact),
+              onTap: () {
+                launchUrlString('https://forms.gle/YvXNAPHupB1wJFCR8');
+              },
+            ),
+            ListTile(
+              title: Text(loc.aboutUs),
+              onTap: () {
+                launchUrlString(
+                    'https://play.google.com/store/apps/dev?id=6078644560561044674');
+              },
+            ),
+          ],
         ),
-        body: Center(
+      ),
+      // AppBar がステータスバー側のインセットを処理するため、本文は上以外を保護する
+      body: SafeArea(
+        top: false,
+        child: Center(
           child: MyWidget(onCalculated: _addHistory),
         ),
       ),

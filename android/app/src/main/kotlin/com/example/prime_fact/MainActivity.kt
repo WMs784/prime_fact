@@ -1,6 +1,13 @@
 package com.example.prime_fact
 
-import io.flutter.embedding.android.FlutterActivity
+import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity: FlutterActivity() {
+class MainActivity: FlutterFragmentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        // Android 14 以前でも Android 15 以降と同じエッジ ツー エッジ表示にする
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+    }
 }
