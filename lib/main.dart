@@ -222,7 +222,7 @@ class _MyWidgetState extends State<MyWidget> {
                 ? null
                 : () async {
                     if (!b) {
-                      setState(() => s = e);
+                      setState(() => s = '');
                       return;
                     }
                     final loc = AppLocalizations.of(context)!;
@@ -263,7 +263,7 @@ class _MyWidgetState extends State<MyWidget> {
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          message(s, context),
+                          s,
                           style: const TextStyle(fontSize: 20),
                         ),
                       ),
