@@ -21,18 +21,23 @@ int prime(int n){
     return 1;
   }
 }
-String pri_fact(int n, BuildContext context){
-  String e = AppLocalizations.of(context)!.description;
-  if(n == null)return e;
+// args = [n, isNotPrimeStr, isPrimeStr]
+// compute() から呼び出せるよう BuildContext を使わない形にしている
+String pri_fact_isolate(List<dynamic> args){
+  int n             = args[0] as int;
+  String isNotPrime = args[1] as String;
+  String isPrime    = args[2] as String;
+
   final fact = <int,int>{};
   int i = prime(n);
   String s = n.toString();
-  String d = s+AppLocalizations.of(context)!.isNotPrime;
+  String d = s + isNotPrime;
   if(i == 0)return d;
-  else if(i == 1)return s+AppLocalizations.of(context)!.isPrime  ;
-  while(prime(n) > 1){
-    fact.update(prime(n), (int value) => value+1, ifAbsent: () => 1);
-    n ~/= prime(n);
+  else if(i == 1)return s + isPrime;
+  int p;
+  while((p = prime(n)) > 1){
+    fact.update(p, (int value) => value+1, ifAbsent: () => 1);
+    n ~/= p;
   }
   fact.update(n, (int value) => value+1, ifAbsent: () => 1);
   s += '=';

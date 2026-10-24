@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:styled_text/styled_text.dart';
@@ -124,6 +125,7 @@ class MyWidget extends StatefulWidget {
 class _MyWidgetState extends State<MyWidget> {
   int count = 0;
   bool b = true;
+  bool _isLoading = false;
 
 
   @override
@@ -147,10 +149,25 @@ class _MyWidgetState extends State<MyWidget> {
           },
         ),
         ElevatedButton(
-          onPressed: () {
+          onPressed: _isLoading ? null : () async {
+            if (!b) {
+              setState(() => s = e);
+              return;
+            }
+            final loc = AppLocalizations.of(context)!;
+            final isNotPrime = loc.isNotPrime;
+            final isPrime    = loc.isPrime;
+
+            setState(() => _isLoading = true);
+
+            final result = await compute(
+              pri_fact_isolate,
+              [count, isNotPrime, isPrime],
+            );
+
             setState(() {
-              if(b)s = pri_fact(count, context);
-              else s = e;
+              s = result;
+              _isLoading = false;
             });
           },
           child: Text(AppLocalizations.of(context)!.button,
@@ -160,12 +177,14 @@ class _MyWidgetState extends State<MyWidget> {
         SizedBox(
           height: 50,//間隔を空ける
         ),
-        FittedBox(
-          fit: BoxFit.fitWidth,
-          child: Text(message(s, context),
-            style: TextStyle(fontSize: 20),
-          ),
-        ),
+        _isLoading
+          ? CircularProgressIndicator()
+          : FittedBox(
+              fit: BoxFit.fitWidth,
+              child: Text(message(s, context),
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
       ],
     );
   }
