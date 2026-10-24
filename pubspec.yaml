@@ -32,6 +32,7 @@ dependencies:
   flutter_localization: ^0.2.0
   intl: ^0.20.2
   url_launcher: ^6.0.18
+  shared_preferences: ^2.3.0
 
 dev_dependencies:
   flutter_test:

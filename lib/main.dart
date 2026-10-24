@@ -4,14 +4,16 @@ import 'package:flutter/services.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'judge.dart';
+import 'history_entry.dart';
+import 'history_repository.dart';
+import 'history_page.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -43,8 +45,8 @@ class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: [
-        Locale('ja', ''), //日本語
-        Locale('en', ''), //英語
+        Locale('ja', ''),
+        Locale('en', ''),
       ],
       home: Scaffold(
         body: MyLayout(),
@@ -52,23 +54,44 @@ class MyApp extends StatelessWidget {//MyWidgetの配置を決めるクラス
     );
   }
 }
-class MyLayout extends StatelessWidget {
+
+class MyLayout extends StatefulWidget {
   @override
-  Widget build(BuildContext context){
+  _MyLayoutState createState() => _MyLayoutState();
+}
+
+class _MyLayoutState extends State<MyLayout> {
+  List<HistoryEntry> _history = [];
+  final _repo = HistoryRepository();
+
+  @override
+  void initState() {
+    super.initState();
+    _repo.load().then((list) => setState(() => _history = list));
+  }
+
+  void _addHistory(HistoryEntry entry) async {
+    setState(() => _history.add(entry));
+    await _repo.save(_history);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return SafeArea(
-      child:Scaffold(
+      child: Scaffold(
         appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.title),
+          title: Text(loc.title),
         ),
         drawer: Drawer(
           child: ListView(
             children: <Widget>[
               DrawerHeader(
                 child: StyledText(
-                  text: '<set/>&space;'+AppLocalizations.of(context)!.info,
+                  text: '<set/>&space;' + loc.info,
                   style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.white,
+                    fontSize: 24,
+                    color: Colors.white,
                   ),
                   tags: {
                     'set': StyledTextIconTag(
@@ -83,34 +106,49 @@ class MyLayout extends StatelessWidget {
                 ),
               ),
               ListTile(
-                title: Text(AppLocalizations.of(context)!.privacyPolicy),
-                onTap: (){
+                leading: Icon(Icons.history),
+                title: Text(loc.history),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => HistoryPage(history: _history),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                title: Text(loc.privacyPolicy),
+                onTap: () {
                   launchUrlString("https://wms784.github.io/prime_fact/");
                 },
               ),
               ListTile(
-                title: Text(AppLocalizations.of(context)!.review),
-                onTap: (){
-                  launchUrlString("https://play.google.com/store/apps/details?id=project.My_prime_nember");
+                title: Text(loc.review),
+                onTap: () {
+                  launchUrlString(
+                      "https://play.google.com/store/apps/details?id=project.My_prime_nember");
                 },
               ),
               ListTile(
-                title: Text(AppLocalizations.of(context)!.contact),
-                onTap: (){
+                title: Text(loc.contact),
+                onTap: () {
                   launchUrlString("https://forms.gle/YvXNAPHupB1wJFCR8");
                 },
               ),
               ListTile(
-                title: Text(AppLocalizations.of(context)!.aboutUs),
-                onTap: (){
-                  launchUrlString("https://play.google.com/store/apps/dev?id=6078644560561044674");
+                title: Text(loc.aboutUs),
+                onTap: () {
+                  launchUrlString(
+                      "https://play.google.com/store/apps/dev?id=6078644560561044674");
                 },
-              )
+              ),
             ],
           ),
         ),
         body: Center(
-          child:MyWidget(),
+          child: MyWidget(onCalculated: _addHistory),
         ),
       ),
     );
@@ -118,6 +156,10 @@ class MyLayout extends StatelessWidget {
 }
 
 class MyWidget extends StatefulWidget {
+  final void Function(HistoryEntry)? onCalculated;
+
+  const MyWidget({Key? key, this.onCalculated}) : super(key: key);
+
   @override
   _MyWidgetState createState() => _MyWidgetState();
 }
@@ -126,7 +168,6 @@ class _MyWidgetState extends State<MyWidget> {
   int count = 0;
   bool b = true;
   bool _isLoading = false;
-
 
   @override
   Widget build(BuildContext context) {
@@ -139,52 +180,61 @@ class _MyWidgetState extends State<MyWidget> {
           style: TextStyle(fontSize: 25),
           textAlign: TextAlign.center,
           maxLength: 18,
-          onChanged: (text){
-            try{
+          onChanged: (text) {
+            try {
               count = int.parse(text);
               b = true;
-            }catch(exception){
+            } catch (exception) {
               b = false;
             }
           },
         ),
         ElevatedButton(
-          onPressed: _isLoading ? null : () async {
-            if (!b) {
-              setState(() => s = e);
-              return;
-            }
-            final loc = AppLocalizations.of(context)!;
-            final isNotPrime = loc.isNotPrime;
-            final isPrime    = loc.isPrime;
+          onPressed: _isLoading
+              ? null
+              : () async {
+                  if (!b) {
+                    setState(() => s = e);
+                    return;
+                  }
+                  final loc = AppLocalizations.of(context)!;
+                  final isNotPrime = loc.isNotPrime;
+                  final isPrime = loc.isPrime;
+                  final inputNumber = count;
 
-            setState(() => _isLoading = true);
+                  setState(() => _isLoading = true);
 
-            final result = await compute(
-              pri_fact_isolate,
-              [count, isNotPrime, isPrime],
-            );
+                  final result = await compute(
+                    pri_fact_isolate,
+                    [inputNumber, isNotPrime, isPrime],
+                  );
 
-            setState(() {
-              s = result;
-              _isLoading = false;
-            });
-          },
-          child: Text(AppLocalizations.of(context)!.button,
+                  setState(() {
+                    s = result;
+                    _isLoading = false;
+                  });
+
+                  widget.onCalculated?.call(HistoryEntry(
+                    input: inputNumber,
+                    result: result,
+                    timestamp: DateTime.now(),
+                  ));
+                },
+          child: Text(
+            AppLocalizations.of(context)!.button,
             style: TextStyle(fontSize: 20),
           ),
         ),
-        SizedBox(
-          height: 50,//間隔を空ける
-        ),
+        SizedBox(height: 50),
         _isLoading
-          ? CircularProgressIndicator()
-          : FittedBox(
-              fit: BoxFit.fitWidth,
-              child: Text(message(s, context),
-                style: TextStyle(fontSize: 20),
+            ? CircularProgressIndicator()
+            : FittedBox(
+                fit: BoxFit.fitWidth,
+                child: Text(
+                  message(s, context),
+                  style: TextStyle(fontSize: 20),
+                ),
               ),
-            ),
       ],
     );
   }

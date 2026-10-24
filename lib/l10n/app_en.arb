@@ -9,5 +9,8 @@
   "privacyPolicy": "Privacy Policy",
   "review": "Review This App",
   "contact": "Contact Us",
-  "aboutUs": "About Us"
+  "aboutUs": "About Us",
+  "history": "History",
+  "historyTitle": "Calculation History",
+  "historyEmpty": "No history yet"
 }
