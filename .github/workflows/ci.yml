@@ -24,7 +24,6 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: "3.32.7"
           cache: true
 
       - name: Install dependencies
@@ -52,7 +51,6 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: "3.32.7"
           cache: true
 
       - name: Install dependencies
@@ -68,12 +66,6 @@ jobs:
           storeFile=dummy.jks
           storePassword=dummy
           PROPS
-
-      # プロジェクトの Xmx1536M では Jetify が OOM になるため CI 側で上書きする。
-      - name: Increase Gradle heap
-        run: |
-          mkdir -p ~/.gradle
-          echo "org.gradle.jvmargs=-Xmx4G" >> ~/.gradle/gradle.properties
 
       - name: Build debug APK
         run: flutter build apk --debug
