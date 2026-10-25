@@ -8,7 +8,7 @@ This is a Flutter application that calculates prime factorization of numbers. Th
 
 **Key Details:**
 - App Name: Prime Factorization Calculator (素因数分解計算機)
-- Version: 2.0.1+3
+- Version: 4.0.0+17
 - Flutter SDK: 3.47.8 (stable, Dart 3.13) 以上。AGP 9 / Gradle 9 を使うため、古い Flutter ではビルドできない
 - Package ID: `project.My_prime_nember` (Android)
 
@@ -86,7 +86,8 @@ To skip in an emergency: `git commit --no-verify`
 
 ### Core Structure
 - **`lib/main.dart`**: Main app entry point with MaterialApp setup, theme configuration, and localization delegates
-- **`lib/judge.dart`**: Core business logic containing prime factorization algorithms (`prime()` and `pri_fact()` functions)
+- **`lib/judge.dart`**: Core business logic (Miller-Rabin primality test, Pollard-Brent factorization on `BigInt`; entry point `pri_fact_isolate()` runs in an isolate)
+- **`lib/history_*.dart`**: Calculation history (`HistoryEntry`, `HistoryRepository` persisting via `shared_preferences`, `HistoryPage`)
 - **`lib/l10n/`**: Internationalization files for Japanese and English support
 
 ### Key Components
@@ -95,9 +96,9 @@ To skip in an emergency: `git commit --no-verify`
 3. **MyWidget**: Primary calculator interface with input field and result display
 
 ### Algorithm Implementation
-- Prime detection uses trial division up to √n
-- Factorization algorithm iteratively divides by smallest prime factors
-- Supports integers up to 18 digits
+- Primality: Miller-Rabin with fixed witnesses (deterministic below 3.3×10^24, error < 4^-20 for 30 digits)
+- Factorization: Pollard-Brent rho on `BigInt`, recursing on found factors
+- Supports integers up to 30 digits
 - Returns formatted results with Japanese/English localization
 
 ### State Management
@@ -131,8 +132,9 @@ The app supports Japanese and English:
 
 ### Core Dependencies
 - `styled_text: ^8.1.0` - Rich text formatting for results
-- `flutter_localization: ^0.2.0` - Internationalization support
-- `intl: ^0.18.0` - Date/number formatting
+- `flutter_localizations` (SDK) - Internationalization support
+- `intl: ^0.20.2` - Date/number formatting
+- `shared_preferences: ^2.3.0` - Persisting calculation history
 - `url_launcher: ^6.0.18` - External links in drawer
 
 ### Dev Dependencies
@@ -146,7 +148,7 @@ The app supports Japanese and English:
 - Teal color scheme for consistent branding
 
 ### Testing
-- Basic widget test setup exists but needs updating
+- Basic widget tests exist in `test/widget_test.dart`
 - Test coverage is minimal and should be expanded
 - Focus testing on prime factorization logic in `judge.dart`
 
@@ -155,7 +157,6 @@ The app supports Japanese and English:
 - Input validation could be more robust
 
 ### Git Workflow
-- **Current branch**: `feature/fix_drawer`
 - **Main branch**: `master`
-- Feature branch workflow in use
-- Recent work includes drawer fixes and multi-language improvements
+- Feature branch workflow in use; PRs target `master`
+- CI (`.github/workflows/ci.yml`) runs `flutter analyze`, `flutter test` and a debug APK build on PRs and pushes to `master`
