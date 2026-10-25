@@ -14,7 +14,7 @@ import 'history_page.dart';
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +70,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyLayout extends StatefulWidget {
-  const MyLayout({Key? key}) : super(key: key);
+  const MyLayout({super.key});
 
   @override
   State<MyLayout> createState() => _MyLayoutState();
@@ -176,7 +176,7 @@ class _MyLayoutState extends State<MyLayout> {
 class MyWidget extends StatefulWidget {
   final void Function(HistoryEntry)? onCalculated;
 
-  const MyWidget({Key? key, this.onCalculated}) : super(key: key);
+  const MyWidget({super.key, this.onCalculated});
 
   @override
   State<MyWidget> createState() => _MyWidgetState();

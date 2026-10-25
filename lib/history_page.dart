@@ -5,7 +5,7 @@ import 'history_entry.dart';
 class HistoryPage extends StatelessWidget {
   final List<HistoryEntry> history;
 
-  const HistoryPage({Key? key, required this.history}) : super(key: key);
+  const HistoryPage({super.key, required this.history});
 
   @override
   Widget build(BuildContext context) {
