@@ -41,8 +41,11 @@ jobs:
       - name: Build web
         run: flutter build web --release --base-href "/${{ github.event.repository.name }}/app/"
 
+      # jekyll-build-pages は root で実行されるため、_site の所有者を戻してからコピーする
       - name: Add web app to site
-        run: cp -r build/web _site/app
+        run: |
+          sudo chown -R "$USER" _site
+          cp -r build/web _site/app
 
       - uses: actions/upload-pages-artifact@v3
         with:
