@@ -13,5 +13,6 @@
    "history": "履歴",
    "historyTitle": "計算履歴",
    "historyEmpty": "履歴がありません",
-  "errorEmpty": "数値を入力してください"
+  "errorEmpty": "数値を入力してください",
+  "isGrothendieckPrime": "は素数です！ by グロタンディーク"
 }

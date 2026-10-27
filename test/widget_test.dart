@@ -54,6 +54,19 @@ void main() {
     await tester.pump();
     expect(find.text('0 is not a prime number'), findsOneWidget);
   });
+
+  testWidgets('57 is shown as the Grothendieck prime (ja)', (tester) async {
+    _setLocale(tester, const Locale('ja'));
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '57');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
+    await tester.pump();
+    expect(find.textContaining('57は素数です！ by グロタンディーク'), findsOneWidget);
+    expect(find.textContaining('57=3x19'), findsOneWidget);
+  });
 }
 
 void _setLocale(WidgetTester tester, Locale locale) {
