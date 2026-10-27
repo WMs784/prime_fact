@@ -74,13 +74,19 @@ git config core.hooksPath .githooks
 
 ## Git Hooks
 
-Pre-commit hooks are stored in `.githooks/` and run `flutter analyze` and `flutter test` before each commit. Enable them once per clone:
+Pre-commit hooks are stored in `.githooks/` and run `dart format` (check only), `flutter analyze` and `flutter test` before each commit. If the format check fails, run `dart format .`. Enable them once per clone:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
 To skip in an emergency: `git commit --no-verify`
+
+To hide the bulk formatting commit from `git blame` locally (GitHub already honors `.git-blame-ignore-revs`):
+
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
 
 ## Architecture
 
@@ -159,4 +165,4 @@ The app supports Japanese and English:
 ### Git Workflow
 - **Main branch**: `master`
 - Feature branch workflow in use; PRs target `master`
-- CI (`.github/workflows/ci.yml`) runs `flutter analyze`, `flutter test` and a debug APK build on PRs and pushes to `master`
+- CI (`.github/workflows/ci.yml`) runs `dart format` (check only), `flutter analyze`, `flutter test` and a debug APK build on PRs and pushes to `master`

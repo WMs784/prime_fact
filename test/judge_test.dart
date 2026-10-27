@@ -120,11 +120,16 @@ void main() {
     });
 
     test('product of the factors reproduces the input', () {
-      for (final n in ['123456789', '9876543210', '600851475143',
-          '123456789012345678901234567890']) {
+      for (final n in [
+        '123456789',
+        '9876543210',
+        '600851475143',
+        '123456789012345678901234567890',
+      ]) {
         final factors = factorsOf(n).split('x').map((t) {
           final parts = t.split('^');
-          return BigInt.parse(parts[0]).pow(parts.length > 1 ? int.parse(parts[1]) : 1);
+          return BigInt.parse(parts[0])
+              .pow(parts.length > 1 ? int.parse(parts[1]) : 1);
         });
         final product = factors.fold(BigInt.one, (a, b) => a * b);
         expect(product, BigInt.parse(n), reason: 'n=$n');

@@ -44,9 +44,15 @@ void main() {
       final repo = HistoryRepository();
       final entries = [
         HistoryEntry(
-            input: '7', result: 'prime', timestamp: DateTime.utc(2026, 1, 1)),
+          input: '7',
+          result: 'prime',
+          timestamp: DateTime.utc(2026, 1, 1),
+        ),
         HistoryEntry(
-            input: '8', result: '2^3', timestamp: DateTime.utc(2026, 1, 2)),
+          input: '8',
+          result: '2^3',
+          timestamp: DateTime.utc(2026, 1, 2),
+        ),
       ];
       await repo.save(entries);
       final loaded = await repo.load();
@@ -56,8 +62,9 @@ void main() {
     });
 
     test('load returns empty list for corrupted data', () async {
-      SharedPreferences.setMockInitialValues(
-          {'calculation_history': 'not json'});
+      SharedPreferences.setMockInitialValues({
+        'calculation_history': 'not json',
+      });
       expect(await HistoryRepository().load(), isEmpty);
     });
   });

@@ -62,7 +62,9 @@ void main() {
 
     await tester.enterText(find.byType(TextField), '57');
     await tester.tap(find.byType(ElevatedButton));
-    await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 500)),
+    );
     await tester.pump();
     expect(find.textContaining('57は素数です！ by グロタンディーク'), findsOneWidget);
     expect(find.textContaining('57=3x19'), findsOneWidget);

@@ -10,7 +10,28 @@ BigInt _gcd(BigInt a, BigInt b) {
 }
 
 // Deterministic for n < 3.3×10^24; effectively deterministic (error < 4^-20) for 30-digit n
-const _witnesses = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71];
+const _witnesses = [
+  2,
+  3,
+  5,
+  7,
+  11,
+  13,
+  17,
+  19,
+  23,
+  29,
+  31,
+  37,
+  41,
+  43,
+  47,
+  53,
+  59,
+  61,
+  67,
+  71,
+];
 
 bool _isPrime(BigInt n) {
   if (n < BigInt.two) return false;
@@ -131,9 +152,11 @@ String pri_fact_isolate(List<dynamic> args) {
   final sortedEntries = factors.entries.toList()
     ..sort((a, b) => a.key.compareTo(b.key));
 
-  final factStr = sortedEntries.map((e) {
-    return e.value == 1 ? e.key.toString() : '${e.key}^${e.value}';
-  }).join('x');
+  final factStr = sortedEntries
+      .map((e) {
+        return e.value == 1 ? e.key.toString() : '${e.key}^${e.value}';
+      })
+      .join('x');
 
   final header = (n == BigInt.from(57) && grothendieck != null)
       ? grothendieck
