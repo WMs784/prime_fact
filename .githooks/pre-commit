@@ -1,6 +1,13 @@
 #!/bin/sh
 set -e
 
+echo "--- dart format ---"
+dart format --output=none --set-exit-if-changed . || {
+  echo "Run 'dart format .' to fix the files above."
+  exit 1
+}
+echo ""
+
 echo "--- flutter analyze ---"
 flutter analyze
 echo ""
