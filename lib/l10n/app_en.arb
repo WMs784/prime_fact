@@ -3,7 +3,7 @@
   "title": "Prime Factorizationer",
   "info": "App Info",
   "button": "calculate",
-  "description": "Please enter an integer (0 or more) of 30 digits or less",
+  "description": "Please enter a positive integer of 30 digits or less",
   "isPrime": " is a prime number!",
   "isNotPrime": " is not a prime number",
   "privacyPolicy": "Privacy Policy",
