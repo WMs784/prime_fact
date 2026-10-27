@@ -34,7 +34,9 @@ A Flutter app that factorizes a positive integer into primes. Supports Japanese 
 
 ## ライセンス / License
 
-現在、リポジトリに `LICENSE` ファイルは含まれていません。再利用や再配布を希望する場合は、事前に作者へ確認してください。
+[MIT License](LICENSE) の下で公開しています。
+
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
