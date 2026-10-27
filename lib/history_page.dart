@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
+
 import 'history_entry.dart';
 
 class HistoryPage extends StatelessWidget {
@@ -15,9 +16,7 @@ class HistoryPage extends StatelessWidget {
     final dateFormat = DateFormat.yMd(loc.localeName).add_Hm();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.historyTitle),
-      ),
+      appBar: AppBar(title: Text(loc.historyTitle)),
       body: reversed.isEmpty
           ? Center(child: Text(loc.historyEmpty))
           : ListView.builder(
@@ -33,13 +32,14 @@ class HistoryPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (lines.length > 1) Text(lines[1]),
-                      Text(dateStr,
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.5))),
+                      Text(
+                        dateStr,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).colorScheme.onSurface
+                              .withValues(alpha: 0.5),
+                        ),
+                      ),
                     ],
                   ),
                   isThreeLine: lines.length > 1,

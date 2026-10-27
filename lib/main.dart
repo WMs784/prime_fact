@@ -58,13 +58,8 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('ja', ''),
-        Locale('en', ''),
-      ],
-      home: const Scaffold(
-        body: MyLayout(),
-      ),
+      supportedLocales: const [Locale('ja', ''), Locale('en', '')],
+      home: const Scaffold(body: MyLayout()),
     );
   }
 }
@@ -95,22 +90,15 @@ class _MyLayoutState extends State<MyLayout> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.title),
-      ),
+      appBar: AppBar(title: Text(loc.title)),
       drawer: Drawer(
         child: ListView(
           children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-              ),
+              decoration: BoxDecoration(color: Theme.of(context).primaryColor),
               child: StyledText(
                 text: '<set/>&space;${loc.info}',
-                style: const TextStyle(
-                  fontSize: 24,
-                  color: Colors.white,
-                ),
+                style: const TextStyle(fontSize: 24, color: Colors.white),
                 tags: {
                   'set': StyledTextIconTag(
                     Icons.info,
@@ -143,7 +131,8 @@ class _MyLayoutState extends State<MyLayout> {
               title: Text(loc.review),
               onTap: () {
                 launchUrlString(
-                    'https://play.google.com/store/apps/details?id=project.My_prime_nember');
+                  'https://play.google.com/store/apps/details?id=project.My_prime_nember',
+                );
               },
             ),
             ListTile(
@@ -156,7 +145,8 @@ class _MyLayoutState extends State<MyLayout> {
               title: Text(loc.aboutUs),
               onTap: () {
                 launchUrlString(
-                    'https://play.google.com/store/apps/dev?id=6078644560561044674');
+                  'https://play.google.com/store/apps/dev?id=6078644560561044674',
+                );
               },
             ),
           ],
@@ -165,9 +155,7 @@ class _MyLayoutState extends State<MyLayout> {
       // AppBar がステータスバー側のインセットを処理するため、本文は上以外を保護する
       body: SafeArea(
         top: false,
-        child: Center(
-          child: MyWidget(onCalculated: _addHistory),
-        ),
+        child: Center(child: MyWidget(onCalculated: _addHistory)),
       ),
     );
   }
@@ -244,21 +232,25 @@ class _MyWidgetState extends State<MyWidget> {
 
                     setState(() => _isLoading = true);
 
-                    final result = await compute(
-                      pri_fact_isolate,
-                      [inputNumber, isNotPrime, isPrime, loc.isGrothendieckPrime],
-                    );
+                    final result = await compute(pri_fact_isolate, [
+                      inputNumber,
+                      isNotPrime,
+                      isPrime,
+                      loc.isGrothendieckPrime,
+                    ]);
 
                     setState(() {
                       s = result;
                       _isLoading = false;
                     });
 
-                    widget.onCalculated?.call(HistoryEntry(
-                      input: inputNumber.toString(),
-                      result: result,
-                      timestamp: DateTime.now(),
-                    ));
+                    widget.onCalculated?.call(
+                      HistoryEntry(
+                        input: inputNumber.toString(),
+                        result: result,
+                        timestamp: DateTime.now(),
+                      ),
+                    );
                   },
             child: Text(
               AppLocalizations.of(context)!.button,
@@ -274,10 +266,7 @@ class _MyWidgetState extends State<MyWidget> {
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
-                        child: Text(
-                          s,
-                          style: const TextStyle(fontSize: 20),
-                        ),
+                        child: Text(s, style: const TextStyle(fontSize: 20)),
                       ),
                     ),
                   ],
