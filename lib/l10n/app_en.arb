@@ -12,5 +12,7 @@
   "aboutUs": "About Us",
   "history": "History",
   "historyTitle": "Calculation History",
-  "historyEmpty": "No history yet"
+  "historyEmpty": "No history yet",
+  "errorEmpty": "Please enter a number",
+  "errorZero": "Please enter a positive integer (0 is not allowed)"
 }

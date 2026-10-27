@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'history_entry.dart';
 
@@ -11,6 +12,7 @@ class HistoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final reversed = history.reversed.toList();
+    final dateFormat = DateFormat.yMd(loc.localeName).add_Hm();
 
     return Scaffold(
       appBar: AppBar(
@@ -23,10 +25,7 @@ class HistoryPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final entry = reversed[index];
                 final lines = entry.result.split('\n');
-                final t = entry.timestamp;
-                final dateStr =
-                    '${t.year}/${t.month.toString().padLeft(2, '0')}/${t.day.toString().padLeft(2, '0')}'
-                    ' ${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+                final dateStr = dateFormat.format(entry.timestamp);
 
                 return ListTile(
                   title: Text(lines[0]),
