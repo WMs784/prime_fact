@@ -12,5 +12,6 @@
    "aboutUs": "開発者情報",
    "history": "履歴",
    "historyTitle": "計算履歴",
-   "historyEmpty": "履歴がありません"
+   "historyEmpty": "履歴がありません",
+  "errorEmpty": "数値を入力してください"
 }

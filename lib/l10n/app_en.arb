@@ -12,5 +12,6 @@
   "aboutUs": "About Us",
   "history": "History",
   "historyTitle": "Calculation History",
-  "historyEmpty": "No history yet"
+  "historyEmpty": "No history yet",
+  "errorEmpty": "Please enter a number"
 }

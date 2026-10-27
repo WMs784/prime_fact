@@ -183,9 +183,24 @@ class MyWidget extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<MyWidget> {
-  BigInt _count = BigInt.zero;
-  bool b = true;
+  final _controller = TextEditingController();
   bool _isLoading = false;
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// 入力を検証して BigInt を返す。不正な場合は _errorText を設定して null を返す。
+  BigInt? _validate(AppLocalizations loc) {
+    final text = _controller.text.trim();
+    final value = BigInt.tryParse(text);
+    final error = (text.isEmpty || value == null) ? loc.errorEmpty : null;
+    setState(() => _errorText = error);
+    return error == null ? value : null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -195,12 +210,14 @@ class _MyWidgetState extends State<MyWidget> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           TextField(
+            controller: _controller,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             style: const TextStyle(fontSize: 18),
             textAlign: TextAlign.center,
             maxLength: 30,
             decoration: InputDecoration(
+              errorText: _errorText,
               hintText: AppLocalizations.of(context)!.description,
               hintTextDirection: TextDirection.ltr,
               hintStyle: TextStyle(
@@ -208,27 +225,22 @@ class _MyWidgetState extends State<MyWidget> {
                 color: Theme.of(context).hintColor,
               ),
             ),
-            onChanged: (text) {
-              try {
-                _count = BigInt.parse(text);
-                b = true;
-              } catch (exception) {
-                b = false;
-              }
+            onChanged: (_) {
+              if (_errorText != null) setState(() => _errorText = null);
             },
           ),
           ElevatedButton(
             onPressed: _isLoading
                 ? null
                 : () async {
-                    if (!b) {
+                    final loc = AppLocalizations.of(context)!;
+                    final inputNumber = _validate(loc);
+                    if (inputNumber == null) {
                       setState(() => s = '');
                       return;
                     }
-                    final loc = AppLocalizations.of(context)!;
                     final isNotPrime = loc.isNotPrime;
                     final isPrime = loc.isPrime;
-                    final inputNumber = _count;
 
                     setState(() => _isLoading = true);
 
