@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Dart / Flutter パッケージ (pubspec.yaml)
+  - package-ecosystem: pub
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      pub-minor-patch:
+        update-types: [minor, patch]
+
+  # GitHub Actions (.github/workflows/*.yml)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
