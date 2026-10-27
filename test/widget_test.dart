@@ -40,15 +40,19 @@ void main() {
     expect(find.text('数値を入力してください'), findsNothing);
   });
 
-  testWidgets('Zero shows a localized error (en)', (tester) async {
+  testWidgets('Zero is judged as not prime (en)', (tester) async {
     _setLocale(tester, const Locale('en'));
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '0');
     await tester.tap(find.byType(ElevatedButton));
+    // compute() は実 isolate で動くため、実時間で完了を待つ
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 500)),
+    );
     await tester.pump();
-    expect(find.textContaining('0 is not allowed'), findsOneWidget);
+    expect(find.text('0 is not a prime number'), findsOneWidget);
   });
 }
 

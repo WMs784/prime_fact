@@ -197,12 +197,7 @@ class _MyWidgetState extends State<MyWidget> {
   BigInt? _validate(AppLocalizations loc) {
     final text = _controller.text.trim();
     final value = BigInt.tryParse(text);
-    String? error;
-    if (text.isEmpty || value == null) {
-      error = loc.errorEmpty;
-    } else if (value == BigInt.zero) {
-      error = loc.errorZero;
-    }
+    final error = (text.isEmpty || value == null) ? loc.errorEmpty : null;
     setState(() => _errorText = error);
     return error == null ? value : null;
   }

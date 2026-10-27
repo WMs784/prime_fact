@@ -3,7 +3,7 @@
   "title": "素因数分解計算機",
    "info": "アプリ情報",
    "button": "素因数分解",
-   "description": "30桁以下の正整数を入力してください",
+   "description": "30桁以下の0以上の整数を入力してください",
    "isPrime": "は素数です！",
    "isNotPrime": "は素数ではありません",
    "privacyPolicy": "プライバシーポリシー",
@@ -13,6 +13,5 @@
    "history": "履歴",
    "historyTitle": "計算履歴",
    "historyEmpty": "履歴がありません",
-  "errorEmpty": "数値を入力してください",
-  "errorZero": "正の整数を入力してください（0は計算できません）"
+  "errorEmpty": "数値を入力してください"
 }
