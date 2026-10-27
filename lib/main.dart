@@ -246,7 +246,7 @@ class _MyWidgetState extends State<MyWidget> {
 
                     final result = await compute(
                       pri_fact_isolate,
-                      [inputNumber, isNotPrime, isPrime],
+                      [inputNumber, isNotPrime, isPrime, loc.isGrothendieckPrime],
                     );
 
                     setState(() {

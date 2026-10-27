@@ -13,5 +13,6 @@
   "history": "History",
   "historyTitle": "Calculation History",
   "historyEmpty": "No history yet",
-  "errorEmpty": "Please enter a number"
+  "errorEmpty": "Please enter a number",
+  "isGrothendieckPrime": " is a prime number! by Grothendieck"
 }
