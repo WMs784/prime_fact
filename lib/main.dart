@@ -99,7 +99,7 @@ class _MyLayoutState extends State<MyLayout> {
               child: StyledText(
                 text: '<set/>&space;${loc.info}',
                 style: const TextStyle(fontSize: 24, color: Colors.white),
-                tags: {
+                tags: const {
                   'set': StyledTextIconTag(
                     Icons.info,
                     size: 30,
