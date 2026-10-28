@@ -4,6 +4,19 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 
 import 'history_entry.dart';
 
+/// 保存データから、現在の言語で結果の表示行を組み立てる。
+List<String> _describe(AppLocalizations loc, HistoryEntry entry) {
+  final n = BigInt.tryParse(entry.input) ?? BigInt.zero;
+  final factors = entry.factors;
+  if (factors != null) {
+    final header = n == BigInt.from(57)
+        ? loc.isGrothendieckPrime
+        : loc.isNotPrime;
+    return ['${entry.input}$header', '${entry.input}=$factors'];
+  }
+  return ['${entry.input}${n <= BigInt.one ? loc.isNotPrime : loc.isPrime}'];
+}
+
 class HistoryPage extends StatelessWidget {
   final List<HistoryEntry> history;
 
@@ -23,7 +36,7 @@ class HistoryPage extends StatelessWidget {
               itemCount: reversed.length,
               itemBuilder: (context, index) {
                 final entry = reversed[index];
-                final lines = entry.result.split('\n');
+                final lines = _describe(loc, entry);
                 final dateStr = dateFormat.format(entry.timestamp);
 
                 return ListTile(
