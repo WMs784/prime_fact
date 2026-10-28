@@ -245,7 +245,7 @@ class _MyWidgetState extends State<MyWidget> {
                     });
 
                     widget.onCalculated?.call(
-                      HistoryEntry(
+                      HistoryEntry.fromResult(
                         input: inputNumber.toString(),
                         result: result,
                         timestamp: DateTime.now(),

@@ -14,14 +14,14 @@ void main() {
     test('toJson / fromJson round trip', () {
       final e = HistoryEntry(
         input: '12',
-        result: '12 is not prime\n12=2^2x3',
+        factors: '2^2x3',
         timestamp: DateTime.utc(2026, 1, 2, 3, 4, 5),
       );
       final back = HistoryEntry.fromJson(
         jsonDecode(jsonEncode(e.toJson())) as Map<String, dynamic>,
       );
       expect(back.input, e.input);
-      expect(back.result, e.result);
+      expect(back.factors, '2^2x3');
       expect(back.timestamp, e.timestamp);
     });
 
@@ -33,6 +33,35 @@ void main() {
       });
       expect(e.input, '12');
     });
+
+    test('fromJson migrates legacy result strings to factors', () {
+      for (final result in [
+        '12 is not prime\n12=2^2x3',
+        '12は素数ではありません\n12=2^2x3',
+      ]) {
+        final e = HistoryEntry.fromJson({
+          'input': '12',
+          'result': result,
+          'timestamp': '2026-01-02T03:04:05.000Z',
+        });
+        expect(e.factors, '2^2x3');
+      }
+      final prime = HistoryEntry.fromJson({
+        'input': '7',
+        'result': '7 is a prime number!',
+        'timestamp': '2026-01-02T03:04:05.000Z',
+      });
+      expect(prime.factors, isNull);
+    });
+
+    test('fromResult extracts factors', () {
+      final e = HistoryEntry.fromResult(
+        input: '12',
+        result: '12 is not prime\n12=2^2x3',
+        timestamp: DateTime.utc(2026),
+      );
+      expect(e.factors, '2^2x3');
+    });
   });
 
   group('HistoryRepository', () {
@@ -43,21 +72,17 @@ void main() {
     test('save then load preserves order and content', () async {
       final repo = HistoryRepository();
       final entries = [
-        HistoryEntry(
-          input: '7',
-          result: 'prime',
-          timestamp: DateTime.utc(2026, 1, 1),
-        ),
+        HistoryEntry(input: '7', timestamp: DateTime.utc(2026, 1, 1)),
         HistoryEntry(
           input: '8',
-          result: '2^3',
+          factors: '2^3',
           timestamp: DateTime.utc(2026, 1, 2),
         ),
       ];
       await repo.save(entries);
       final loaded = await repo.load();
       expect(loaded.map((e) => e.input), ['7', '8']);
-      expect(loaded.map((e) => e.result), ['prime', '2^3']);
+      expect(loaded.map((e) => e.factors), [null, '2^3']);
       expect(loaded.last.timestamp, DateTime.utc(2026, 1, 2));
     });
 
