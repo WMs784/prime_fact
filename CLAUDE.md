@@ -93,7 +93,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 ### Core Structure
 - **`lib/main.dart`**: Main app entry point with MaterialApp setup, theme configuration, and localization delegates
 - **`lib/judge.dart`**: Core business logic (Miller-Rabin primality test, Pollard-Brent factorization on `BigInt`; entry point `pri_fact_isolate()` runs in an isolate)
-- **`lib/trivia.dart`**: Number trivia shown under the result (perfect / Mersenne / Fermat / palindromic / twin primes, 1729). Add a `Trivia` value, its ARB strings and a test to extend
+- **`lib/trivia.dart`**: Number trivia shown under the result (perfect / Mersenne / Fermat / palindromic / twin primes, 1729, 57 Grothendieck). Add a `Trivia` value, its ARB strings and a test to extend
 - **`lib/history_*.dart`**: Calculation history (`HistoryEntry`, `HistoryRepository` persisting via `shared_preferences`, `HistoryPage`)
 - **`lib/l10n/`**: Internationalization files for Japanese and English support
 
@@ -155,7 +155,7 @@ The app supports Japanese and English:
 - Teal color scheme for consistent branding
 
 ### Testing
-- `test/judge_test.dart`: primality (Carmichael numbers, strong pseudoprimes), factorization (prime powers, trial-division boundary, ~30-digit semiprime), trivial inputs, the 57 Grothendieck easter egg
+- `test/judge_test.dart`: primality (Carmichael numbers, strong pseudoprimes), factorization (prime powers, trial-division boundary, ~30-digit semiprime), trivial inputs
 - `test/trivia_test.dart`: each trivia category and near-miss numbers (e.g. 121, 120, 15)
 - `test/history_test.dart`: `HistoryEntry` JSON round trip and legacy-format migration, `HistoryRepository` load/save/corrupted data
 - `test/widget_test.dart`: calculator UI, input validation errors, localized results

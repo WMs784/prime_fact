@@ -45,8 +45,14 @@ void main() {
     expect(t('1729'), Trivia.ramanujan);
   });
 
+  test('Grothendieck prime (57) is composite but has its own trivia', () {
+    expect(t('57'), Trivia.grothendieck);
+    expect(t('56'), isNull);
+    expect(t('58'), isNull);
+  });
+
   test('numbers without trivia', () {
-    for (final n in ['0', '1', '2', '4', '9', '57', '100', '23']) {
+    for (final n in ['0', '1', '2', '4', '9', '100', '23']) {
       expect(t(n), isNull, reason: n);
     }
   });

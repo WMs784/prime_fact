@@ -14,11 +14,12 @@
    "historyTitle": "計算履歴",
    "historyEmpty": "履歴がありません",
   "errorEmpty": "数値を入力してください",
-  "isGrothendieckPrime": "は素数です！ by グロタンディーク",
   "triviaPerfect": "完全数：自分自身を除く約数の和が、自分自身と等しい数です！",
   "triviaMersenne": "メルセンヌ素数：2のべき乗より1小さい素数です",
   "triviaFermat": "フェルマー素数：2^(2^k)+1 の形の素数です",
   "triviaPalindromicPrime": "回文素数：逆から読んでも同じ素数です",
   "triviaTwinPrime": "双子素数：差が2のもう1つの素数がすぐ隣にあります",
+  "triviaGrothendieck": "グロタンディーク素数：数学者グロタンディークが素数の例として57を挙げたという逸話があります（実際は 3×19）",
+  "triviaGrothendieck": "グロタンディーク素数：数学者グロタンディークが素数の例として57を挙げたという逸話があります（実際は 3×19）",
   "triviaRamanujan": "ハーディ＝ラマヌジャン数：2通りの立方数の和で表せる最小の数です"
 }

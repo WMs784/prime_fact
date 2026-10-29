@@ -25,26 +25,6 @@ void main() {
     });
   });
 
-  group('pri_fact_isolate: Grothendieck prime (57)', () {
-    const g = ' G';
-    String runG(String n) =>
-        pri_fact_isolate([BigInt.parse(n), _notPrime, _prime, g]);
-
-    test('57 gets the joke header but keeps its factorization', () {
-      expect(runG('57'), '57$g\n57=3x19');
-    });
-
-    test('neighbouring numbers are unaffected', () {
-      expect(runG('56'), startsWith('56$_notPrime'));
-      expect(runG('58'), startsWith('58$_notPrime'));
-      expect(runG('59'), '59$_prime');
-    });
-
-    test('57 is plain composite when no joke string is given', () {
-      expect(run('57'), '57$_notPrime\n57=3x19');
-    });
-  });
-
   group('pri_fact_isolate: primality', () {
     test('small primes', () {
       for (final p in [2, 3, 5, 7, 11, 13, 97, 997, 1009, 7919]) {

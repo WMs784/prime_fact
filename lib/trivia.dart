@@ -5,6 +5,7 @@ import 'judge.dart';
 /// 数にまつわる豆知識の種類。優先度の高い順に並べている。
 enum Trivia {
   ramanujan,
+  grothendieck,
   perfect,
   mersenne,
   fermat,
@@ -18,6 +19,7 @@ final _fermatPrimes = {3, 5, 17, 257, 65537}.map(BigInt.from).toSet();
 /// [n] に当てはまる豆知識を返す。なければ null。
 Trivia? triviaFor(BigInt n) {
   if (n == BigInt.from(1729)) return Trivia.ramanujan;
+  if (n == BigInt.from(57)) return Trivia.grothendieck;
   if (_isPerfect(n)) return Trivia.perfect;
   if (n < _two || !isProbablePrime(n)) return null;
 
@@ -49,6 +51,7 @@ bool _isPalindrome(BigInt n) {
 
 String triviaMessage(AppLocalizations loc, Trivia trivia) => switch (trivia) {
   Trivia.ramanujan => loc.triviaRamanujan,
+  Trivia.grothendieck => loc.triviaGrothendieck,
   Trivia.perfect => loc.triviaPerfect,
   Trivia.mersenne => loc.triviaMersenne,
   Trivia.fermat => loc.triviaFermat,

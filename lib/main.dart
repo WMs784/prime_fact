@@ -245,7 +245,6 @@ class _MyWidgetState extends State<MyWidget> {
                       inputNumber,
                       isNotPrime,
                       isPrime,
-                      loc.isGrothendieckPrime,
                     ]);
 
                     if (!mounted) return;

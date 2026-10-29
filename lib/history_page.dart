@@ -9,10 +9,7 @@ List<String> _describe(AppLocalizations loc, HistoryEntry entry) {
   final n = BigInt.tryParse(entry.input) ?? BigInt.zero;
   final factors = entry.factors;
   if (factors != null) {
-    final header = n == BigInt.from(57)
-        ? loc.isGrothendieckPrime
-        : loc.isNotPrime;
-    return ['${entry.input}$header', '${entry.input}=$factors'];
+    return ['${entry.input}${loc.isNotPrime}', '${entry.input}=$factors'];
   }
   return ['${entry.input}${n <= BigInt.one ? loc.isNotPrime : loc.isPrime}'];
 }

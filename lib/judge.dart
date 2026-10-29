@@ -135,14 +135,12 @@ void _factorHelper(BigInt n, Map<BigInt, int> factors) {
   _factorHelper(n ~/ f, factors);
 }
 
-// args = [n (BigInt), isNotPrimeStr, isPrimeStr, grothendieckStr (optional)]
+// args = [n (BigInt), isNotPrimeStr, isPrimeStr]
 // ignore: non_constant_identifier_names
 String pri_fact_isolate(List<dynamic> args) {
   final BigInt n = args[0] as BigInt;
   final String isNotPrime = args[1] as String;
   final String isPrime = args[2] as String;
-  // 遊び心: 57 は「グロタンディーク素数」。見出しだけ差し替え、因数分解の結果はそのまま出す。
-  final String? grothendieck = args.length > 3 ? args[3] as String? : null;
 
   final nStr = n.toString();
   if (n <= BigInt.one) return nStr + isNotPrime;
@@ -160,8 +158,5 @@ String pri_fact_isolate(List<dynamic> args) {
       })
       .join('x');
 
-  final header = (n == BigInt.from(57) && grothendieck != null)
-      ? grothendieck
-      : isNotPrime;
-  return '$nStr$header\n$nStr=$factStr';
+  return '$nStr$isNotPrime\n$nStr=$factStr';
 }
