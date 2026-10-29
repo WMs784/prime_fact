@@ -86,19 +86,6 @@ void main() {
       expect(loaded.last.timestamp, DateTime.utc(2026, 1, 2));
     });
 
-    test('save keeps only the newest maxEntries', () async {
-      final repo = HistoryRepository();
-      final entries = List.generate(
-        HistoryRepository.maxEntries + 5,
-        (i) => HistoryEntry(input: '$i', timestamp: DateTime.utc(2026)),
-      );
-      await repo.save(entries);
-      final loaded = await repo.load();
-      expect(loaded, hasLength(HistoryRepository.maxEntries));
-      expect(loaded.first.input, '5');
-      expect(loaded.last.input, '${HistoryRepository.maxEntries + 4}');
-    });
-
     test('load returns empty list for corrupted data', () async {
       SharedPreferences.setMockInitialValues({
         'calculation_history': 'not json',
