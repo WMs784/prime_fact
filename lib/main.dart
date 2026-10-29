@@ -239,6 +239,7 @@ class _MyWidgetState extends State<MyWidget> {
                       loc.isGrothendieckPrime,
                     ]);
 
+                    if (!mounted) return;
                     setState(() {
                       s = result;
                       _isLoading = false;
