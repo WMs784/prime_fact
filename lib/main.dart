@@ -78,11 +78,16 @@ class _MyLayoutState extends State<MyLayout> {
   @override
   void initState() {
     super.initState();
-    _repo.load().then((list) => setState(() => _history = list));
+    // 読み込み完了前に追加された履歴を失わないよう、後ろに連結する
+    _repo.load().then(
+      (list) => setState(
+        () => _history = HistoryRepository.limit([...list, ..._history]),
+      ),
+    );
   }
 
   void _addHistory(HistoryEntry entry) async {
-    setState(() => _history.add(entry));
+    setState(() => _history = HistoryRepository.limit([..._history, entry]));
     await _repo.save(_history);
   }
 
