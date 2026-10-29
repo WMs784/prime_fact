@@ -59,16 +59,5 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # build.gradle は署名設定のために key.properties を参照する。
-      # debug ビルドでは署名に使われないため、ダミー値で評価を通す。
-      - name: Create dummy key.properties
-        run: |
-          cat > android/key.properties <<'PROPS'
-          keyAlias=dummy
-          keyPassword=dummy
-          storeFile=dummy.jks
-          storePassword=dummy
-          PROPS
-
       - name: Build debug APK
         run: flutter build apk --debug

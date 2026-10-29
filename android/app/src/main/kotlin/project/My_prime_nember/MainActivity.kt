@@ -1,4 +1,4 @@
-package com.example.prime_fact
+package project.My_prime_nember
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

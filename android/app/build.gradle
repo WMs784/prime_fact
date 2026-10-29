@@ -28,7 +28,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.example.prime_fact"
+    namespace "project.My_prime_nember"
     compileSdk 36
     ndkVersion "28.2.13676358"
 
@@ -52,17 +52,22 @@ android {
     }
 
     signingConfigs {
-        release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
+        // key.properties がない環境 (CI など) でも Gradle の評価が通るようにする
+        if (keystorePropertiesFile.exists()) {
+            release {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
