@@ -1,5 +1,3 @@
-String s = '';
-
 BigInt _gcd(BigInt a, BigInt b) {
   while (b != BigInt.zero) {
     final t = b;

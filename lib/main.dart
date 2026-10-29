@@ -173,6 +173,7 @@ class MyWidget extends StatefulWidget {
 class _MyWidgetState extends State<MyWidget> {
   final _controller = TextEditingController();
   bool _isLoading = false;
+  String _result = '';
   String? _errorText;
 
   @override
@@ -224,7 +225,7 @@ class _MyWidgetState extends State<MyWidget> {
                     final loc = AppLocalizations.of(context)!;
                     final inputNumber = _validate(loc);
                     if (inputNumber == null) {
-                      setState(() => s = '');
+                      setState(() => _result = '');
                       return;
                     }
                     final isNotPrime = loc.isNotPrime;
@@ -241,7 +242,7 @@ class _MyWidgetState extends State<MyWidget> {
 
                     if (!mounted) return;
                     setState(() {
-                      s = result;
+                      _result = result;
                       _isLoading = false;
                     });
 
@@ -267,7 +268,10 @@ class _MyWidgetState extends State<MyWidget> {
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
-                        child: Text(s, style: const TextStyle(fontSize: 20)),
+                        child: Text(
+                          _result,
+                          style: const TextStyle(fontSize: 20),
+                        ),
                       ),
                     ),
                   ],
