@@ -130,14 +130,14 @@ The app supports Japanese and English:
 - **Release signing**: Configured with keystore properties
 
 ### iOS
-- **Platform**: iOS 9.0+
+- **Platform**: iOS 11.0+
 - **Configuration**: `ios/Runner/Info.plist`
 - **Display name**: Supports Japanese characters
 
 ## Dependencies
 
 ### Core Dependencies
-- `styled_text: ^8.1.0` - Rich text formatting for results
+- `styled_text: ^10.0.0` - Rich text formatting for results
 - `flutter_localizations` (SDK) - Internationalization support
 - `intl: ^0.20.2` - Date/number formatting
 - `shared_preferences: ^2.3.0` - Persisting calculation history
