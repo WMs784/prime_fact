@@ -14,12 +14,12 @@
   "historyTitle": "Calculation History",
   "historyEmpty": "No history yet",
   "errorEmpty": "Please enter a number",
-  "triviaPerfect": "Perfect number: the sum of its proper divisors equals itself!",
-  "triviaMersenne": "Mersenne prime: one less than a power of 2",
-  "triviaFermat": "Fermat prime: it has the form 2^(2^k) + 1",
-  "triviaPalindromicPrime": "Palindromic prime: it reads the same backwards",
-  "triviaTwinPrime": "Twin prime: another prime sits just 2 away",
-  "triviaGrothendieck": "Grothendieck prime: the mathematician Grothendieck is said to have named 57 as an example of a prime (it is actually 3 × 19)",
-  "triviaGrothendieck": "Grothendieck prime: the mathematician Grothendieck is said to have named 57 as an example of a prime (it is actually 3 × 19)",
-  "triviaRamanujan": "The Hardy–Ramanujan number: the smallest number that is a sum of two cubes in two different ways"
+  "isGrothendieckPrime": " is a prime number! by Grothendieck",
+  "isPerfectNumber": " is not a prime, but a perfect number!",
+  "isMersennePrime": " is a Mersenne prime!",
+  "isFermatPrime": " is a Fermat prime!",
+  "isPalindromicPrime": " is a palindromic prime!",
+  "isSophieGermainPrime": " is a Sophie Germain prime!",
+  "isTwinPrime": " is a twin prime!",
+  "isRamanujanNumber": " is not a prime, but the Hardy–Ramanujan number!"
 }

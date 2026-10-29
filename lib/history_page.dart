@@ -3,15 +3,14 @@ import 'package:intl/intl.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
 import 'history_entry.dart';
+import 'trivia.dart';
 
 /// 保存データから、現在の言語で結果の表示行を組み立てる。
 List<String> _describe(AppLocalizations loc, HistoryEntry entry) {
   final n = BigInt.tryParse(entry.input) ?? BigInt.zero;
+  final header = '${entry.input}${headerFor(loc, n)}';
   final factors = entry.factors;
-  if (factors != null) {
-    return ['${entry.input}${loc.isNotPrime}', '${entry.input}=$factors'];
-  }
-  return ['${entry.input}${n <= BigInt.one ? loc.isNotPrime : loc.isPrime}'];
+  return factors == null ? [header] : [header, '${entry.input}=$factors'];
 }
 
 class HistoryPage extends StatelessWidget {

@@ -35,10 +35,17 @@ void main() {
   });
 
   test('twin primes', () {
-    for (final n in ['13', '19', '29', '43']) {
+    for (final n in ['13', '19', '43', '71']) {
       expect(t(n), Trivia.twinPrime, reason: n);
     }
-    expect(t('23'), isNull); // 21 も 25 も素数ではない
+    expect(t('37'), isNull); // 35 も 39 も素数ではない
+  });
+
+  test('Sophie Germain primes', () {
+    // 2n + 1 も素数。双子素数でもある 29, 41 は Sophie Germain が優先される
+    for (final n in ['2', '23', '29', '41', '53', '83', '89']) {
+      expect(t(n), Trivia.sophieGermainPrime, reason: n);
+    }
   });
 
   test('Ramanujan number', () {
@@ -52,7 +59,7 @@ void main() {
   });
 
   test('numbers without trivia', () {
-    for (final n in ['0', '1', '2', '4', '9', '100', '23']) {
+    for (final n in ['0', '1', '4', '9', '100', '37']) {
       expect(t(n), isNull, reason: n);
     }
   });

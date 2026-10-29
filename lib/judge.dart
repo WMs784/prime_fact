@@ -135,16 +135,18 @@ void _factorHelper(BigInt n, Map<BigInt, int> factors) {
   _factorHelper(n ~/ f, factors);
 }
 
-// args = [n (BigInt), isNotPrimeStr, isPrimeStr]
+// args = [n (BigInt), isNotPrimeStr, isPrimeStr, specialHeaderStr (optional)]
+// specialHeaderStr は、素数/合成数の見出しを差し替える（完全数や 57 など）。因数分解の結果はそのまま出す。
 // ignore: non_constant_identifier_names
 String pri_fact_isolate(List<dynamic> args) {
   final BigInt n = args[0] as BigInt;
   final String isNotPrime = args[1] as String;
   final String isPrime = args[2] as String;
+  final String? special = args.length > 3 ? args[3] as String? : null;
 
   final nStr = n.toString();
   if (n <= BigInt.one) return nStr + isNotPrime;
-  if (_isPrime(n)) return nStr + isPrime;
+  if (_isPrime(n)) return nStr + (special ?? isPrime);
 
   final factors = <BigInt, int>{};
   _factorHelper(n, factors);
@@ -158,5 +160,5 @@ String pri_fact_isolate(List<dynamic> args) {
       })
       .join('x');
 
-  return '$nStr$isNotPrime\n$nStr=$factStr';
+  return '$nStr${special ?? isNotPrime}\n$nStr=$factStr';
 }

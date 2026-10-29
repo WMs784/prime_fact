@@ -178,7 +178,6 @@ class _MyWidgetState extends State<MyWidget> {
   final _controller = TextEditingController();
   bool _isLoading = false;
   String _result = '';
-  Trivia? _trivia;
   String? _errorText;
 
   @override
@@ -230,14 +229,12 @@ class _MyWidgetState extends State<MyWidget> {
                     final loc = AppLocalizations.of(context)!;
                     final inputNumber = _validate(loc);
                     if (inputNumber == null) {
-                      setState(() {
-                        _result = '';
-                        _trivia = null;
-                      });
+                      setState(() => _result = '');
                       return;
                     }
                     final isNotPrime = loc.isNotPrime;
                     final isPrime = loc.isPrime;
+                    final trivia = triviaFor(inputNumber);
 
                     setState(() => _isLoading = true);
 
@@ -245,12 +242,12 @@ class _MyWidgetState extends State<MyWidget> {
                       inputNumber,
                       isNotPrime,
                       isPrime,
+                      trivia == null ? null : triviaHeader(loc, trivia),
                     ]);
 
                     if (!mounted) return;
                     setState(() {
                       _result = result;
-                      _trivia = triviaFor(inputNumber);
                       _isLoading = false;
                     });
 
@@ -284,14 +281,6 @@ class _MyWidgetState extends State<MyWidget> {
                     ),
                   ],
                 ),
-          if (!_isLoading && _trivia != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Text(
-                '💡 ${triviaMessage(AppLocalizations.of(context)!, _trivia!)}',
-                textAlign: TextAlign.center,
-              ),
-            ),
         ],
       ),
     );

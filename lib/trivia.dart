@@ -2,7 +2,7 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 
 import 'judge.dart';
 
-/// 数にまつわる豆知識の種類。優先度の高い順に並べている。
+/// 素数判定の見出しを差し替える、数の種類。優先度の高い順に並べている。
 enum Trivia {
   ramanujan,
   grothendieck,
@@ -10,6 +10,7 @@ enum Trivia {
   mersenne,
   fermat,
   palindromicPrime,
+  sophieGermainPrime,
   twinPrime,
 }
 
@@ -27,6 +28,8 @@ Trivia? triviaFor(BigInt n) {
   if (n > _two && (n + BigInt.one) & n == BigInt.zero) return Trivia.mersenne;
   if (_fermatPrimes.contains(n)) return Trivia.fermat;
   if (_isPalindrome(n)) return Trivia.palindromicPrime;
+  // 2n + 1 も素数
+  if (isProbablePrime(n * _two + BigInt.one)) return Trivia.sophieGermainPrime;
   if (isProbablePrime(n + _two) || (n > _two && isProbablePrime(n - _two))) {
     return Trivia.twinPrime;
   }
@@ -49,12 +52,20 @@ bool _isPalindrome(BigInt n) {
   return s.length >= 2 && s == s.split('').reversed.join();
 }
 
-String triviaMessage(AppLocalizations loc, Trivia trivia) => switch (trivia) {
-  Trivia.ramanujan => loc.triviaRamanujan,
-  Trivia.grothendieck => loc.triviaGrothendieck,
-  Trivia.perfect => loc.triviaPerfect,
-  Trivia.mersenne => loc.triviaMersenne,
-  Trivia.fermat => loc.triviaFermat,
-  Trivia.palindromicPrime => loc.triviaPalindromicPrime,
-  Trivia.twinPrime => loc.triviaTwinPrime,
+/// [n] の素数判定の見出し（数の直後に続く文言）。
+String headerFor(AppLocalizations loc, BigInt n) {
+  final trivia = triviaFor(n);
+  if (trivia != null) return triviaHeader(loc, trivia);
+  return n >= _two && isProbablePrime(n) ? loc.isPrime : loc.isNotPrime;
+}
+
+String triviaHeader(AppLocalizations loc, Trivia trivia) => switch (trivia) {
+  Trivia.ramanujan => loc.isRamanujanNumber,
+  Trivia.grothendieck => loc.isGrothendieckPrime,
+  Trivia.perfect => loc.isPerfectNumber,
+  Trivia.mersenne => loc.isMersennePrime,
+  Trivia.fermat => loc.isFermatPrime,
+  Trivia.palindromicPrime => loc.isPalindromicPrime,
+  Trivia.sophieGermainPrime => loc.isSophieGermainPrime,
+  Trivia.twinPrime => loc.isTwinPrime,
 };
