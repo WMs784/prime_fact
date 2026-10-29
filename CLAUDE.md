@@ -154,15 +154,12 @@ The app supports Japanese and English:
 - Teal color scheme for consistent branding
 
 ### Testing
-- Basic widget tests exist in `test/widget_test.dart`
-- Test coverage is minimal and should be expanded
-- Focus testing on prime factorization logic in `judge.dart`
+- `test/judge_test.dart`: primality (Carmichael numbers, strong pseudoprimes), factorization (prime powers, trial-division boundary, ~30-digit semiprime), trivial inputs, the 57 Grothendieck easter egg
+- `test/history_test.dart`: `HistoryEntry` JSON round trip and legacy-format migration, `HistoryRepository` load/save/corrupted data
+- `test/widget_test.dart`: calculator UI, input validation errors, localized results
+- Add tests alongside any change to `judge.dart` or the history format
 
-### Common Issues
-- Some hardcoded strings remain (not fully internationalized)
-- Input validation could be more robust
-
-### Git Workflow
-- **Main branch**: `master`
-- Feature branch workflow in use; PRs target `master`
-- CI (`.github/workflows/ci.yml`) runs `dart format` (check only), `flutter analyze`, `flutter test` and a debug APK build on PRs and pushes to `master`
+### Known Limitations
+- Factoring a ~30-digit number whose prime factors are both ~15 digits can take a long time; `compute` cannot be cancelled, so the button stays disabled until it finishes (no practical fix without a different algorithm)
+- Until `HistoryRepository.load()` finishes at startup, saving a new entry would overwrite the stored history (only a window of a few milliseconds after launch)
+- History grows without a size limit
