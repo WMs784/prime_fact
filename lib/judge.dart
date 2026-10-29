@@ -93,10 +93,11 @@ BigInt _pollardBrent(BigInt n, BigInt c) {
   }
 
   if (d == n) {
-    while (d == BigInt.one) {
+    // バッチ内で複数の因数が同時に見つかった場合、1ステップずつ巻き戻して絞り込む
+    do {
       ys = (ys * ys + c) % n;
       d = _gcd((x - ys).abs(), n);
-    }
+    } while (d == BigInt.one);
   }
 
   return d;
