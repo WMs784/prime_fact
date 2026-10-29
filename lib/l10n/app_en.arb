@@ -14,5 +14,11 @@
   "historyTitle": "Calculation History",
   "historyEmpty": "No history yet",
   "errorEmpty": "Please enter a number",
-  "isGrothendieckPrime": " is a prime number! by Grothendieck"
+  "isGrothendieckPrime": " is a prime number! by Grothendieck",
+  "triviaPerfect": "Perfect number: the sum of its proper divisors equals itself!",
+  "triviaMersenne": "Mersenne prime: one less than a power of 2",
+  "triviaFermat": "Fermat prime: it has the form 2^(2^k) + 1",
+  "triviaPalindromicPrime": "Palindromic prime: it reads the same backwards",
+  "triviaTwinPrime": "Twin prime: another prime sits just 2 away",
+  "triviaRamanujan": "The Hardy–Ramanujan number: the smallest number that is a sum of two cubes in two different ways"
 }

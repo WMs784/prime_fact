@@ -69,6 +69,29 @@ void main() {
     expect(find.textContaining('57は素数です！ by グロタンディーク'), findsOneWidget);
     expect(find.textContaining('57=3x19'), findsOneWidget);
   });
+
+  testWidgets('Trivia is shown for a perfect number (en)', (tester) async {
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '28');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 500)),
+    );
+    await tester.pump();
+    expect(find.textContaining('Perfect number'), findsOneWidget);
+
+    // 豆知識のない数に切り替えると消える
+    await tester.enterText(find.byType(TextField), '4');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 500)),
+    );
+    await tester.pump();
+    expect(find.textContaining('Perfect number'), findsNothing);
+  });
 }
 
 void _setLocale(WidgetTester tester, Locale locale) {

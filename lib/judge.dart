@@ -61,6 +61,9 @@ bool _isPrime(BigInt n) {
   return true;
 }
 
+/// 素数判定（`_isPrime` の公開版）。
+bool isProbablePrime(BigInt n) => _isPrime(n);
+
 // Brent's improvement of Pollard's rho with batch GCD (m=128)
 BigInt _pollardBrent(BigInt n, BigInt c) {
   BigInt y = BigInt.from(2);

@@ -10,6 +10,7 @@ import 'judge.dart';
 import 'history_entry.dart';
 import 'history_repository.dart';
 import 'history_page.dart';
+import 'trivia.dart';
 
 void main() => runApp(const MyApp());
 
@@ -177,6 +178,7 @@ class _MyWidgetState extends State<MyWidget> {
   final _controller = TextEditingController();
   bool _isLoading = false;
   String _result = '';
+  Trivia? _trivia;
   String? _errorText;
 
   @override
@@ -228,7 +230,10 @@ class _MyWidgetState extends State<MyWidget> {
                     final loc = AppLocalizations.of(context)!;
                     final inputNumber = _validate(loc);
                     if (inputNumber == null) {
-                      setState(() => _result = '');
+                      setState(() {
+                        _result = '';
+                        _trivia = null;
+                      });
                       return;
                     }
                     final isNotPrime = loc.isNotPrime;
@@ -246,6 +251,7 @@ class _MyWidgetState extends State<MyWidget> {
                     if (!mounted) return;
                     setState(() {
                       _result = result;
+                      _trivia = triviaFor(inputNumber);
                       _isLoading = false;
                     });
 
@@ -279,6 +285,14 @@ class _MyWidgetState extends State<MyWidget> {
                     ),
                   ],
                 ),
+          if (!_isLoading && _trivia != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Text(
+                '💡 ${triviaMessage(AppLocalizations.of(context)!, _trivia!)}',
+                textAlign: TextAlign.center,
+              ),
+            ),
         ],
       ),
     );
