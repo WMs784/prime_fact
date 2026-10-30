@@ -5,6 +5,7 @@ import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/l10n/app_localizations_en.dart';
 import 'package:prime_fact/l10n/app_localizations_ja.dart';
 import 'package:prime_fact/daily_puzzle.dart';
+import 'package:prime_fact/links.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';

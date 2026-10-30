@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
@@ -17,18 +19,58 @@ class DailyBanner extends StatefulWidget {
   State<DailyBanner> createState() => _DailyBannerState();
 }
 
-class _DailyBannerState extends State<DailyBanner> {
+class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
   DailyProgress? _progress;
+
+  /// [_progress] を読み込んだ日。今日と違えば読み込み直しが済むまで「読み込み中」扱いにする。
+  int? _loadedKey;
+  Timer? _midnight;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _reload();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _midnight?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _reload();
+  }
+
   Future<void> _reload() async {
-    final progress = await widget.repository.load(jstDateKey(widget.now()));
-    if (mounted) setState(() => _progress = progress);
+    final now = widget.now();
+    final key = jstDateKey(now);
+    DailyProgress? progress;
+    try {
+      progress = await widget.repository.load(key);
+    } catch (_) {
+      // 読めなければ未開始として扱う。挑戦画面側でエラーを表示する
+    }
+    if (!mounted) return;
+    setState(() {
+      _progress = progress;
+      _loadedKey = key;
+    });
+    _scheduleMidnight(now);
+  }
+
+  /// アプリを開いたまま JST 0 時をまたいでも、表示が前日のままにならないようにする。
+  void _scheduleMidnight(DateTime now) {
+    _midnight?.cancel();
+    final jst = now.toUtc().add(const Duration(hours: 9));
+    final nextMidnight = DateTime.utc(jst.year, jst.month, jst.day + 1);
+    _midnight = Timer(
+      nextMidnight.difference(jst) + const Duration(seconds: 1),
+      _reload,
+    );
   }
 
   Future<void> _open() async {
@@ -48,10 +90,17 @@ class _DailyBannerState extends State<DailyBanner> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final progress = _progress;
+    final colors = Theme.of(context).colorScheme;
+    final loaded = _loadedKey == jstDateKey(widget.now());
+    final progress = loaded ? _progress : null;
+
     final String title;
     final String subtitle;
-    if (progress == null) {
+    if (!loaded) {
+      // 読み込み中。「挑戦する」を一瞬見せてから切り替わるのを避ける
+      title = loc.dailyTitle;
+      subtitle = '';
+    } else if (progress == null) {
       title = loc.dailyBannerStart;
       subtitle = loc.dailyBannerStartSub;
     } else if (progress.isCleared) {
@@ -64,11 +113,11 @@ class _DailyBannerState extends State<DailyBanner> {
       title = loc.dailyBannerContinue;
       subtitle = loc.dailyBannerStartSub;
     }
-    final colors = Theme.of(context).colorScheme;
     return Card(
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       color: colors.primaryContainer,
       child: ListTile(
+        enabled: loaded,
         leading: Icon(
           progress?.isCleared == true ? Icons.check_circle : Icons.emoji_events,
           color: colors.onPrimaryContainer,
@@ -85,7 +134,7 @@ class _DailyBannerState extends State<DailyBanner> {
           style: TextStyle(color: colors.onPrimaryContainer),
         ),
         trailing: Icon(Icons.chevron_right, color: colors.onPrimaryContainer),
-        onTap: _open,
+        onTap: loaded ? _open : null,
       ),
     );
   }

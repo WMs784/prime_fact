@@ -38,5 +38,9 @@
   "dailyShare": "結果をシェア",
   "dailyShareText": "🔢 今日の素因数分解\n⏱ {time} / {wrong, plural, =0{ノーミス🎉} other{ミス{wrong}回}}\n\n最小の素因数、あなたはもっと速く見つけられる？\n📱 {playUrl}\n🌐 {webUrl}",
   "dailyCopied": "クリップボードにコピーしました",
-  "dailyBackHome": "ホームに戻る"
+  "dailyBackHome": "ホームに戻る",
+  "dailyLoadFailed": "今日の挑戦を読み込めませんでした",
+  "dailyRetry": "再試行",
+  "dailySaveFailed": "保存できませんでした。もう一度お試しください",
+  "dailyShareFailed": "共有できませんでした"
 }

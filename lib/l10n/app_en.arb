@@ -85,5 +85,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dailyLoadFailed": "Couldn't load today's challenge",
+  "dailyRetry": "Retry",
+  "dailySaveFailed": "Couldn't save your answer. Please try again",
+  "dailyShareFailed": "Couldn't share the result"
 }
