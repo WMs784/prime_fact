@@ -13,18 +13,12 @@ const playStoreUrl =
     'https://play.google.com/store/apps/details?id=project.My_prime_nember';
 const webAppUrl = 'https://wms784.github.io/prime_fact/app/';
 
-/// 難度を星の数で表す。
-String difficultyStars(Difficulty d) => '⭐' * (d.index + 1);
-
-/// 結果の共有文。問題の数と正解は含めない（ネタバレ防止）。
+/// 結果の共有文。問題の数・正解・難度はヒントになるので含めない。日付は投稿時刻で分かる。
 String dailyShareText(
   AppLocalizations loc,
-  DailyPuzzle puzzle,
   DailyProgress progress,
   DateTime now,
 ) => loc.dailyShareText(
-  formatDateKey(puzzle.dateKey),
-  difficultyStars(puzzle.difficulty),
   formatElapsed(progress.elapsed(now)),
   progress.wrong,
   playStoreUrl,
@@ -119,7 +113,7 @@ class _DailyPageState extends State<DailyPage> {
   }
 
   Future<void> _share(AppLocalizations loc, DailyProgress progress) async {
-    final text = dailyShareText(loc, widget.puzzle, progress, widget.now());
+    final text = dailyShareText(loc, progress, widget.now());
     final messenger = ScaffoldMessenger.of(context);
     final shared = await widget.onShare(text);
     if (!shared) {

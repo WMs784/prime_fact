@@ -36,7 +36,7 @@
   "dailyElapsed": "Time: {time}",
   "dailyCorrect": "Correct! The smallest prime factor is {p}",
   "dailyShare": "Share result",
-  "dailyShareText": "🔢 Prime Factorization Challenge {date} {stars}\n⏱ {time} / {wrong, plural, =0{No misses 🎉} =1{1 miss} other{{wrong} misses}}\n\nCan you find the smallest prime factor faster?\n📱 {playUrl}\n🌐 {webUrl}",
+  "dailyShareText": "🔢 Prime Factorization Challenge\n⏱ {time} / {wrong, plural, =0{No misses 🎉} =1{1 miss} other{{wrong} misses}}\n\nCan you find the smallest prime factor faster?\n📱 {playUrl}\n🌐 {webUrl}",
   "dailyCopied": "Copied to clipboard",
   "dailyBackHome": "Back to home",
   "@dailyStats": {
@@ -72,12 +72,6 @@
   },
   "@dailyShareText": {
     "placeholders": {
-      "date": {
-        "type": "String"
-      },
-      "stars": {
-        "type": "String"
-      },
       "time": {
         "type": "String"
       },

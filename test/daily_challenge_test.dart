@@ -139,38 +139,34 @@ void main() {
   });
 
   test(
-    'share text has time, misses, stars and links but no number or answer',
+    'share text has time, misses and links but no number, answer or date',
     () {
       final progress = DailyProgress(
         startedAt: _day,
         wrong: 2,
         clearedAt: _day.add(const Duration(seconds: 12, milliseconds: 300)),
       );
-      final stars = difficultyStars(_puzzle.difficulty);
-      final ja = dailyShareText(AppLocalizationsJa(), _puzzle, progress, _day);
-      expect(ja, contains('今日の素因数分解 2026-10-31 $stars'));
+      final ja = dailyShareText(AppLocalizationsJa(), progress, _day);
+      expect(ja, contains('今日の素因数分解'));
       expect(ja, contains('⏱ 0:12.3 / ミス2回'));
-      final en = dailyShareText(AppLocalizationsEn(), _puzzle, progress, _day);
-      expect(en, contains('Prime Factorization Challenge 2026-10-31 $stars'));
+      final en = dailyShareText(AppLocalizationsEn(), progress, _day);
+      expect(en, contains('Prime Factorization Challenge'));
       expect(en, contains('⏱ 0:12.3 / 2 misses'));
       for (final text in [ja, en]) {
         expect(text, contains(playStoreUrl));
         expect(text, contains(webAppUrl));
         expect(text, isNot(contains('${_puzzle.n}')));
+        expect(text, isNot(contains('2026')));
+        expect(text, isNot(contains('⭐')));
       }
 
       final perfect = progress.copyWith(wrong: 0);
       expect(
-        dailyShareText(AppLocalizationsJa(), _puzzle, perfect, _day),
+        dailyShareText(AppLocalizationsJa(), perfect, _day),
         contains('ノーミス🎉'),
       );
       expect(
-        dailyShareText(
-          AppLocalizationsEn(),
-          _puzzle,
-          progress.copyWith(wrong: 1),
-          _day,
-        ),
+        dailyShareText(AppLocalizationsEn(), progress.copyWith(wrong: 1), _day),
         contains('1 miss\n'),
       );
     },
