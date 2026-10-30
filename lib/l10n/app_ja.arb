@@ -14,5 +14,12 @@
    "historyTitle": "計算履歴",
    "historyEmpty": "履歴がありません",
   "errorEmpty": "数値を入力してください",
-  "isGrothendieckPrime": "は素数です！ by グロタンディーク"
+  "isGrothendieckPrime": "は素数です！ by グロタンディーク",
+  "isPerfectNumber": "は素数、ではなく完全数です！",
+  "isMersennePrime": "はメルセンヌ素数です！",
+  "isFermatPrime": "はフェルマー素数です！",
+  "isPalindromicPrime": "は回文素数です！",
+  "isSophieGermainPrime": "はソフィー・ジェルマン素数です！",
+  "isTwinPrime": "は双子素数です！",
+  "isRamanujanNumber": "は素数、ではなくハーディ＝ラマヌジャン数です！"
 }

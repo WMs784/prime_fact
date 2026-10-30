@@ -10,6 +10,7 @@ import 'judge.dart';
 import 'history_entry.dart';
 import 'history_repository.dart';
 import 'history_page.dart';
+import 'trivia.dart';
 
 void main() => runApp(const MyApp());
 
@@ -233,6 +234,7 @@ class _MyWidgetState extends State<MyWidget> {
                     }
                     final isNotPrime = loc.isNotPrime;
                     final isPrime = loc.isPrime;
+                    final trivia = triviaFor(inputNumber);
 
                     setState(() => _isLoading = true);
 
@@ -240,7 +242,7 @@ class _MyWidgetState extends State<MyWidget> {
                       inputNumber,
                       isNotPrime,
                       isPrime,
-                      loc.isGrothendieckPrime,
+                      trivia == null ? null : triviaHeader(loc, trivia),
                     ]);
 
                     if (!mounted) return;

@@ -25,22 +25,25 @@ void main() {
     });
   });
 
-  group('pri_fact_isolate: Grothendieck prime (57)', () {
-    const g = ' G';
-    String runG(String n) =>
-        pri_fact_isolate([BigInt.parse(n), _notPrime, _prime, g]);
+  group('pri_fact_isolate: special header', () {
+    const s = ' S';
+    String runS(String n) =>
+        pri_fact_isolate([BigInt.parse(n), _notPrime, _prime, s]);
 
-    test('57 gets the joke header but keeps its factorization', () {
-      expect(runG('57'), '57$g\n57=3x19');
+    test('replaces the header of a composite but keeps its factorization', () {
+      expect(runS('57'), '57$s\n57=3x19');
+      expect(runS('28'), '28$s\n28=2^2x7');
     });
 
-    test('neighbouring numbers are unaffected', () {
-      expect(runG('56'), startsWith('56$_notPrime'));
-      expect(runG('58'), startsWith('58$_notPrime'));
-      expect(runG('59'), '59$_prime');
+    test('replaces the header of a prime', () {
+      expect(runS('31'), '31$s');
     });
 
-    test('57 is plain composite when no joke string is given', () {
+    test('is ignored when null or omitted', () {
+      expect(
+        pri_fact_isolate([BigInt.from(57), _notPrime, _prime, null]),
+        '57$_notPrime\n57=3x19',
+      );
       expect(run('57'), '57$_notPrime\n57=3x19');
     });
   });

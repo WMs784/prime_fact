@@ -14,5 +14,12 @@
   "historyTitle": "Calculation History",
   "historyEmpty": "No history yet",
   "errorEmpty": "Please enter a number",
-  "isGrothendieckPrime": " is a prime number! by Grothendieck"
+  "isGrothendieckPrime": " is a prime number! by Grothendieck",
+  "isPerfectNumber": " is not a prime, but a perfect number!",
+  "isMersennePrime": " is a Mersenne prime!",
+  "isFermatPrime": " is a Fermat prime!",
+  "isPalindromicPrime": " is a palindromic prime!",
+  "isSophieGermainPrime": " is a Sophie Germain prime!",
+  "isTwinPrime": " is a twin prime!",
+  "isRamanujanNumber": " is not a prime, but the Hardy–Ramanujan number!"
 }

@@ -61,6 +61,9 @@ bool _isPrime(BigInt n) {
   return true;
 }
 
+/// 素数判定（`_isPrime` の公開版）。
+bool isProbablePrime(BigInt n) => _isPrime(n);
+
 // Brent's improvement of Pollard's rho with batch GCD (m=128)
 BigInt _pollardBrent(BigInt n, BigInt c) {
   BigInt y = BigInt.from(2);
@@ -132,18 +135,18 @@ void _factorHelper(BigInt n, Map<BigInt, int> factors) {
   _factorHelper(n ~/ f, factors);
 }
 
-// args = [n (BigInt), isNotPrimeStr, isPrimeStr, grothendieckStr (optional)]
+// args = [n (BigInt), isNotPrimeStr, isPrimeStr, specialHeaderStr (optional)]
+// specialHeaderStr は、素数/合成数の見出しを差し替える（完全数や 57 など）。因数分解の結果はそのまま出す。
 // ignore: non_constant_identifier_names
 String pri_fact_isolate(List<dynamic> args) {
   final BigInt n = args[0] as BigInt;
   final String isNotPrime = args[1] as String;
   final String isPrime = args[2] as String;
-  // 遊び心: 57 は「グロタンディーク素数」。見出しだけ差し替え、因数分解の結果はそのまま出す。
-  final String? grothendieck = args.length > 3 ? args[3] as String? : null;
+  final String? special = args.length > 3 ? args[3] as String? : null;
 
   final nStr = n.toString();
   if (n <= BigInt.one) return nStr + isNotPrime;
-  if (_isPrime(n)) return nStr + isPrime;
+  if (_isPrime(n)) return nStr + (special ?? isPrime);
 
   final factors = <BigInt, int>{};
   _factorHelper(n, factors);
@@ -157,8 +160,5 @@ String pri_fact_isolate(List<dynamic> args) {
       })
       .join('x');
 
-  final header = (n == BigInt.from(57) && grothendieck != null)
-      ? grothendieck
-      : isNotPrime;
-  return '$nStr$header\n$nStr=$factStr';
+  return '$nStr${special ?? isNotPrime}\n$nStr=$factStr';
 }
