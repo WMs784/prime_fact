@@ -49,7 +49,7 @@ void main() {
       for (final key in _dateKeys().take(50)) {
         final a = DailyPuzzle.forDateKey(key);
         final b = DailyPuzzle.forDateKey(key);
-        expect((a.p, a.q, a.difficulty), (b.p, b.q, b.difficulty));
+        expect((a.p, a.q), (b.p, b.q));
       }
     });
 
@@ -75,24 +75,22 @@ void main() {
       if (puzzle.q != puzzle.p) expect(puzzle.isCorrect(puzzle.q), isFalse);
     });
 
-    test('difficulty tiers match their p range and appear as weighted', () {
-      final counts = {for (final d in Difficulty.values) d: 0};
+    test('p falls in the three tiers with the expected weights', () {
+      var easy = 0, medium = 0, hard = 0;
       for (final key in _dateKeys()) {
-        final puzzle = DailyPuzzle.forDateKey(key);
-        counts[puzzle.difficulty] = counts[puzzle.difficulty]! + 1;
-        switch (puzzle.difficulty) {
-          case Difficulty.easy:
-            expect(puzzle.p, inInclusiveRange(7, 13));
-          case Difficulty.medium:
-            expect(puzzle.p, inInclusiveRange(17, 31));
-          case Difficulty.hard:
-            expect(puzzle.p, inInclusiveRange(37, 53));
+        final p = DailyPuzzle.forDateKey(key).p;
+        if (p <= 13) {
+          easy++;
+        } else if (p <= 31) {
+          medium++;
+        } else {
+          hard++;
         }
       }
       // 3000 日で 50% / 35% / 15%（±5%）
-      expect(counts[Difficulty.easy]! / 3000, closeTo(0.5, 0.05));
-      expect(counts[Difficulty.medium]! / 3000, closeTo(0.35, 0.05));
-      expect(counts[Difficulty.hard]! / 3000, closeTo(0.15, 0.05));
+      expect(easy / 3000, closeTo(0.5, 0.05));
+      expect(medium / 3000, closeTo(0.35, 0.05));
+      expect(hard / 3000, closeTo(0.15, 0.05));
     });
 
     test('puzzles for fixed dates never change (regression)', () {

@@ -22,9 +22,12 @@ class DailyBanner extends StatefulWidget {
 class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
   DailyProgress? _progress;
 
-  /// [_progress] を読み込んだ日。今日と違えば読み込み直しが済むまで「読み込み中」扱いにする。
+  /// [_progress] を読み込んだ日。表示と、タップ先の問題はこの日に揃える。null は読み込み中。
   int? _loadedKey;
   Timer? _midnight;
+
+  /// 読み込みの世代。後から始めた読み込みより先に始めた読み込みが遅れて終わっても、捨てる。
+  int _generation = 0;
 
   @override
   void initState() {
@@ -46,6 +49,7 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
   }
 
   Future<void> _reload() async {
+    final generation = ++_generation;
     final now = widget.now();
     final key = jstDateKey(now);
     DailyProgress? progress;
@@ -54,7 +58,7 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
     } catch (_) {
       // 読めなければ未開始として扱う。挑戦画面側でエラーを表示する
     }
-    if (!mounted) return;
+    if (!mounted || generation != _generation) return;
     setState(() {
       _progress = progress;
       _loadedKey = key;
@@ -74,7 +78,10 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
   }
 
   Future<void> _open() async {
-    final puzzle = DailyPuzzle.forDate(widget.now());
+    final key = _loadedKey;
+    if (key == null) return;
+    // 表示している日の問題を開く（now() を取り直すと、表示と遷移先が食い違い得る）
+    final puzzle = DailyPuzzle.forDateKey(key);
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => DailyPage(
@@ -91,8 +98,8 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final loaded = _loadedKey == jstDateKey(widget.now());
-    final progress = loaded ? _progress : null;
+    final loaded = _loadedKey != null;
+    final progress = _progress;
 
     final String title;
     final String subtitle;

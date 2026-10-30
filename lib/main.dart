@@ -21,7 +21,10 @@ class MyApp extends StatelessWidget {
   /// 「今日の素因数分解」の現在時刻。テストで差し替える。
   final DateTime Function() now;
 
-  const MyApp({super.key, this.now = DateTime.now});
+  /// テストで差し替える。
+  final DailyRepository? dailyRepository;
+
+  const MyApp({super.key, this.now = DateTime.now, this.dailyRepository});
 
   @override
   Widget build(BuildContext context) {
@@ -66,15 +69,18 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('ja', ''), Locale('en', '')],
-      home: Scaffold(body: MyLayout(now: now)),
+      home: Scaffold(
+        body: MyLayout(now: now, dailyRepository: dailyRepository),
+      ),
     );
   }
 }
 
 class MyLayout extends StatefulWidget {
   final DateTime Function() now;
+  final DailyRepository? dailyRepository;
 
-  const MyLayout({super.key, this.now = DateTime.now});
+  const MyLayout({super.key, this.now = DateTime.now, this.dailyRepository});
 
   @override
   State<MyLayout> createState() => _MyLayoutState();
@@ -83,7 +89,8 @@ class MyLayout extends StatefulWidget {
 class _MyLayoutState extends State<MyLayout> {
   List<HistoryEntry> _history = [];
   final _repo = HistoryRepository();
-  final _dailyRepo = DailyRepository();
+  late final DailyRepository _dailyRepo =
+      widget.dailyRepository ?? DailyRepository();
 
   @override
   void initState() {

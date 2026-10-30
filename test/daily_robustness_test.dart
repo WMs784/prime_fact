@@ -9,6 +9,7 @@ import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/main.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final _day = DateTime.utc(2026, 10, 31, 3); // 12:00 JST
@@ -35,6 +36,32 @@ class _FakeRepo extends DailyRepository {
     stored = progress;
   }
 }
+
+/// 1 回目の load だけ完了を保留し、2 回目以降はクリア済みを返す。
+class _SlowFirstLoadRepo extends DailyRepository {
+  final firstLoad = Completer<DailyProgress?>();
+  int _calls = 0;
+
+  @override
+  Future<DailyProgress?> load(int dateKey) {
+    if (_calls++ == 0) return firstLoad.future;
+    return Future.value(
+      DailyProgress(
+        startedAt: _day,
+        clearedAt: _day.add(const Duration(seconds: 5)),
+      ),
+    );
+  }
+}
+
+/// [result] を返す share。null のときは未実装として [UnimplementedError] を投げる。
+Future<ShareResult> Function(ShareParams) _fakeShare(
+  ShareResult? result, {
+  Object? error,
+}) => (_) async {
+  if (error != null) throw error;
+  return result ?? (throw UnimplementedError());
+};
 
 Widget _app(Widget home) => MaterialApp(
   locale: const Locale('ja'),
@@ -180,6 +207,57 @@ void main() {
     });
   });
 
+  group('shareText', () {
+    String? copied;
+
+    setUp(() {
+      copied = null;
+      TestWidgetsFlutterBinding.ensureInitialized();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+            if (call.method == 'Clipboard.setData') {
+              copied = (call.arguments as Map)['text'] as String;
+            }
+            return null;
+          });
+    });
+    tearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+
+    test(
+      'does not touch the clipboard when the result is unavailable',
+      () async {
+        final shared = await shareText(
+          'hello',
+          null,
+          share: _fakeShare(ShareResult.unavailable),
+        );
+        expect(shared, isTrue);
+        expect(copied, isNull);
+      },
+    );
+
+    test('copies only when there is no share implementation', () async {
+      final shared = await shareText('hello', null, share: _fakeShare(null));
+      expect(shared, isFalse);
+      expect(copied, 'hello');
+    });
+
+    test('other errors propagate without copying', () async {
+      await expectLater(
+        shareText(
+          'hello',
+          null,
+          share: _fakeShare(null, error: PlatformException(code: 'x')),
+        ),
+        throwsA(isA<PlatformException>()),
+      );
+      expect(copied, isNull);
+    });
+  });
+
   group('banner', () {
     testWidgets('does not flash the start label while loading', (tester) async {
       await tester.pumpWidget(_app(const Scaffold(body: MyLayout())));
@@ -211,6 +289,47 @@ void main() {
       expect(find.text('今日の挑戦はクリア済み'), findsNothing);
       expect(find.text('今日の素因数分解に挑戦する'), findsOneWidget);
     });
+  });
+
+  testWidgets('a slow stale load does not overwrite a newer one', (
+    tester,
+  ) async {
+    tester.platformDispatcher.localesTestValue = [const Locale('ja')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+    final repo = _SlowFirstLoadRepo();
+    await tester.pumpWidget(MyApp(now: () => _day, dailyRepository: repo));
+    await tester.pump();
+    // 1 回目の読み込み（未開始）が止まっている間に、2 回目（クリア済み）を始める
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(find.text('今日の挑戦はクリア済み'), findsOneWidget);
+
+    repo.firstLoad.complete(null); // 古い結果が遅れて届く
+    await tester.pumpAndSettle();
+    expect(find.text('今日の挑戦はクリア済み'), findsOneWidget);
+  });
+
+  testWidgets('answering after midnight keeps the record on the puzzle day', (
+    tester,
+  ) async {
+    final repo = _FakeRepo();
+    var now = _day;
+    await _pumpPage(
+      tester,
+      DailyPage(
+        puzzle: _puzzle,
+        repository: repo,
+        now: () => now,
+        onShare: (_, _) async => true,
+      ),
+    );
+    now = DateTime.utc(2026, 10, 31, 16); // 翌日 01:00 JST
+    await tester.enterText(find.byType(TextField), '${_puzzle.p}');
+    await tester.tap(find.text('回答する'));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('2026-10-31'), findsOneWidget);
+    expect(repo.stored?.isCleared, isTrue);
   });
 
   testWidgets('calculator stays usable on a short screen with the keyboard', (

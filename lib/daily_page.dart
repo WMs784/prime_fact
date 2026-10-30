@@ -22,19 +22,39 @@ String dailyShareText(
   webAppUrl,
 );
 
-/// 共有シートで共有する。共有シートが使えない環境ではクリップボードにコピーして false を返す。
+/// 共有シートで共有する。共有シートを持たない環境（プラグイン未実装）のときだけ、
+/// クリップボードにコピーして false を返す。
+///
+/// `ShareResultStatus.unavailable` は「共有の成否を判別できない」という意味で、
+/// Android・Windows・Web では共有に成功しても返るので、コピーの理由にしてはいけない。
 /// それ以外の失敗は例外のまま呼び出し側に伝える。
 /// [origin] は iPad の共有ポップオーバーの基準位置。
-Future<bool> shareText(String text, Rect? origin) async {
-  final result = await SharePlus.instance.share(
-    ShareParams(text: text, sharePositionOrigin: origin),
-  );
-  if (result.status != ShareResultStatus.unavailable) return true;
-  await Clipboard.setData(ClipboardData(text: text));
-  return false;
+Future<bool> shareText(
+  String text,
+  Rect? origin, {
+  Future<ShareResult> Function(ShareParams)? share,
+}) async {
+  try {
+    await (share ?? SharePlus.instance.share)(
+      ShareParams(text: text, sharePositionOrigin: origin),
+    );
+    return true;
+  } on MissingPluginException {
+    await Clipboard.setData(ClipboardData(text: text));
+    return false;
+  } on UnimplementedError {
+    await Clipboard.setData(ClipboardData(text: text));
+    return false;
+  }
 }
 
+Future<bool> _defaultShare(String text, Rect? origin) =>
+    shareText(text, origin);
+
 /// 今日の問題に挑戦する画面。開いた時点で計時が始まる（初回のみ。以降は保存した開始時刻から続く）。
+///
+/// 記録は開いた時点の問題の日付（[DailyPuzzle.dateKey]）で保存する。0 時をまたいで
+/// 答えても前日の問題の記録として残り、ホームのバナーは新しい日の問題に切り替わる。
 class DailyPage extends StatefulWidget {
   final DailyPuzzle puzzle;
   final DailyRepository repository;
@@ -46,7 +66,7 @@ class DailyPage extends StatefulWidget {
     required this.puzzle,
     required this.repository,
     required this.now,
-    this.onShare = shareText,
+    this.onShare = _defaultShare,
   });
 
   @override
@@ -69,7 +89,6 @@ class _DailyPageState extends State<DailyPage> {
   }
 
   Future<void> _init() async {
-    setState(() => _loadFailed = false);
     try {
       final key = widget.puzzle.dateKey;
       final saved = await widget.repository.load(key);
@@ -190,7 +209,13 @@ class _DailyPageState extends State<DailyPage> {
         children: [
           Text(loc.dailyLoadFailed, textAlign: TextAlign.center),
           const SizedBox(height: 16),
-          ElevatedButton(onPressed: _init, child: Text(loc.dailyRetry)),
+          ElevatedButton(
+            onPressed: () {
+              setState(() => _loadFailed = false);
+              _init();
+            },
+            child: Text(loc.dailyRetry),
+          ),
           const SizedBox(height: 12),
           _backHome(loc),
         ],

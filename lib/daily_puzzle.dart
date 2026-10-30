@@ -4,14 +4,12 @@
 /// 変えるときは日付で分岐し、`test/daily_puzzle_test.dart` の固定値も更新すること。
 library;
 
-enum Difficulty { easy, medium, hard }
-
 /// 最小の素因数 [p] の範囲と、出題の割合（合計 100）。
-const _tiers = <Difficulty, ({int minP, int maxP, int weight})>{
-  Difficulty.easy: (minP: 7, maxP: 13, weight: 50),
-  Difficulty.medium: (minP: 17, maxP: 31, weight: 35),
-  Difficulty.hard: (minP: 37, maxP: 53, weight: 15),
-};
+const _tiers = <({int minP, int maxP, int weight})>[
+  (minP: 7, maxP: 13, weight: 50), // 易
+  (minP: 17, maxP: 31, weight: 35), // 中
+  (minP: 37, maxP: 53, weight: 15), // 難
+];
 
 /// もう一方の素因数 [q] の上限。n が高々 5 桁（約 1.6 万）に収まる。
 const _maxQ = 293;
@@ -67,33 +65,31 @@ String formatDateKey(int dateKey) {
 
 class DailyPuzzle {
   final int dateKey;
-  final Difficulty difficulty;
 
   /// 最小の素因数（正解）。
   final int p;
   final int q;
 
-  const DailyPuzzle._(this.dateKey, this.difficulty, this.p, this.q);
+  const DailyPuzzle._(this.dateKey, this.p, this.q);
 
   int get n => p * q;
 
   factory DailyPuzzle.forDateKey(int dateKey) {
     final roll = _rand(dateKey, 0) % 100;
     var acc = 0;
-    var difficulty = Difficulty.hard;
-    for (final entry in _tiers.entries) {
-      acc += entry.value.weight;
+    var tier = _tiers.last;
+    for (final t in _tiers) {
+      acc += t.weight;
       if (roll < acc) {
-        difficulty = entry.key;
+        tier = t;
         break;
       }
     }
-    final tier = _tiers[difficulty]!;
     final ps = _primes.where((x) => x >= tier.minP && x <= tier.maxP).toList();
     final p = ps[_rand(dateKey, 1) % ps.length];
     final qs = _primes.where((x) => x >= p).toList();
     final q = qs[_rand(dateKey, 2) % qs.length];
-    return DailyPuzzle._(dateKey, difficulty, p, q);
+    return DailyPuzzle._(dateKey, p, q);
   }
 
   factory DailyPuzzle.forDate(DateTime now) =>
