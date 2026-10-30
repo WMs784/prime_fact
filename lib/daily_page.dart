@@ -22,14 +22,23 @@ String dailyShareText(
   webAppUrl,
 );
 
+/// 共有の結果。
+enum ShareOutcome {
+  /// 共有シートを開いた（共有したか閉じたかは判別しない）。
+  sheet,
+
+  /// 共有シートを持たない環境のため、クリップボードにコピーした。
+  copied,
+}
+
 /// 共有シートで共有する。共有シートを持たない環境（プラグイン未実装）のときだけ、
-/// クリップボードにコピーして false を返す。
+/// クリップボードにコピーして [ShareOutcome.copied] を返す。
 ///
 /// `ShareResultStatus.unavailable` は「共有の成否を判別できない」という意味で、
 /// Android・Windows・Web では共有に成功しても返るので、コピーの理由にしてはいけない。
 /// それ以外の失敗は例外のまま呼び出し側に伝える。
 /// [origin] は iPad の共有ポップオーバーの基準位置。
-Future<bool> shareText(
+Future<ShareOutcome> shareText(
   String text,
   Rect? origin, {
   Future<ShareResult> Function(ShareParams)? share,
@@ -38,18 +47,15 @@ Future<bool> shareText(
     await (share ?? SharePlus.instance.share)(
       ShareParams(text: text, sharePositionOrigin: origin),
     );
-    return true;
+    return ShareOutcome.sheet;
   } on MissingPluginException {
     await Clipboard.setData(ClipboardData(text: text));
-    return false;
+    return ShareOutcome.copied;
   } on UnimplementedError {
     await Clipboard.setData(ClipboardData(text: text));
-    return false;
+    return ShareOutcome.copied;
   }
 }
-
-Future<bool> _defaultShare(String text, Rect? origin) =>
-    shareText(text, origin);
 
 /// 今日の問題に挑戦する画面。開いた時点で計時が始まる（初回のみ。以降は保存した開始時刻から続く）。
 ///
@@ -59,14 +65,14 @@ class DailyPage extends StatefulWidget {
   final DailyPuzzle puzzle;
   final DailyRepository repository;
   final DateTime Function() now;
-  final Future<bool> Function(String text, Rect? origin) onShare;
+  final Future<ShareOutcome> Function(String text, Rect? origin) onShare;
 
   const DailyPage({
     super.key,
     required this.puzzle,
     required this.repository,
     required this.now,
-    this.onShare = _defaultShare,
+    this.onShare = shareText,
   });
 
   @override
@@ -149,8 +155,8 @@ class _DailyPageState extends State<DailyPage> {
     final messenger = ScaffoldMessenger.of(context);
     final text = dailyShareText(loc, progress, widget.now());
     try {
-      final shared = await widget.onShare(text, origin);
-      if (!shared) {
+      final outcome = await widget.onShare(text, origin);
+      if (outcome == ShareOutcome.copied) {
         messenger.showSnackBar(SnackBar(content: Text(loc.dailyCopied)));
       }
     } catch (_) {

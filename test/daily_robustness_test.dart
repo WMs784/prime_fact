@@ -72,12 +72,12 @@ Widget _app(Widget home) => MaterialApp(
 
 DailyPage _page(
   _FakeRepo repo, {
-  Future<bool> Function(String, Rect?)? onShare,
+  Future<ShareOutcome> Function(String, Rect?)? onShare,
 }) => DailyPage(
   puzzle: _puzzle,
   repository: repo,
   now: () => _day,
-  onShare: onShare ?? (_, _) async => true,
+  onShare: onShare ?? (_, _) async => ShareOutcome.sheet,
 );
 
 Future<void> _pumpPage(WidgetTester tester, Widget page) async {
@@ -164,7 +164,7 @@ void main() {
   group('share', () {
     Future<_FakeRepo> cleared(
       WidgetTester tester,
-      Future<bool> Function(String, Rect?) onShare,
+      Future<ShareOutcome> Function(String, Rect?) onShare,
     ) async {
       final repo = _FakeRepo()
         ..stored = DailyProgress(
@@ -179,7 +179,7 @@ void main() {
       Rect? origin;
       await cleared(tester, (_, o) async {
         origin = o;
-        return true;
+        return ShareOutcome.sheet;
       });
       await tester.tap(find.text('結果をシェア'));
       await tester.pump();
@@ -190,7 +190,7 @@ void main() {
     testWidgets('tells the user when the text was copied instead', (
       tester,
     ) async {
-      await cleared(tester, (_, _) async => false);
+      await cleared(tester, (_, _) async => ShareOutcome.copied);
       await tester.tap(find.text('結果をシェア'));
       await tester.pump();
       expect(find.text('クリップボードにコピーしました'), findsOneWidget);
@@ -234,14 +234,14 @@ void main() {
           null,
           share: _fakeShare(ShareResult.unavailable),
         );
-        expect(shared, isTrue);
+        expect(shared, ShareOutcome.sheet);
         expect(copied, isNull);
       },
     );
 
     test('copies only when there is no share implementation', () async {
       final shared = await shareText('hello', null, share: _fakeShare(null));
-      expect(shared, isFalse);
+      expect(shared, ShareOutcome.copied);
       expect(copied, 'hello');
     });
 
@@ -291,6 +291,52 @@ void main() {
     });
   });
 
+  testWidgets('the banner notices a date change on its own', (tester) async {
+    tester.platformDispatcher.localesTestValue = [const Locale('ja')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+    await DailyRepository().save(
+      20261031,
+      DailyProgress(
+        startedAt: _day,
+        clearedAt: _day.add(const Duration(seconds: 5)),
+      ),
+    );
+    var now = _day;
+    await tester.pumpWidget(MyApp(now: () => now));
+    await tester.pumpAndSettle();
+    expect(find.text('今日の挑戦はクリア済み'), findsOneWidget);
+
+    // 復帰イベントもタイマーの再設定もなく、時計だけが進んだ場合
+    now = DateTime.utc(2026, 10, 31, 15, 0, 1);
+    await tester.pump(const Duration(seconds: 31));
+    await tester.pumpAndSettle();
+    expect(find.text('今日の素因数分解に挑戦する'), findsOneWidget);
+  });
+
+  testWidgets('tapping a stale banner refreshes it instead of opening', (
+    tester,
+  ) async {
+    tester.platformDispatcher.localesTestValue = [const Locale('ja')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+    await DailyRepository().save(
+      20261031,
+      DailyProgress(
+        startedAt: _day,
+        clearedAt: _day.add(const Duration(seconds: 5)),
+      ),
+    );
+    var now = _day;
+    await tester.pumpWidget(MyApp(now: () => now));
+    await tester.pumpAndSettle();
+
+    now = DateTime.utc(2026, 10, 31, 15, 0, 1);
+    await tester.tap(find.text('今日の挑戦はクリア済み'));
+    await tester.pumpAndSettle();
+    expect(find.text('今日の素因数分解に挑戦する'), findsOneWidget);
+    expect(find.text('回答する'), findsNothing); // 新しい日の計時は始まっていない
+    expect(await DailyRepository().load(20261101), isNull);
+  });
+
   testWidgets('a slow stale load does not overwrite a newer one', (
     tester,
   ) async {
@@ -320,7 +366,7 @@ void main() {
         puzzle: _puzzle,
         repository: repo,
         now: () => now,
-        onShare: (_, _) async => true,
+        onShare: (_, _) async => ShareOutcome.sheet,
       ),
     );
     now = DateTime.utc(2026, 10, 31, 16); // 翌日 01:00 JST

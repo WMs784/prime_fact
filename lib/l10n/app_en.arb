@@ -28,17 +28,6 @@
   "dailyBannerContinue": "Continue today's challenge",
   "dailyBannerCleared": "Today's challenge cleared",
   "dailyStats": "Time {time} / Misses {wrong}",
-  "dailyQuestion": "What is the smallest prime factor of this number?",
-  "dailyAnswerHint": "Your answer",
-  "dailySubmit": "Answer",
-  "dailyWrong": "Not quite. Try again",
-  "dailyMisses": "Misses: {wrong}",
-  "dailyElapsed": "Time: {time}",
-  "dailyCorrect": "Correct! The smallest prime factor is {p}",
-  "dailyShare": "Share result",
-  "dailyShareText": "🔢 Prime Factorization Challenge\n⏱ {time} / {wrong, plural, =0{No misses 🎉} =1{1 miss} other{{wrong} misses}}\n\nCan you find the smallest prime factor faster?\n📱 {playUrl}\n🌐 {webUrl}",
-  "dailyCopied": "Copied to clipboard",
-  "dailyBackHome": "Back to home",
   "@dailyStats": {
     "placeholders": {
       "time": {
@@ -49,6 +38,11 @@
       }
     }
   },
+  "dailyQuestion": "What is the smallest prime factor of this number?",
+  "dailyAnswerHint": "Your answer",
+  "dailySubmit": "Answer",
+  "dailyWrong": "Not quite. Try again",
+  "dailyMisses": "Misses: {wrong}",
   "@dailyMisses": {
     "placeholders": {
       "wrong": {
@@ -56,6 +50,7 @@
       }
     }
   },
+  "dailyElapsed": "Time: {time}",
   "@dailyElapsed": {
     "placeholders": {
       "time": {
@@ -63,6 +58,7 @@
       }
     }
   },
+  "dailyCorrect": "Correct! The smallest prime factor is {p}",
   "@dailyCorrect": {
     "placeholders": {
       "p": {
@@ -70,6 +66,8 @@
       }
     }
   },
+  "dailyShare": "Share result",
+  "dailyShareText": "🔢 Prime Factorization Challenge\n⏱ {time} / {wrong, plural, =0{No misses 🎉} =1{1 miss} other{{wrong} misses}}\n\nCan you find the smallest prime factor faster?\n📱 {playUrl}\n🌐 {webUrl}",
   "@dailyShareText": {
     "placeholders": {
       "time": {
@@ -86,6 +84,8 @@
       }
     }
   },
+  "dailyCopied": "Copied to clipboard",
+  "dailyBackHome": "Back to home",
   "dailyLoadFailed": "Couldn't load today's challenge",
   "dailyRetry": "Retry",
   "dailySaveFailed": "Couldn't save your answer. Please try again",
