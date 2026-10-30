@@ -6,6 +6,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import 'daily_banner.dart';
+import 'daily_repository.dart';
 import 'judge.dart';
 import 'history_entry.dart';
 import 'history_repository.dart';
@@ -15,7 +17,10 @@ import 'trivia.dart';
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  /// 「今日の素因数分解」の現在時刻。テストで差し替える。
+  final DateTime Function() now;
+
+  const MyApp({super.key, this.now = DateTime.now});
 
   @override
   Widget build(BuildContext context) {
@@ -60,13 +65,15 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('ja', ''), Locale('en', '')],
-      home: const Scaffold(body: MyLayout()),
+      home: Scaffold(body: MyLayout(now: now)),
     );
   }
 }
 
 class MyLayout extends StatefulWidget {
-  const MyLayout({super.key});
+  final DateTime Function() now;
+
+  const MyLayout({super.key, this.now = DateTime.now});
 
   @override
   State<MyLayout> createState() => _MyLayoutState();
@@ -75,6 +82,7 @@ class MyLayout extends StatefulWidget {
 class _MyLayoutState extends State<MyLayout> {
   List<HistoryEntry> _history = [];
   final _repo = HistoryRepository();
+  final _dailyRepo = DailyRepository();
 
   @override
   void initState() {
@@ -159,7 +167,18 @@ class _MyLayoutState extends State<MyLayout> {
       // AppBar がステータスバー側のインセットを処理するため、本文は上以外を保護する
       body: SafeArea(
         top: false,
-        child: Center(child: MyWidget(onCalculated: _addHistory)),
+        child: Column(
+          children: [
+            DailyBanner(repository: _dailyRepo, now: widget.now),
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  child: MyWidget(onCalculated: _addHistory),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

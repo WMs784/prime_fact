@@ -8,7 +8,7 @@ This is a Flutter application that calculates prime factorization of numbers. Th
 
 **Key Details:**
 - App Name: Prime Factorization Calculator (素因数分解計算機)
-- Version: 4.1.0+18
+- Version: 4.2.0+19
 - Flutter SDK: 3.47.8 (stable, Dart 3.13) 以上。AGP 9 / Gradle 9 を使うため、古い Flutter ではビルドできない
 - Package ID: `project.My_prime_nember` (Android)
 
@@ -95,6 +95,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/judge.dart`**: Core business logic (Miller-Rabin primality test, Pollard-Brent factorization on `BigInt`; entry point `pri_fact_isolate()` runs in an isolate)
 - **`lib/trivia.dart`**: Replaces the primality header for special numbers (perfect / Mersenne / Fermat / palindromic / Sophie Germain / twin primes, 1729, 57 Grothendieck), e.g. "6は素数、ではなく完全数です！". The result is passed to `pri_fact_isolate` as an optional 4th arg; `HistoryPage` re-derives it via `headerFor`. To extend: add a `Trivia` value, its `isXxx` ARB strings (suffix after the number), a `triviaHeader` case and a test
 - **`lib/history_*.dart`**: Calculation history (`HistoryEntry`, `HistoryRepository` persisting via `shared_preferences`, `HistoryPage`)
+- **`lib/daily_*.dart`**: 「今日の素因数分解」。`DailyPuzzle` が JST の日付だけから決定的に `n = p×q`（`p` は 7〜97 の最小の素因数、`q` は `p`〜997）を生成する（難度ティアは易/中/難 = 40/40/20%）。`DailyProgress`/`DailyRepository` が開始時刻・ミス回数・クリア時刻を `shared_preferences` に保存し（離脱中も時間は進む）、`DailyBanner`（ホーム）→`DailyPage`（出題・結果・シェア）と遷移する。生成手順を変えると同じ日の問題が変わるので、変更時は日付で分岐し `test/daily_puzzle_test.dart` の固定値も更新する
 - **`lib/l10n/`**: Internationalization files for Japanese and English support
 
 ### Key Components
@@ -143,6 +144,7 @@ The app supports Japanese and English:
 - `intl: ^0.20.2` - Date/number formatting
 - `shared_preferences: ^2.3.0` - Persisting calculation history
 - `url_launcher: ^6.0.18` - External links in drawer
+- `share_plus: ^13.3.1` - Sharing the daily challenge result
 
 ### Dev Dependencies
 - `flutter_launcher_icons: any` - Custom app icon generation
@@ -158,6 +160,8 @@ The app supports Japanese and English:
 - `test/judge_test.dart`: primality (Carmichael numbers, strong pseudoprimes), factorization (prime powers, trial-division boundary, ~30-digit semiprime), trivial inputs
 - `test/trivia_test.dart`: each special-number category and near-miss numbers (e.g. 121, 120, 15)
 - `test/history_test.dart`: `HistoryEntry` JSON round trip and legacy-format migration, `HistoryRepository` load/save/corrupted data
+- `test/daily_puzzle_test.dart`: determinism, JST date rollover, p/q ranges, tier ratios, fixed-date regression values
+- `test/daily_progress_test.dart`, `test/daily_challenge_test.dart`: progress/repository, banner → challenge → result flow, share text
 - `test/widget_test.dart`: calculator UI, input validation errors, localized results
 - Add tests alongside any change to `judge.dart` or the history format
 
