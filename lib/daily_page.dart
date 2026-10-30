@@ -9,16 +9,26 @@ import 'daily_progress.dart';
 import 'daily_puzzle.dart';
 import 'daily_repository.dart';
 
+const playStoreUrl =
+    'https://play.google.com/store/apps/details?id=project.My_prime_nember';
+const webAppUrl = 'https://wms784.github.io/prime_fact/app/';
+
+/// 難度を星の数で表す。
+String difficultyStars(Difficulty d) => '⭐' * (d.index + 1);
+
 /// 結果の共有文。問題の数と正解は含めない（ネタバレ防止）。
 String dailyShareText(
   AppLocalizations loc,
-  int dateKey,
+  DailyPuzzle puzzle,
   DailyProgress progress,
   DateTime now,
 ) => loc.dailyShareText(
-  formatDateKey(dateKey),
+  formatDateKey(puzzle.dateKey),
+  difficultyStars(puzzle.difficulty),
   formatElapsed(progress.elapsed(now)),
   progress.wrong,
+  playStoreUrl,
+  webAppUrl,
 );
 
 /// 共有シートで共有する。使えない環境ではクリップボードにコピーして false を返す。
@@ -109,12 +119,7 @@ class _DailyPageState extends State<DailyPage> {
   }
 
   Future<void> _share(AppLocalizations loc, DailyProgress progress) async {
-    final text = dailyShareText(
-      loc,
-      widget.puzzle.dateKey,
-      progress,
-      widget.now(),
-    );
+    final text = dailyShareText(loc, widget.puzzle, progress, widget.now());
     final messenger = ScaffoldMessenger.of(context);
     final shared = await widget.onShare(text);
     if (!shared) {

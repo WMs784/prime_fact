@@ -53,16 +53,16 @@ void main() {
       }
     });
 
-    test('is a semiprime whose smallest prime factor is p (7..97)', () {
+    test('is a semiprime whose smallest prime factor is p (7..53)', () {
       for (final key in _dateKeys()) {
         final puzzle = DailyPuzzle.forDateKey(key);
         expect(_isPrime(puzzle.p), isTrue, reason: '$key p');
         expect(_isPrime(puzzle.q), isTrue, reason: '$key q');
-        expect(puzzle.p, inInclusiveRange(7, 97), reason: '$key');
-        expect(puzzle.q, inInclusiveRange(puzzle.p, 997), reason: '$key');
+        expect(puzzle.p, inInclusiveRange(7, 53), reason: '$key');
+        expect(puzzle.q, inInclusiveRange(puzzle.p, 293), reason: '$key');
         expect(puzzle.n % puzzle.p, 0);
         expect(_smallestFactor(puzzle.n), puzzle.p, reason: '$key');
-        expect(puzzle.n, lessThan(100000));
+        expect(puzzle.n, lessThan(16000));
       }
     });
 
@@ -84,15 +84,15 @@ void main() {
           case Difficulty.easy:
             expect(puzzle.p, inInclusiveRange(7, 13));
           case Difficulty.medium:
-            expect(puzzle.p, inInclusiveRange(17, 43));
+            expect(puzzle.p, inInclusiveRange(17, 31));
           case Difficulty.hard:
-            expect(puzzle.p, inInclusiveRange(47, 97));
+            expect(puzzle.p, inInclusiveRange(37, 53));
         }
       }
-      // 3000 日で 40% / 40% / 20%（±5%）
-      expect(counts[Difficulty.easy]! / 3000, closeTo(0.4, 0.05));
-      expect(counts[Difficulty.medium]! / 3000, closeTo(0.4, 0.05));
-      expect(counts[Difficulty.hard]! / 3000, closeTo(0.2, 0.05));
+      // 3000 日で 50% / 35% / 15%（±5%）
+      expect(counts[Difficulty.easy]! / 3000, closeTo(0.5, 0.05));
+      expect(counts[Difficulty.medium]! / 3000, closeTo(0.35, 0.05));
+      expect(counts[Difficulty.hard]! / 3000, closeTo(0.15, 0.05));
     });
 
     test('puzzles for fixed dates never change (regression)', () {
@@ -100,7 +100,7 @@ void main() {
         for (final key in [20260101, 20261031, 20270101])
           key: DailyPuzzle.forDateKey(key).n,
       };
-      expect(actual, {20260101: 6331, 20261031: 19561, 20270101: 4769});
+      expect(actual, {20260101: 3107, 20261031: 6509, 20270101: 4097});
     });
   });
 }

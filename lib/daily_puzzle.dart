@@ -8,13 +8,13 @@ enum Difficulty { easy, medium, hard }
 
 /// 最小の素因数 [p] の範囲と、出題の割合（合計 100）。
 const _tiers = <Difficulty, ({int minP, int maxP, int weight})>{
-  Difficulty.easy: (minP: 7, maxP: 13, weight: 40),
-  Difficulty.medium: (minP: 17, maxP: 43, weight: 40),
-  Difficulty.hard: (minP: 47, maxP: 97, weight: 20),
+  Difficulty.easy: (minP: 7, maxP: 13, weight: 50),
+  Difficulty.medium: (minP: 17, maxP: 31, weight: 35),
+  Difficulty.hard: (minP: 37, maxP: 53, weight: 15),
 };
 
-/// もう一方の素因数 [q] の上限。n が高々 5 桁に収まる。
-const _maxQ = 997;
+/// もう一方の素因数 [q] の上限。n が高々 5 桁（約 1.6 万）に収まる。
+const _maxQ = 293;
 
 final List<int> _primes = _sieve(_maxQ);
 

@@ -36,7 +36,7 @@
   "dailyElapsed": "経過時間: {time}",
   "dailyCorrect": "正解！最小の素因数は{p}です",
   "dailyShare": "結果をシェア",
-  "dailyShareText": "素因数分解チャレンジ {date}\n✅ {time} / ミス{wrong}回",
+  "dailyShareText": "🔢 今日の素因数分解 {date} {stars}\n⏱ {time} / {wrong, plural, =0{ノーミス🎉} other{ミス{wrong}回}}\n\n最小の素因数、あなたはもっと速く見つけられる？\n📱 {playUrl}\n🌐 {webUrl}",
   "dailyCopied": "クリップボードにコピーしました",
   "dailyBackHome": "ホームに戻る"
 }
