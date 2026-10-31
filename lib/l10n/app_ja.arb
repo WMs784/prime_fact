@@ -13,6 +13,7 @@
    "history": "履歴",
    "historyTitle": "計算履歴",
    "historyEmpty": "履歴がありません",
+  "showDailyChallenge": "今日の素因数分解を表示",
   "errorEmpty": "数値を入力してください",
   "isGrothendieckPrime": "は素数です！ by グロタンディーク",
   "isPerfectNumber": "は素数、ではなく完全数です！",

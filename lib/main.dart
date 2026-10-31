@@ -10,6 +10,7 @@ import 'daily_banner.dart';
 import 'daily_repository.dart';
 import 'judge.dart';
 import 'links.dart';
+import 'settings_repository.dart';
 import 'history_entry.dart';
 import 'history_repository.dart';
 import 'history_page.dart';
@@ -91,6 +92,8 @@ class _MyLayoutState extends State<MyLayout> {
   final _repo = HistoryRepository();
   late final DailyRepository _dailyRepo =
       widget.dailyRepository ?? DailyRepository();
+  final _settings = SettingsRepository();
+  bool _showDaily = true;
 
   @override
   void initState() {
@@ -99,6 +102,18 @@ class _MyLayoutState extends State<MyLayout> {
     _repo.load().then(
       (list) => setState(() => _history = [...list, ..._history]),
     );
+    _settings.loadShowDaily().then((v) {
+      if (mounted) setState(() => _showDaily = v);
+    });
+  }
+
+  Future<void> _setShowDaily(bool value) async {
+    setState(() => _showDaily = value);
+    try {
+      await _settings.saveShowDaily(value);
+    } catch (_) {
+      // 保存に失敗しても、この起動中は切り替えた状態を保つ
+    }
   }
 
   void _addHistory(HistoryEntry entry) async {
@@ -141,6 +156,12 @@ class _MyLayoutState extends State<MyLayout> {
                 );
               },
             ),
+            SwitchListTile(
+              secondary: const Icon(Icons.today),
+              title: Text(loc.showDailyChallenge),
+              value: _showDaily,
+              onChanged: _setShowDaily,
+            ),
             ListTile(
               title: Text(loc.privacyPolicy),
               onTap: () {
@@ -173,7 +194,8 @@ class _MyLayoutState extends State<MyLayout> {
         top: false,
         child: Column(
           children: [
-            DailyBanner(repository: _dailyRepo, now: widget.now),
+            if (_showDaily)
+              DailyBanner(repository: _dailyRepo, now: widget.now),
             Expanded(
               child: Center(
                 child: SingleChildScrollView(

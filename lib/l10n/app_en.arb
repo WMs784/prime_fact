@@ -13,6 +13,7 @@
   "history": "History",
   "historyTitle": "Calculation History",
   "historyEmpty": "No history yet",
+  "showDailyChallenge": "Show Daily Challenge",
   "errorEmpty": "Please enter a number",
   "isGrothendieckPrime": " is a prime number! by Grothendieck",
   "isPerfectNumber": " is not a prime, but a perfect number!",
