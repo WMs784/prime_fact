@@ -8,7 +8,7 @@ This is a Flutter application that calculates prime factorization of numbers. Th
 
 **Key Details:**
 - App Name: Prime Factorization Calculator (素因数分解計算機)
-- Version: 4.1.0+18
+- Version: 4.2.0+19
 - Flutter SDK: 3.47.8 (stable, Dart 3.13) 以上。AGP 9 / Gradle 9 を使うため、古い Flutter ではビルドできない
 - Package ID: `project.My_prime_nember` (Android)
 
