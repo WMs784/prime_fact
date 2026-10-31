@@ -21,5 +21,73 @@
   "isPalindromicPrime": " is a palindromic prime!",
   "isSophieGermainPrime": " is a Sophie Germain prime!",
   "isTwinPrime": " is a twin prime!",
-  "isRamanujanNumber": " is not a prime, but the Hardy–Ramanujan number!"
+  "isRamanujanNumber": " is not a prime, but the Hardy–Ramanujan number!",
+  "dailyTitle": "Today's Challenge",
+  "dailyBannerStart": "Take today's challenge",
+  "dailyBannerStartSub": "Find the smallest prime factor",
+  "dailyBannerContinue": "Continue today's challenge",
+  "dailyBannerCleared": "Today's challenge cleared",
+  "dailyStats": "Time {time} / Misses {wrong}",
+  "@dailyStats": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "wrong": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyQuestion": "What is the smallest prime factor of this number?",
+  "dailyAnswerHint": "Your answer",
+  "dailySubmit": "Answer",
+  "dailyWrong": "Not quite. Try again",
+  "dailyMisses": "Misses: {wrong}",
+  "@dailyMisses": {
+    "placeholders": {
+      "wrong": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyElapsed": "Time: {time}",
+  "@dailyElapsed": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyCorrect": "Correct! The smallest prime factor is {p}",
+  "@dailyCorrect": {
+    "placeholders": {
+      "p": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyShare": "Share result",
+  "dailyShareText": "🔢 Prime Factorization Challenge\n⏱ {time} / {wrong, plural, =0{No misses 🎉} =1{1 miss} other{{wrong} misses}}\n\nCan you find the smallest prime factor faster?\n📱 {playUrl}\n🌐 {webUrl}",
+  "@dailyShareText": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "wrong": {
+        "type": "int"
+      },
+      "playUrl": {
+        "type": "String"
+      },
+      "webUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyCopied": "Copied to clipboard",
+  "dailyBackHome": "Back to home",
+  "dailyLoadFailed": "Couldn't load today's challenge",
+  "dailyRetry": "Retry",
+  "dailySaveFailed": "Couldn't save your answer. Please try again",
+  "dailyShareFailed": "Couldn't share the result"
 }

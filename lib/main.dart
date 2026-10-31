@@ -6,7 +6,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import 'daily_banner.dart';
+import 'daily_repository.dart';
 import 'judge.dart';
+import 'links.dart';
 import 'history_entry.dart';
 import 'history_repository.dart';
 import 'history_page.dart';
@@ -15,7 +18,13 @@ import 'trivia.dart';
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  /// 「今日の素因数分解」の現在時刻。テストで差し替える。
+  final DateTime Function() now;
+
+  /// テストで差し替える。
+  final DailyRepository? dailyRepository;
+
+  const MyApp({super.key, this.now = DateTime.now, this.dailyRepository});
 
   @override
   Widget build(BuildContext context) {
@@ -60,13 +69,18 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('ja', ''), Locale('en', '')],
-      home: const Scaffold(body: MyLayout()),
+      home: Scaffold(
+        body: MyLayout(now: now, dailyRepository: dailyRepository),
+      ),
     );
   }
 }
 
 class MyLayout extends StatefulWidget {
-  const MyLayout({super.key});
+  final DateTime Function() now;
+  final DailyRepository? dailyRepository;
+
+  const MyLayout({super.key, this.now = DateTime.now, this.dailyRepository});
 
   @override
   State<MyLayout> createState() => _MyLayoutState();
@@ -75,6 +89,8 @@ class MyLayout extends StatefulWidget {
 class _MyLayoutState extends State<MyLayout> {
   List<HistoryEntry> _history = [];
   final _repo = HistoryRepository();
+  late final DailyRepository _dailyRepo =
+      widget.dailyRepository ?? DailyRepository();
 
   @override
   void initState() {
@@ -128,29 +144,25 @@ class _MyLayoutState extends State<MyLayout> {
             ListTile(
               title: Text(loc.privacyPolicy),
               onTap: () {
-                launchUrlString('https://wms784.github.io/prime_fact/');
+                launchUrlString(pagesUrl);
               },
             ),
             ListTile(
               title: Text(loc.review),
               onTap: () {
-                launchUrlString(
-                  'https://play.google.com/store/apps/details?id=project.My_prime_nember',
-                );
+                launchUrlString(playStoreUrl);
               },
             ),
             ListTile(
               title: Text(loc.contact),
               onTap: () {
-                launchUrlString('https://forms.gle/YvXNAPHupB1wJFCR8');
+                launchUrlString(contactUrl);
               },
             ),
             ListTile(
               title: Text(loc.aboutUs),
               onTap: () {
-                launchUrlString(
-                  'https://play.google.com/store/apps/dev?id=6078644560561044674',
-                );
+                launchUrlString(developerUrl);
               },
             ),
           ],
@@ -159,7 +171,18 @@ class _MyLayoutState extends State<MyLayout> {
       // AppBar がステータスバー側のインセットを処理するため、本文は上以外を保護する
       body: SafeArea(
         top: false,
-        child: Center(child: MyWidget(onCalculated: _addHistory)),
+        child: Column(
+          children: [
+            DailyBanner(repository: _dailyRepo, now: widget.now),
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  child: MyWidget(onCalculated: _addHistory),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

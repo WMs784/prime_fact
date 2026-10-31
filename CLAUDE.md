@@ -95,6 +95,8 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/judge.dart`**: Core business logic (Miller-Rabin primality test, Pollard-Brent factorization on `BigInt`; entry point `pri_fact_isolate()` runs in an isolate)
 - **`lib/trivia.dart`**: Replaces the primality header for special numbers (perfect / Mersenne / Fermat / palindromic / Sophie Germain / twin primes, 1729, 57 Grothendieck), e.g. "6は素数、ではなく完全数です！". The result is passed to `pri_fact_isolate` as an optional 4th arg; `HistoryPage` re-derives it via `headerFor`. To extend: add a `Trivia` value, its `isXxx` ARB strings (suffix after the number), a `triviaHeader` case and a test
 - **`lib/history_*.dart`**: Calculation history (`HistoryEntry`, `HistoryRepository` persisting via `shared_preferences`, `HistoryPage`)
+- **`lib/daily_*.dart`**: 「今日の素因数分解」。`DailyPuzzle` が JST の日付だけから決定的に `n = p×q`（`p` は 7〜53 の最小の素因数、`q` は `p`〜293）を生成する（`p` の範囲は易/中/難 = 50/35/15% の 3 段階。難度は画面にもシェア文にも出さない）。`DailyProgress`/`DailyRepository` が開始時刻・ミス回数・クリア時刻を `shared_preferences` に保存し（離脱中も時間は進む）、`DailyBanner`（ホーム）→`DailyPage`（出題・結果・シェア）と遷移する。生成手順を変えると同じ日の問題が変わるので、変更時は日付で分岐し `test/daily_puzzle_test.dart` の固定値も更新する
+- **`lib/links.dart`**: 外部リンク（プライバシーポリシー、Play ストア、Web アプリなど）の定数。ドロワーとシェア文で共有する
 - **`lib/l10n/`**: Internationalization files for Japanese and English support
 
 ### Key Components
@@ -131,7 +133,7 @@ The app supports Japanese and English:
 - **Release signing**: Configured with keystore properties
 
 ### iOS
-- **Platform**: iOS 11.0+
+- **Platform**: iOS 13.0+ (share_plus の要件)
 - **Configuration**: `ios/Runner/Info.plist`
 - **Display name**: Supports Japanese characters
 
@@ -143,6 +145,7 @@ The app supports Japanese and English:
 - `intl: ^0.20.2` - Date/number formatting
 - `shared_preferences: ^2.3.0` - Persisting calculation history
 - `url_launcher: ^6.0.18` - External links in drawer
+- `share_plus: ^13.3.1` - Sharing the daily challenge result
 
 ### Dev Dependencies
 - `flutter_launcher_icons: any` - Custom app icon generation
@@ -158,6 +161,9 @@ The app supports Japanese and English:
 - `test/judge_test.dart`: primality (Carmichael numbers, strong pseudoprimes), factorization (prime powers, trial-division boundary, ~30-digit semiprime), trivial inputs
 - `test/trivia_test.dart`: each special-number category and near-miss numbers (e.g. 121, 120, 15)
 - `test/history_test.dart`: `HistoryEntry` JSON round trip and legacy-format migration, `HistoryRepository` load/save/corrupted data
+- `test/daily_puzzle_test.dart`: determinism, JST date rollover, p/q ranges, tier ratios, fixed-date regression values
+- `test/daily_progress_test.dart`, `test/daily_challenge_test.dart`: progress/repository, banner → challenge → result flow, share text
+- `test/daily_robustness_test.dart`: load/save failures, share fallback rules, stale reloads, double submit, Enter key, share errors, banner at JST midnight, short screen with keyboard
 - `test/widget_test.dart`: calculator UI, input validation errors, localized results
 - Add tests alongside any change to `judge.dart` or the history format
 
@@ -165,3 +171,6 @@ The app supports Japanese and English:
 - Factoring a ~30-digit number whose prime factors are both ~15 digits can take a long time; `compute` cannot be cancelled, so the button stays disabled until it finishes (no practical fix without a different algorithm)
 - Until `HistoryRepository.load()` finishes at startup, saving a new entry would overwrite the stored history (only a window of a few milliseconds after launch)
 - History grows without a size limit
+- Daily challenge results (`daily_<yyyyMMdd>` in `shared_preferences`) are never deleted: one small key per day played
+- Daily challenge times use the device wall clock (no server): changing the clock can distort or zero the recorded time, and a negative elapsed time is shown as 0:00.0
+- A corrupted daily record is treated as "not started" and overwritten, so the cleared state is lost (it cannot be recovered anyway)
