@@ -10,6 +10,7 @@ import 'daily_banner.dart';
 import 'daily_repository.dart';
 import 'judge.dart';
 import 'links.dart';
+import 'settings_repository.dart';
 import 'history_entry.dart';
 import 'history_repository.dart';
 import 'history_page.dart';
@@ -79,8 +80,14 @@ class MyApp extends StatelessWidget {
 class MyLayout extends StatefulWidget {
   final DateTime Function() now;
   final DailyRepository? dailyRepository;
+  final SettingsRepository? settingsRepository;
 
-  const MyLayout({super.key, this.now = DateTime.now, this.dailyRepository});
+  const MyLayout({
+    super.key,
+    this.now = DateTime.now,
+    this.dailyRepository,
+    this.settingsRepository,
+  });
 
   @override
   State<MyLayout> createState() => _MyLayoutState();
@@ -91,6 +98,11 @@ class _MyLayoutState extends State<MyLayout> {
   final _repo = HistoryRepository();
   late final DailyRepository _dailyRepo =
       widget.dailyRepository ?? DailyRepository();
+  late final SettingsRepository _settings =
+      widget.settingsRepository ?? SettingsRepository();
+
+  /// null は読み込み中。読み込み前に一瞬バナーが出ないよう、そのあいだは隠す。
+  bool? _showDaily;
 
   @override
   void initState() {
@@ -99,6 +111,19 @@ class _MyLayoutState extends State<MyLayout> {
     _repo.load().then(
       (list) => setState(() => _history = [...list, ..._history]),
     );
+    _settings.loadShowDaily().then((v) {
+      // 読み込み前に切り替えられていたら、その操作を優先する
+      if (mounted && _showDaily == null) setState(() => _showDaily = v);
+    });
+  }
+
+  Future<void> _setShowDaily(bool value) async {
+    setState(() => _showDaily = value);
+    try {
+      await _settings.saveShowDaily(value);
+    } catch (_) {
+      // 保存に失敗しても、この起動中は切り替えた状態を保つ
+    }
   }
 
   void _addHistory(HistoryEntry entry) async {
@@ -141,6 +166,12 @@ class _MyLayoutState extends State<MyLayout> {
                 );
               },
             ),
+            SwitchListTile(
+              secondary: const Icon(Icons.today),
+              title: Text(loc.showDailyChallenge),
+              value: _showDaily ?? true,
+              onChanged: _setShowDaily,
+            ),
             ListTile(
               title: Text(loc.privacyPolicy),
               onTap: () {
@@ -173,7 +204,8 @@ class _MyLayoutState extends State<MyLayout> {
         top: false,
         child: Column(
           children: [
-            DailyBanner(repository: _dailyRepo, now: widget.now),
+            if (_showDaily ?? false)
+              DailyBanner(repository: _dailyRepo, now: widget.now),
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
