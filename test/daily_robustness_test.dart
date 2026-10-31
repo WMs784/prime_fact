@@ -37,6 +37,16 @@ class _FakeRepo extends DailyRepository {
   }
 }
 
+class _NeverLoadRepo extends DailyRepository {
+  int loads = 0;
+
+  @override
+  Future<DailyProgress?> load(int dateKey) {
+    loads++;
+    return Completer<DailyProgress?>().future;
+  }
+}
+
 /// 1 回目の load だけ完了を保留し、2 回目以降はクリア済みを返す。
 class _SlowFirstLoadRepo extends DailyRepository {
   final firstLoad = Completer<DailyProgress?>();
@@ -335,6 +345,15 @@ void main() {
     expect(find.text('今日の素因数分解に挑戦する'), findsOneWidget);
     expect(find.text('回答する'), findsNothing); // 新しい日の計時は始まっていない
     expect(await DailyRepository().load(20261101), isNull);
+  });
+
+  testWidgets('a long-running load is not restarted by the periodic check', (
+    tester,
+  ) async {
+    final repo = _NeverLoadRepo();
+    await tester.pumpWidget(MyApp(now: () => _day, dailyRepository: repo));
+    await tester.pump(const Duration(seconds: 95));
+    expect(repo.loads, 1);
   });
 
   testWidgets('a slow stale load does not overwrite a newer one', (

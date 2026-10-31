@@ -147,10 +147,10 @@ void main() {
         wrong: 2,
         clearedAt: _day.add(const Duration(seconds: 12, milliseconds: 300)),
       );
-      final ja = dailyShareText(AppLocalizationsJa(), progress, _day);
+      final ja = dailyShareText(AppLocalizationsJa(), progress);
       expect(ja, contains('今日の素因数分解'));
       expect(ja, contains('⏱ 0:12.3 / ミス2回'));
-      final en = dailyShareText(AppLocalizationsEn(), progress, _day);
+      final en = dailyShareText(AppLocalizationsEn(), progress);
       expect(en, contains('Prime Factorization Challenge'));
       expect(en, contains('⏱ 0:12.3 / 2 misses'));
       for (final text in [ja, en]) {
@@ -162,12 +162,9 @@ void main() {
       }
 
       final perfect = progress.copyWith(wrong: 0);
+      expect(dailyShareText(AppLocalizationsJa(), perfect), contains('ノーミス🎉'));
       expect(
-        dailyShareText(AppLocalizationsJa(), perfect, _day),
-        contains('ノーミス🎉'),
-      );
-      expect(
-        dailyShareText(AppLocalizationsEn(), progress.copyWith(wrong: 1), _day),
+        dailyShareText(AppLocalizationsEn(), progress.copyWith(wrong: 1)),
         contains('1 miss\n'),
       );
     },

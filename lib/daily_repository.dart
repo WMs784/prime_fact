@@ -9,9 +9,10 @@ class DailyRepository {
 
   Future<DailyProgress?> load(int dateKey) async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key(dateKey));
-    if (raw == null) return null;
     try {
+      // 文字列以外が入っていると getString が TypeError を投げるので、破損として扱う
+      final raw = prefs.getString(_key(dateKey));
+      if (raw == null) return null;
       return DailyProgress.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     } catch (_) {
       return null;

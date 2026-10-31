@@ -10,17 +10,17 @@ import 'daily_puzzle.dart';
 import 'daily_repository.dart';
 import 'links.dart';
 
-/// 結果の共有文。問題の数・正解・難度はヒントになるので含めない。日付は投稿時刻で分かる。
-String dailyShareText(
-  AppLocalizations loc,
-  DailyProgress progress,
-  DateTime now,
-) => loc.dailyShareText(
-  formatElapsed(progress.elapsed(now)),
-  progress.wrong,
-  playStoreUrl,
-  webAppUrl,
-);
+/// クリア済みの結果の共有文。問題の数・正解・難度はヒントになるので含めない。日付は投稿時刻で分かる。
+String dailyShareText(AppLocalizations loc, DailyProgress progress) {
+  final clearedAt = progress.clearedAt;
+  assert(clearedAt != null, 'only a cleared challenge can be shared');
+  return loc.dailyShareText(
+    formatElapsed(progress.elapsed(clearedAt ?? DateTime.now())),
+    progress.wrong,
+    playStoreUrl,
+    webAppUrl,
+  );
+}
 
 /// 共有の結果。
 enum ShareOutcome {
@@ -153,7 +153,7 @@ class _DailyPageState extends State<DailyPage> {
     Rect? origin,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
-    final text = dailyShareText(loc, progress, widget.now());
+    final text = dailyShareText(loc, progress);
     try {
       final outcome = await widget.onShare(text, origin);
       if (outcome == ShareOutcome.copied) {

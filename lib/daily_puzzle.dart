@@ -16,6 +16,12 @@ const _maxQ = 293;
 
 final List<int> _primes = _sieve(_maxQ);
 
+/// [_tiers] ごとの `p` の候補。
+final List<List<int>> _tierPrimes = [
+  for (final t in _tiers)
+    _primes.where((x) => x >= t.minP && x <= t.maxP).toList(),
+];
+
 List<int> _sieve(int limit) {
   final composite = List<bool>.filled(limit + 1, false);
   final primes = <int>[];
@@ -77,18 +83,19 @@ class DailyPuzzle {
   factory DailyPuzzle.forDateKey(int dateKey) {
     final roll = _rand(dateKey, 0) % 100;
     var acc = 0;
-    var tier = _tiers.last;
-    for (final t in _tiers) {
-      acc += t.weight;
+    var tier = _tiers.length - 1;
+    for (var i = 0; i < _tiers.length; i++) {
+      acc += _tiers[i].weight;
       if (roll < acc) {
-        tier = t;
+        tier = i;
         break;
       }
     }
-    final ps = _primes.where((x) => x >= tier.minP && x <= tier.maxP).toList();
+    final ps = _tierPrimes[tier];
     final p = ps[_rand(dateKey, 1) % ps.length];
-    final qs = _primes.where((x) => x >= p).toList();
-    final q = qs[_rand(dateKey, 2) % qs.length];
+    // q は p 以上の素数。_primes は昇順なので p の位置から後ろがその候補になる
+    final from = _primes.indexOf(p);
+    final q = _primes[from + _rand(dateKey, 2) % (_primes.length - from)];
     return DailyPuzzle._(dateKey, p, q);
   }
 

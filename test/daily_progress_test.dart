@@ -70,6 +70,14 @@ void main() {
       expect(await repo.load(20261101), isNull);
     });
 
+    test(
+      'a non-string value is treated as not started, not an error',
+      () async {
+        SharedPreferences.setMockInitialValues({'daily_20261031': 123});
+        expect(await DailyRepository().load(20261031), isNull);
+      },
+    );
+
     test('corrupted data is treated as not started', () async {
       SharedPreferences.setMockInitialValues({'daily_20261031': 'not json'});
       expect(await DailyRepository().load(20261031), isNull);
