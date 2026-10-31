@@ -80,8 +80,14 @@ class MyApp extends StatelessWidget {
 class MyLayout extends StatefulWidget {
   final DateTime Function() now;
   final DailyRepository? dailyRepository;
+  final SettingsRepository? settingsRepository;
 
-  const MyLayout({super.key, this.now = DateTime.now, this.dailyRepository});
+  const MyLayout({
+    super.key,
+    this.now = DateTime.now,
+    this.dailyRepository,
+    this.settingsRepository,
+  });
 
   @override
   State<MyLayout> createState() => _MyLayoutState();
@@ -92,8 +98,11 @@ class _MyLayoutState extends State<MyLayout> {
   final _repo = HistoryRepository();
   late final DailyRepository _dailyRepo =
       widget.dailyRepository ?? DailyRepository();
-  final _settings = SettingsRepository();
-  bool _showDaily = true;
+  late final SettingsRepository _settings =
+      widget.settingsRepository ?? SettingsRepository();
+
+  /// null は読み込み中。読み込み前に一瞬バナーが出ないよう、そのあいだは隠す。
+  bool? _showDaily;
 
   @override
   void initState() {
@@ -103,7 +112,8 @@ class _MyLayoutState extends State<MyLayout> {
       (list) => setState(() => _history = [...list, ..._history]),
     );
     _settings.loadShowDaily().then((v) {
-      if (mounted) setState(() => _showDaily = v);
+      // 読み込み前に切り替えられていたら、その操作を優先する
+      if (mounted && _showDaily == null) setState(() => _showDaily = v);
     });
   }
 
@@ -159,7 +169,7 @@ class _MyLayoutState extends State<MyLayout> {
             SwitchListTile(
               secondary: const Icon(Icons.today),
               title: Text(loc.showDailyChallenge),
-              value: _showDaily,
+              value: _showDaily ?? true,
               onChanged: _setShowDaily,
             ),
             ListTile(
@@ -194,7 +204,7 @@ class _MyLayoutState extends State<MyLayout> {
         top: false,
         child: Column(
           children: [
-            if (_showDaily)
+            if (_showDaily ?? false)
               DailyBanner(repository: _dailyRepo, now: widget.now),
             Expanded(
               child: Center(
