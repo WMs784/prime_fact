@@ -7,6 +7,7 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'daily_banner.dart';
+import 'daily_page.dart' show ShareOutcome, shareText;
 import 'daily_repository.dart';
 import 'judge.dart';
 import 'links.dart';
@@ -19,10 +20,40 @@ import 'trivia.dart';
 void main() => runApp(const MyApp());
 
 /// `pri_fact_isolate` に渡す引数から結果の文字列を作る関数。
-typedef Calculator = Future<String> Function(List<dynamic> args);
+typedef Calculator = Future<String> Function(FactorRequest request);
 
-Future<String> _defaultCalculator(List<dynamic> args) =>
-    compute(pri_fact_isolate, args);
+Future<String> _defaultCalculator(FactorRequest request) =>
+    compute(pri_fact_isolate, request);
+
+/// 結果の共有。テストで差し替える。
+typedef ResultSharer = Future<ShareOutcome> Function(String text, Rect? origin);
+
+/// 外部 URL を開く。開けたら true。
+typedef UrlOpener = Future<bool> Function(String url);
+
+Future<bool> _defaultUrlOpener(String url) => launchUrlString(url);
+
+ThemeData _buildTheme(Brightness brightness) {
+  final dark = brightness == Brightness.dark;
+  return ThemeData(
+    brightness: brightness,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.teal,
+      brightness: brightness,
+      primary: dark ? Colors.teal[300]! : Colors.teal[700]!,
+    ),
+    focusColor: Colors.teal[200],
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: dark ? Colors.teal[200] : Colors.teal[700],
+        foregroundColor: dark ? Colors.grey[900] : Colors.white,
+      ),
+    ),
+  );
+}
+
+/// ドロワーのヘッダーの色。白い文字が読めるよう、明暗どちらのテーマでも濃い青緑にする。
+final _drawerHeaderColor = Colors.teal.shade700;
 
 class MyApp extends StatelessWidget {
   /// 「今日の素因数分解」の現在時刻。テストで差し替える。
@@ -37,49 +68,28 @@ class MyApp extends StatelessWidget {
   /// 計算の実行。テストで差し替える。
   final Calculator calculator;
 
+  /// 外部リンクの開き方。テストで差し替える。
+  final UrlOpener openUrl;
+
+  /// 結果の共有の仕方。テストで差し替える。
+  final ResultSharer share;
+
   const MyApp({
     super.key,
     this.now = DateTime.now,
     this.dailyRepository,
     this.historyRepository,
     this.calculator = _defaultCalculator,
+    this.openUrl = _defaultUrlOpener,
+    this.share = shareText,
   });
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.title,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          primary: Colors.teal[700]!,
-        ),
-        primaryColor: Colors.teal[700],
-        focusColor: Colors.teal[200],
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.teal[700],
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.dark,
-          primary: Colors.teal[300]!,
-        ),
-        primaryColor: Colors.teal[700],
-        focusColor: Colors.teal[200],
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.teal[200],
-            foregroundColor: Colors.grey[900],
-          ),
-        ),
-      ),
+      theme: _buildTheme(Brightness.light),
+      darkTheme: _buildTheme(Brightness.dark),
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -87,14 +97,14 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [Locale('ja', ''), Locale('en', '')],
-      home: Scaffold(
-        body: MyLayout(
-          now: now,
-          dailyRepository: dailyRepository,
-          historyRepository: historyRepository,
-          calculator: calculator,
-        ),
+      supportedLocales: const [Locale('ja'), Locale('en')],
+      home: MyLayout(
+        now: now,
+        dailyRepository: dailyRepository,
+        historyRepository: historyRepository,
+        calculator: calculator,
+        openUrl: openUrl,
+        share: share,
       ),
     );
   }
@@ -106,6 +116,8 @@ class MyLayout extends StatefulWidget {
   final SettingsRepository? settingsRepository;
   final HistoryRepository? historyRepository;
   final Calculator calculator;
+  final UrlOpener openUrl;
+  final ResultSharer share;
 
   const MyLayout({
     super.key,
@@ -114,6 +126,8 @@ class MyLayout extends StatefulWidget {
     this.settingsRepository,
     this.historyRepository,
     this.calculator = _defaultCalculator,
+    this.openUrl = _defaultUrlOpener,
+    this.share = shareText,
   });
 
   @override
@@ -155,6 +169,22 @@ class _MyLayoutState extends State<MyLayout> {
     });
   }
 
+  /// ドロワーを閉じて外部リンクを開く。開けなければ知らせる。
+  Future<void> _openLink(String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failedText = AppLocalizations.of(context)!.linkOpenFailed;
+    Navigator.pop(context);
+    var opened = false;
+    try {
+      opened = await widget.openUrl(url);
+    } catch (_) {
+      // 開けなかった扱いにする
+    }
+    if (!opened) {
+      messenger.showSnackBar(SnackBar(content: Text(failedText)));
+    }
+  }
+
   Future<void> _setShowDaily(bool value) async {
     setState(() => _showDaily = value);
     try {
@@ -185,7 +215,7 @@ class _MyLayoutState extends State<MyLayout> {
         child: ListView(
           children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).primaryColor),
+              decoration: BoxDecoration(color: _drawerHeaderColor),
               child: StyledText(
                 text: '<set/>&space;${loc.info}',
                 style: const TextStyle(fontSize: 24, color: Colors.white),
@@ -219,27 +249,19 @@ class _MyLayoutState extends State<MyLayout> {
             ),
             ListTile(
               title: Text(loc.privacyPolicy),
-              onTap: () {
-                launchUrlString(pagesUrl);
-              },
+              onTap: () => _openLink(pagesUrl),
             ),
             ListTile(
               title: Text(loc.review),
-              onTap: () {
-                launchUrlString(playStoreUrl);
-              },
+              onTap: () => _openLink(playStoreUrl),
             ),
             ListTile(
               title: Text(loc.contact),
-              onTap: () {
-                launchUrlString(contactUrl);
-              },
+              onTap: () => _openLink(contactUrl),
             ),
             ListTile(
               title: Text(loc.aboutUs),
-              onTap: () {
-                launchUrlString(developerUrl);
-              },
+              onTap: () => _openLink(developerUrl),
             ),
           ],
         ),
@@ -252,11 +274,14 @@ class _MyLayoutState extends State<MyLayout> {
             if (_showDaily ?? false)
               DailyBanner(repository: _dailyRepo, now: widget.now),
             Expanded(
-              child: Center(
-                child: SingleChildScrollView(
+              // 結果の高さに関係なく入力欄の位置が変わらないよう、上からの余白を画面の高さの割合で固定する
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  padding: EdgeInsets.only(top: constraints.maxHeight * 0.25),
                   child: MyWidget(
                     onCalculated: _addHistory,
                     calculator: widget.calculator,
+                    share: widget.share,
                   ),
                 ),
               ),
@@ -268,15 +293,26 @@ class _MyLayoutState extends State<MyLayout> {
   }
 }
 
+/// 因数分解の行（2 行目以降）で、「x」の直前だけ折り返せるようにする。
+/// 数字や「^」の途中では折り返さず、新しい行が「x」から始まる。
+String wrapAtTimes(String result) {
+  final i = result.indexOf('\n');
+  if (i < 0) return result;
+  return result.substring(0, i) +
+      result.substring(i).replaceAll('x', '\u200Bx');
+}
+
 class MyWidget extends StatefulWidget {
   final void Function(HistoryEntry)? onCalculated;
 
   final Calculator calculator;
+  final ResultSharer share;
 
   const MyWidget({
     super.key,
     this.onCalculated,
     this.calculator = _defaultCalculator,
+    this.share = shareText,
   });
 
   @override
@@ -287,6 +323,8 @@ class _MyWidgetState extends State<MyWidget> {
   final _controller = TextEditingController();
   bool _isLoading = false;
   String _result = '';
+  // 計算に成功した結果だけコピー・共有の対象にする（エラー文言は対象外）
+  bool _resultShareable = false;
   String? _errorText;
 
   @override
@@ -308,7 +346,10 @@ class _MyWidgetState extends State<MyWidget> {
     final loc = AppLocalizations.of(context)!;
     final inputNumber = _validate(loc);
     if (inputNumber == null) {
-      setState(() => _result = '');
+      setState(() {
+        _result = '';
+        _resultShareable = false;
+      });
       return;
     }
     final isNotPrime = loc.isNotPrime;
@@ -320,12 +361,12 @@ class _MyWidgetState extends State<MyWidget> {
 
     String? result;
     try {
-      result = await widget.calculator([
-        inputNumber,
-        isNotPrime,
-        isPrime,
-        trivia == null ? null : triviaHeader(loc, trivia),
-      ]);
+      result = await widget.calculator((
+        n: inputNumber,
+        isNotPrime: isNotPrime,
+        isPrime: isPrime,
+        special: trivia == null ? null : triviaHeader(loc, trivia),
+      ));
     } catch (_) {
       // 失敗してもボタンが無効のまま残らないよう、下で必ず読み込み状態を戻す
     }
@@ -333,6 +374,7 @@ class _MyWidgetState extends State<MyWidget> {
     if (!mounted) return;
     setState(() {
       _result = result ?? failedText;
+      _resultShareable = result != null;
       _isLoading = false;
     });
     if (result == null) return;
@@ -346,12 +388,36 @@ class _MyWidgetState extends State<MyWidget> {
     );
   }
 
+  Future<void> _copy(AppLocalizations loc) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await Clipboard.setData(ClipboardData(text: _result));
+    messenger.showSnackBar(SnackBar(content: Text(loc.copied)));
+  }
+
+  Future<void> _share(BuildContext buttonContext, AppLocalizations loc) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final box = buttonContext.findRenderObject() as RenderBox?;
+    final origin = box == null
+        ? null
+        : box.localToGlobal(Offset.zero) & box.size;
+    try {
+      final outcome = await widget.share(_result, origin);
+      // 共有シートがない環境ではコピーになるので、そのことを知らせる
+      if (outcome == ShareOutcome.copied) {
+        messenger.showSnackBar(SnackBar(content: Text(loc.copied)));
+      }
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(loc.shareFailed)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           TextField(
             controller: _controller,
@@ -385,22 +451,43 @@ class _MyWidgetState extends State<MyWidget> {
             ),
           ),
           const SizedBox(height: 50),
-          _isLoading
-              ? const CircularProgressIndicator()
-              : Row(
-                  children: [
-                    Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
+          // 読み込み中と結果表示で高さが変わると入力欄が動くので、最低の高さを確保する
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 120),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        // 長い因数分解は折り返して表示する。コピーはボタンから（選択コピーだと折り返し用の不可視文字が混ざるため）
                         child: Text(
-                          _result,
+                          wrapAtTimes(_result),
+                          key: const ValueKey('result'),
                           style: const TextStyle(fontSize: 20),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      if (_resultShareable)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              tooltip: loc.copyResult,
+                              icon: const Icon(Icons.copy),
+                              onPressed: () => _copy(loc),
+                            ),
+                            Builder(
+                              builder: (buttonContext) => IconButton(
+                                tooltip: loc.shareResult,
+                                icon: const Icon(Icons.share),
+                                onPressed: () => _share(buttonContext, loc),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+          ),
         ],
       ),
     );

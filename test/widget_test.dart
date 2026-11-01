@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_repository.dart';
+import 'package:prime_fact/daily_page.dart' show ShareOutcome;
 import 'package:prime_fact/main.dart';
 
 void main() {
@@ -149,6 +151,184 @@ void main() {
     expect(repo.saved, isEmpty);
   });
 
+  group('drawer links', () {
+    Future<List<String>> tapPrivacy(
+      WidgetTester tester,
+      Future<bool> Function(String) open,
+    ) async {
+      final opened = <String>[];
+      _setLocale(tester, const Locale('en'));
+      await tester.pumpWidget(
+        MyApp(
+          openUrl: (url) {
+            opened.add(url);
+            return open(url);
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      tester
+          .state<ScaffoldState>(
+            find.descendant(
+              of: find.byType(MyLayout),
+              matching: find.byType(Scaffold),
+            ),
+          )
+          .openDrawer();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Privacy Policy'));
+      await tester.pumpAndSettle();
+      return opened;
+    }
+
+    testWidgets('opens the link and closes the drawer', (tester) async {
+      final opened = await tapPrivacy(tester, (_) async => true);
+      expect(opened, hasLength(1));
+      expect(find.byType(Drawer), findsNothing);
+      expect(find.text('Could not open the link.'), findsNothing);
+    });
+
+    for (final failure in <String, Future<bool> Function(String)>{
+      'returns false': (_) async => false,
+      'throws': (_) => Future.error(StateError('no browser')),
+    }.entries) {
+      testWidgets('tells the user when opening ${failure.key}', (tester) async {
+        await tapPrivacy(tester, failure.value);
+        expect(find.byType(Drawer), findsNothing);
+        expect(find.text('Could not open the link.'), findsOneWidget);
+      });
+    }
+  });
+
+  testWidgets('A long result wraps at full size', (tester) async {
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(MyApp(calculator: (_) async => '${'2x' * 60}2'));
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('result')), findsOneWidget);
+    expect(find.byType(FittedBox), findsNothing);
+    final height = tester.getSize(find.byKey(const ValueKey('result'))).height;
+    expect(height, greaterThan(40)); // 1 行(約 24)に収まらず折り返している
+  });
+
+  testWidgets('Copy/share buttons show for a result, and the input stays put', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('en'));
+    String? copied;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied = (call.arguments as Map)['text'] as String;
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    await tester.pumpWidget(
+      MyApp(calculator: (_) async => 'RESULT\n${'2x' * 60}2'),
+    );
+    await tester.pump();
+    expect(find.byIcon(Icons.copy), findsNothing);
+
+    final before = tester.getTopLeft(find.byType(TextField));
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    expect(tester.getTopLeft(find.byType(TextField)), before); // 読み込み中
+    await tester.pump();
+    expect(tester.getTopLeft(find.byType(TextField)), before); // 結果表示後
+
+    expect(find.byIcon(Icons.share), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.copy));
+    await tester.pump();
+    expect(copied, startsWith('RESULT\n'));
+    expect(find.text('Copied'), findsOneWidget);
+  });
+
+  testWidgets('Line breaks are only allowed before x in the factorization', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(
+      MyApp(calculator: (_) async => '60 NP\n60=2^2x3x5'),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), '60');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+
+    final text = tester.widget<Text>(find.byKey(const ValueKey('result')));
+    expect(text.data, '60 NP\n60=2^2\u200Bx3\u200Bx5');
+  });
+
+  for (final c in [
+    (ShareOutcome.copied, 'Copied'),
+    (ShareOutcome.sheet, null),
+  ]) {
+    testWidgets('Share outcome ${c.$1} -> snackbar ${c.$2}', (tester) async {
+      _setLocale(tester, const Locale('en'));
+      await tester.pumpWidget(
+        MyApp(calculator: (_) async => 'R', share: (_, _) async => c.$1),
+      );
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), '12');
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.share));
+      await tester.pump();
+      expect(find.text('Copied'), c.$2 == null ? findsNothing : findsOneWidget);
+    });
+  }
+
+  testWidgets('A share error is reported (ja), tooltips are localized', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('ja'));
+    await tester.pumpWidget(
+      MyApp(calculator: (_) async => 'R', share: (_, _) async => throw 'x'),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+    expect(find.byTooltip('コピー'), findsOneWidget);
+    expect(find.byTooltip('共有'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.share));
+    await tester.pump();
+    expect(find.text('共有できませんでした'), findsOneWidget);
+  });
+
+  testWidgets('No copy/share buttons after a failed calculation', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(
+      MyApp(calculator: (_) async => throw Exception('boom')),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Calculation failed. Please try again.'), findsOneWidget);
+    expect(find.byIcon(Icons.copy), findsNothing);
+  });
+
   testWidgets('57 is shown as the Grothendieck prime (ja)', (tester) async {
     _setLocale(tester, const Locale('ja'));
     await tester.pumpWidget(const MyApp());
@@ -161,7 +341,7 @@ void main() {
     );
     await tester.pump();
     expect(find.textContaining('57は素数です！ by グロタンディーク'), findsOneWidget);
-    expect(find.textContaining('57=3x19'), findsOneWidget);
+    expect(find.textContaining('57=3\u200Bx19'), findsOneWidget);
   });
 
   testWidgets('Special numbers get their own header (en)', (tester) async {
@@ -202,7 +382,7 @@ void main() {
     );
     await tester.pump();
     expect(find.textContaining('6は素数、ではなく完全数です！'), findsOneWidget);
-    expect(find.textContaining('6=2x3'), findsOneWidget);
+    expect(find.textContaining('6=2\u200Bx3'), findsOneWidget);
   });
 }
 

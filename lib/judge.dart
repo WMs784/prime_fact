@@ -135,14 +135,22 @@ void _factorHelper(BigInt n, Map<BigInt, int> factors) {
   _factorHelper(n ~/ f, factors);
 }
 
-// args = [n (BigInt), isNotPrimeStr, isPrimeStr, specialHeaderStr (optional)]
-// specialHeaderStr は、素数/合成数の見出しを差し替える（完全数や 57 など）。因数分解の結果はそのまま出す。
+/// `pri_fact_isolate` への入力（isolate に渡せるよう record にしている）。
+///
+/// [special] は、素数/合成数の見出しを差し替える（完全数や 57 など）。因数分解の結果はそのまま出す。
+typedef FactorRequest = ({
+  BigInt n,
+  String isNotPrime,
+  String isPrime,
+  String? special,
+});
+
 // ignore: non_constant_identifier_names
-String pri_fact_isolate(List<dynamic> args) {
-  final BigInt n = args[0] as BigInt;
-  final String isNotPrime = args[1] as String;
-  final String isPrime = args[2] as String;
-  final String? special = args.length > 3 ? args[3] as String? : null;
+String pri_fact_isolate(FactorRequest request) {
+  final n = request.n;
+  final isNotPrime = request.isNotPrime;
+  final isPrime = request.isPrime;
+  final special = request.special;
 
   final nStr = n.toString();
   if (n <= BigInt.one) return nStr + isNotPrime;
