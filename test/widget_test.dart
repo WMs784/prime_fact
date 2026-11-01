@@ -9,6 +9,7 @@ import 'package:prime_fact/daily_page.dart' show ShareOutcome;
 import 'package:prime_fact/main.dart';
 
 void main() {
+  _wrapAtTimesTests();
   testWidgets('App renders calculator UI', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
     await tester.pump();
@@ -259,22 +260,23 @@ void main() {
     expect(find.text('Copied'), findsOneWidget);
   });
 
-  testWidgets('Line breaks are only allowed before x in the factorization', (
-    tester,
-  ) async {
-    _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(
-      MyApp(calculator: (_) async => '60 NP\n60=2^2x3x5'),
-    );
-    await tester.pump();
-    await tester.enterText(find.byType(TextField), '60');
-    await tester.tap(find.byType(ElevatedButton));
-    await tester.pump();
-    await tester.pump();
+  testWidgets(
+    'Line breaks are only allowed after = and before x in the factorization',
+    (tester) async {
+      _setLocale(tester, const Locale('en'));
+      await tester.pumpWidget(
+        MyApp(calculator: (_) async => '60 NP\n60=2^2x3x5'),
+      );
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), '60');
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.pump();
 
-    final text = tester.widget<Text>(find.byKey(const ValueKey('result')));
-    expect(text.data, '60 NP\n60=2^2\u200Bx3\u200Bx5');
-  });
+      final text = tester.widget<Text>(find.byKey(const ValueKey('result')));
+      expect(text.data, '60 NP\n60=\u200B2^2\u200Bx3\u200Bx5');
+    },
+  );
 
   for (final c in [
     (ShareOutcome.copied, 'Copied'),
@@ -343,7 +345,7 @@ void main() {
     );
     await tester.pump();
     expect(find.textContaining('57は素数です！ by グロタンディーク'), findsOneWidget);
-    expect(find.textContaining('57=3\u200Bx19'), findsOneWidget);
+    expect(find.textContaining('57=\u200B3\u200Bx19'), findsOneWidget);
   });
 
   testWidgets('Special numbers get their own header (en)', (tester) async {
@@ -384,7 +386,7 @@ void main() {
     );
     await tester.pump();
     expect(find.textContaining('6は素数、ではなく完全数です！'), findsOneWidget);
-    expect(find.textContaining('6=2\u200Bx3'), findsOneWidget);
+    expect(find.textContaining('6=\u200B2\u200Bx3'), findsOneWidget);
   });
 }
 
@@ -406,4 +408,15 @@ class _FakeHistoryRepository extends HistoryRepository {
   Future<void> save(List<HistoryEntry> history) async {
     saved.add(List.of(history));
   }
+}
+
+void _wrapAtTimesTests() {
+  test(
+    'wrapAtTimes allows breaks after "=" and before "x" only on factor lines',
+    () {
+      expect(wrapAtTimes('12 NP'), '12 NP');
+      // 1 行目（素数判定の見出し）は触らない
+      expect(wrapAtTimes('1=2 NP\n10=2x5'), '1=2 NP\n10=​2​x5');
+    },
+  );
 }

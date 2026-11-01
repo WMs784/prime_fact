@@ -368,13 +368,14 @@ class _MyLayoutState extends State<MyLayout> {
   }
 }
 
-/// 因数分解の行（2 行目以降）で、「x」の直前だけ折り返せるようにする。
-/// 数字や「^」の途中では折り返さず、新しい行が「x」から始まる。
+/// 因数分解の行（2 行目以降）で、「=」の直後と「x」の直前だけ折り返せるようにする。
+/// 数字や「^」の途中では折り返さない。「=」でも折り返すのは、`n=` と最初の因数が
+/// 続けて 1 行に収まらない長さ（約 28 桁 + 14 桁）になるため。
 String wrapAtTimes(String result) {
   final i = result.indexOf('\n');
   if (i < 0) return result;
   return result.substring(0, i) +
-      result.substring(i).replaceAll('x', '\u200Bx');
+      result.substring(i).replaceAll('x', '\u200Bx').replaceAll('=', '=\u200B');
 }
 
 class MyWidget extends StatefulWidget {
