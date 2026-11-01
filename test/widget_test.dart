@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -214,6 +216,61 @@ void main() {
     expect(find.byType(FittedBox), findsNothing);
     final height = tester.getSize(find.byType(SelectableText)).height;
     expect(height, greaterThan(40)); // 1 行(約 24)に収まらず折り返している
+  });
+
+  testWidgets('Copy/share buttons show for a result, and the input stays put', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('en'));
+    String? copied;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied = (call.arguments as Map)['text'] as String;
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    await tester.pumpWidget(MyApp(calculator: (_) async => 'RESULT'));
+    await tester.pump();
+    expect(find.byIcon(Icons.copy), findsNothing);
+
+    final before = tester.getTopLeft(find.byType(TextField));
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    expect(tester.getTopLeft(find.byType(TextField)), before); // 読み込み中
+    await tester.pump();
+    expect(tester.getTopLeft(find.byType(TextField)), before); // 結果表示後
+
+    expect(find.byIcon(Icons.share), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.copy));
+    await tester.pump();
+    expect(copied, 'RESULT');
+    expect(find.text('Copied'), findsOneWidget);
+  });
+
+  testWidgets('No copy/share buttons after a failed calculation', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(
+      MyApp(calculator: (_) async => throw Exception('boom')),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Calculation failed. Please try again.'), findsOneWidget);
+    expect(find.byIcon(Icons.copy), findsNothing);
   });
 
   testWidgets('57 is shown as the Grothendieck prime (ja)', (tester) async {

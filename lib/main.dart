@@ -7,6 +7,7 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'daily_banner.dart';
+import 'daily_page.dart' show shareText;
 import 'daily_repository.dart';
 import 'judge.dart';
 import 'links.dart';
@@ -263,7 +264,9 @@ class _MyLayoutState extends State<MyLayout> {
             if (_showDaily ?? false)
               DailyBanner(repository: _dailyRepo, now: widget.now),
             Expanded(
-              child: Center(
+              // 結果の長さで入力欄が動かないよう、上寄せにして位置を固定する
+              child: Align(
+                alignment: const Alignment(0, -0.5),
                 child: SingleChildScrollView(
                   child: MyWidget(
                     onCalculated: _addHistory,
@@ -298,6 +301,8 @@ class _MyWidgetState extends State<MyWidget> {
   final _controller = TextEditingController();
   bool _isLoading = false;
   String _result = '';
+  // 計算に成功した結果だけコピー・共有の対象にする（エラー文言は対象外）
+  bool _resultShareable = false;
   String? _errorText;
 
   @override
@@ -319,7 +324,10 @@ class _MyWidgetState extends State<MyWidget> {
     final loc = AppLocalizations.of(context)!;
     final inputNumber = _validate(loc);
     if (inputNumber == null) {
-      setState(() => _result = '');
+      setState(() {
+        _result = '';
+        _resultShareable = false;
+      });
       return;
     }
     final isNotPrime = loc.isNotPrime;
@@ -344,6 +352,7 @@ class _MyWidgetState extends State<MyWidget> {
     if (!mounted) return;
     setState(() {
       _result = result ?? failedText;
+      _resultShareable = result != null;
       _isLoading = false;
     });
     if (result == null) return;
@@ -357,12 +366,31 @@ class _MyWidgetState extends State<MyWidget> {
     );
   }
 
+  Future<void> _copy(AppLocalizations loc) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await Clipboard.setData(ClipboardData(text: _result));
+    messenger.showSnackBar(SnackBar(content: Text(loc.copied)));
+  }
+
+  Future<void> _share(BuildContext buttonContext) async {
+    final box = buttonContext.findRenderObject() as RenderBox?;
+    final origin = box == null
+        ? null
+        : box.localToGlobal(Offset.zero) & box.size;
+    try {
+      await shareText(_result, origin);
+    } catch (_) {
+      // 共有に失敗しても結果の表示は変えない
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           TextField(
             controller: _controller,
@@ -396,16 +424,42 @@ class _MyWidgetState extends State<MyWidget> {
             ),
           ),
           const SizedBox(height: 50),
-          _isLoading
-              ? const CircularProgressIndicator()
-              : SizedBox(
-                  width: double.infinity,
-                  // 長い因数分解は折り返して表示し、コピーできるようにする
-                  child: SelectableText(
-                    _result,
-                    style: const TextStyle(fontSize: 20),
+          // 読み込み中と結果表示で高さが変わると入力欄が動くので、最低の高さを確保する
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 120),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        // 長い因数分解は折り返して表示し、コピーできるようにする
+                        child: SelectableText(
+                          _result,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ),
+                      if (_resultShareable)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              tooltip: loc.copyResult,
+                              icon: const Icon(Icons.copy),
+                              onPressed: () => _copy(loc),
+                            ),
+                            Builder(
+                              builder: (buttonContext) => IconButton(
+                                tooltip: loc.shareResult,
+                                icon: const Icon(Icons.share),
+                                onPressed: () => _share(buttonContext),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
-                ),
+          ),
         ],
       ),
     );
