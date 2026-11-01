@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_repository.dart';
 import 'package:prime_fact/daily_page.dart' show ShareOutcome;
+import 'package:prime_fact/judge.dart' show CancelToken, CancelledException;
 import 'package:prime_fact/main.dart';
 
 void main() {
@@ -126,6 +127,74 @@ void main() {
     expect(repo.saved, isEmpty);
   });
 
+  for (final ignoresCancel in [false, true]) {
+    testWidgets(
+      'Cancelling a calculation keeps the previous result and saves no history'
+      '${ignoresCancel ? ' (even if the calculator still returns a result)' : ''}',
+      (tester) async {
+        final repo = _FakeHistoryRepository(() async => []);
+        _setLocale(tester, const Locale('en'));
+        final done = Completer<String>();
+        CancelToken? token;
+        var calls = 0;
+        await tester.pumpWidget(
+          MyApp(
+            historyRepository: repo,
+            calculator: (_, cancel) {
+              // 1 回目はすぐ結果を返し、2 回目は止めて待つ
+              if (++calls == 1) return Future.value('10 NP\n10=2x5');
+              token = cancel;
+              return done.future;
+            },
+          ),
+        );
+        await tester.pump();
+
+        await tester.enterText(find.byType(TextField), '10');
+        await tester.tap(find.byType(ElevatedButton));
+        await tester.pump();
+        await tester.pump();
+        expect(find.textContaining('10=\u200B2'), findsOneWidget);
+        expect(repo.saved, hasLength(1));
+
+        await tester.enterText(find.byType(TextField), '12');
+        await tester.tap(find.byType(ElevatedButton));
+        await tester.pump();
+
+        // 計算中は中止ボタンが出て、計算ボタンは押せない
+        expect(find.text('Cancel'), findsOneWidget);
+        expect(
+          tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+          isNull,
+        );
+
+        await tester.tap(find.text('Cancel'));
+        expect(token!.isCancelled, isTrue);
+        if (ignoresCancel) {
+          done.complete('12 NP\n12=2^2x3');
+        } else {
+          done.completeError(const CancelledException());
+        }
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text('Cancel'), findsNothing);
+        expect(find.textContaining('12='), findsNothing);
+        // 中止しても、直前の結果は残る
+        expect(find.textContaining('10=\u200B2'), findsOneWidget);
+        expect(
+          find.text('Calculation failed. Please try again.'),
+          findsNothing,
+        );
+        expect(
+          tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+          isNotNull,
+        );
+        expect(repo.saved, hasLength(1));
+      },
+    );
+  }
+
   testWidgets('A failed calculation shows an error and re-enables the button', (
     tester,
   ) async {
@@ -134,7 +203,7 @@ void main() {
     await tester.pumpWidget(
       MyApp(
         historyRepository: repo,
-        calculator: (_) => Future.error(StateError('boom')),
+        calculator: (_, _) => Future.error(StateError('boom')),
       ),
     );
     await tester.pump();
@@ -205,7 +274,7 @@ void main() {
 
   testWidgets('A long result wraps at full size', (tester) async {
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(MyApp(calculator: (_) async => '${'2x' * 60}2'));
+    await tester.pumpWidget(MyApp(calculator: (_, _) async => '${'2x' * 60}2'));
     await tester.pump();
 
     await tester.enterText(find.byType(TextField), '12');
@@ -240,7 +309,7 @@ void main() {
       ),
     );
     await tester.pumpWidget(
-      MyApp(calculator: (_) async => 'RESULT\n${'2x' * 60}2'),
+      MyApp(calculator: (_, _) async => 'RESULT\n${'2x' * 60}2'),
     );
     await tester.pump();
     expect(find.byIcon(Icons.copy), findsNothing);
@@ -265,7 +334,7 @@ void main() {
     (tester) async {
       _setLocale(tester, const Locale('en'));
       await tester.pumpWidget(
-        MyApp(calculator: (_) async => '60 NP\n60=2^2x3x5'),
+        MyApp(calculator: (_, _) async => '60 NP\n60=2^2x3x5'),
       );
       await tester.pump();
       await tester.enterText(find.byType(TextField), '60');
@@ -302,7 +371,7 @@ void main() {
         addTearDown(tester.view.reset);
 
         final result = 'x NP\n$n=99999999999971x99999999999973';
-        await tester.pumpWidget(MyApp(calculator: (_) async => result));
+        await tester.pumpWidget(MyApp(calculator: (_, _) async => result));
         await tester.pump();
         await tester.enterText(find.byType(TextField), '12');
         await tester.tap(find.byType(ElevatedButton));
@@ -345,7 +414,7 @@ void main() {
     testWidgets('Share outcome ${c.$1} -> snackbar ${c.$2}', (tester) async {
       _setLocale(tester, const Locale('en'));
       await tester.pumpWidget(
-        MyApp(calculator: (_) async => 'R', share: (_, _) async => c.$1),
+        MyApp(calculator: (_, _) async => 'R', share: (_, _) async => c.$1),
       );
       await tester.pump();
       await tester.enterText(find.byType(TextField), '12');
@@ -363,7 +432,7 @@ void main() {
   ) async {
     _setLocale(tester, const Locale('ja'));
     await tester.pumpWidget(
-      MyApp(calculator: (_) async => 'R', share: (_, _) async => throw 'x'),
+      MyApp(calculator: (_, _) async => 'R', share: (_, _) async => throw 'x'),
     );
     await tester.pump();
     await tester.enterText(find.byType(TextField), '12');
@@ -382,7 +451,7 @@ void main() {
   ) async {
     _setLocale(tester, const Locale('en'));
     await tester.pumpWidget(
-      MyApp(calculator: (_) async => throw Exception('boom')),
+      MyApp(calculator: (_, _) async => throw Exception('boom')),
     );
     await tester.pump();
     await tester.enterText(find.byType(TextField), '12');

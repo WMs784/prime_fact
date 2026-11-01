@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/daily_page.dart' show ShareOutcome;
-import 'package:prime_fact/judge.dart' show FactorRequest;
+import 'package:prime_fact/judge.dart' show CancelToken, FactorRequest;
 import 'package:prime_fact/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,7 +14,7 @@ void main() {
   }
 
   // 計算結果は固定（整形前の素の数字）。
-  Future<String> fakeCalc(FactorRequest r) async =>
+  Future<String> fakeCalc(FactorRequest r, CancelToken _) async =>
       '${r.n}${r.isNotPrime}\n${r.n}=127x9721';
 
   Future<void> pump(WidgetTester tester, {List<String>? shared}) async {

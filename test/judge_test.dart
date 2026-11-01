@@ -1,6 +1,10 @@
+import 'dart:async';
+import 'dart:isolate';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/judge.dart';
+import 'package:prime_fact/judge_isolate.dart';
 
 const _notPrime = ' NP';
 const _prime = ' P';
@@ -17,6 +21,9 @@ String factorsOf(String n) {
   return out.split('=').last;
 }
 
+/// 結果もエラーも送らずに終わる Isolate の入口（異常終了の代わり）。
+void _silentEntry((SendPort, FactorRequest) args) {}
+
 void main() {
   test('FactorRequest survives the real compute isolate round trip', () async {
     final result = await compute(
@@ -24,6 +31,94 @@ void main() {
       _req(BigInt.from(12), ' special'),
     );
     expect(result, '12 special\n12=2^2x3');
+  });
+
+  group('factorizeAsync', () {
+    // 14 桁 x 14 桁。同期だと数秒かかる重い入力
+    final heavy =
+        BigInt.parse('99999999999971') * BigInt.parse('99999999999973');
+
+    test('gives the same result as pri_fact_isolate', () async {
+      for (final n in ['0', '1', '97', '360', '1000000007000000063']) {
+        final req = _req(BigInt.parse(n));
+        expect(
+          await factorizeAsync(req, CancelToken()),
+          pri_fact_isolate(req),
+          reason: n,
+        );
+      }
+    });
+
+    test('hands control back to the event loop while computing', () async {
+      var ticks = 0;
+      final timer = Timer.periodic(
+        const Duration(milliseconds: 1),
+        (_) => ticks++,
+      );
+      // 区切りを 0 にして、短い計算でも毎回の区切りで制御が戻るようにする
+      final n = BigInt.parse('999999999989') * BigInt.parse('999999999989');
+      await factorizeAsync(_req(n), CancelToken(), slice: Duration.zero);
+      timer.cancel();
+      expect(ticks, greaterThan(0));
+    });
+
+    test('stops with CancelledException when cancelled mid-way', () async {
+      final token = CancelToken();
+      // 中止が効かなければ数秒かかる入力。時間は測らず、完了までに CancelledException が出ることだけ見る
+      Timer(const Duration(milliseconds: 50), token.cancel);
+      await expectLater(
+        factorizeAsync(_req(heavy), token),
+        throwsA(isA<CancelledException>()),
+      );
+    });
+
+    test('an already cancelled token never returns a result', () async {
+      final token = CancelToken()..cancel();
+      await expectLater(
+        factorizeAsync(_req(BigInt.from(12)), token),
+        throwsA(isA<CancelledException>()),
+      );
+    });
+  });
+
+  group('factorizeInIsolate', () {
+    test('gives the same result as pri_fact_isolate', () async {
+      final req = _req(BigInt.parse('1000000007000000063'));
+      expect(
+        await factorizeInIsolate(req, CancelToken()),
+        pri_fact_isolate(req),
+      );
+    });
+
+    test('kills the isolate and throws when cancelled', () async {
+      final heavy =
+          BigInt.parse('99999999999971') * BigInt.parse('99999999999973');
+      final token = CancelToken();
+      Timer(const Duration(milliseconds: 50), token.cancel);
+      await expectLater(
+        factorizeInIsolate(_req(heavy), token),
+        throwsA(isA<CancelledException>()),
+      );
+    });
+
+    test('fails instead of hanging when the isolate exits silently', () async {
+      await expectLater(
+        factorizeInIsolate(
+          _req(BigInt.from(12)),
+          CancelToken(),
+          entry: _silentEntry,
+        ),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('an already cancelled token never starts', () async {
+      final token = CancelToken()..cancel();
+      await expectLater(
+        factorizeInIsolate(_req(BigInt.from(12)), token),
+        throwsA(isA<CancelledException>()),
+      );
+    });
   });
 
   group('pri_fact_isolate: trivial inputs', () {

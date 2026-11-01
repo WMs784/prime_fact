@@ -20,6 +20,7 @@
   "numberFormatComma": "Commas (1,234,567)",
   "numberFormatUnits": "Units (Japanese only)",
   "errorEmpty": "Please enter a number",
+  "cancelCalculation": "Cancel",
   "calcFailed": "Calculation failed. Please try again.",
   "copyResult": "Copy",
   "copied": "Copied",

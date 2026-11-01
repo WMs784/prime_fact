@@ -92,8 +92,8 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 ### Core Structure
 - **`lib/main.dart`**: Main app entry point with MaterialApp setup, theme configuration, and localization delegates
-- **`lib/judge.dart`**: Core business logic (Miller-Rabin primality test, Pollard-Brent factorization on `BigInt`; entry point `pri_fact_isolate(FactorRequest)` runs in an isolate; the request is a record `(n, isNotPrime, isPrime, special)`)
-- **`lib/trivia.dart`**: Replaces the primality header for special numbers (perfect / Mersenne / Fermat / palindromic / Sophie Germain / twin primes, 1729, 57 Grothendieck), e.g. "6は素数、ではなく完全数です！". The result is passed to `pri_fact_isolate` as `FactorRequest.special`; `HistoryPage` re-derives it via `headerFor`. To extend: add a `Trivia` value, its `isXxx` ARB strings (suffix after the number), a `triviaHeader` case and a test
+- **`lib/judge.dart`**: Core business logic (Miller-Rabin primality test, Pollard-Brent factorization on `BigInt`; アルゴリズム本体は `yield` で区切れる `sync*`。`pri_fact_isolate(FactorRequest)` は最後まで同期で回す版（テスト・isolate 用）、`factorizeAsync(request, CancelToken)` は約 50ms ごとにイベントループへ制御を返す版で、Web ではこれをメインスレッドで使う（Web には Isolate がなく `compute` だと画面が固まるため。速度は同期版と同程度）。Web 以外は `lib/judge_isolate.dart` の `factorizeInIsolate` で別 Isolate に出す（メインスレッドで区切ると 1 フレーム 16.7ms を超えて描画が落ちるため）。どちらも `CancelToken.cancel()` で `CancelledException` を投げて止まる。the request is a record `(n, isNotPrime, isPrime, special)`)
+- **`lib/trivia.dart`**: Replaces the primality header for special numbers (perfect / Mersenne / Fermat / palindromic / Sophie Germain / twin primes, 1729, 57 Grothendieck), e.g. "6は素数、ではなく完全数です！". The result is passed to the calculator (`factorizeAsync` / `factorizeInIsolate`) as `FactorRequest.special`; `HistoryPage` re-derives it via `headerFor`. To extend: add a `Trivia` value, its `isXxx` ARB strings (suffix after the number), a `triviaHeader` case and a test
 - **`lib/history_*.dart`**: Calculation history (`HistoryEntry`, `HistoryRepository` persisting via `shared_preferences`, `HistoryPage`)
 - **`lib/daily_*.dart`**: 「今日の素因数分解」。`DailyPuzzle` が JST の日付だけから決定的に `n = p×q`（`p` は 7〜53 の最小の素因数、`q` は `p`〜293）を生成する（`p` の範囲は易/中/難 = 50/35/15% の 3 段階。難度は画面にもシェア文にも出さない）。`DailyProgress`/`DailyRepository` が開始時刻・ミス回数・クリア時刻を `shared_preferences` に保存し（離脱中も時間は進む）、`DailyBanner`（ホーム）→`DailyPage`（出題・結果・シェア）と遷移する。生成手順を変えると同じ日の問題が変わるので、変更時は日付で分岐し `test/daily_puzzle_test.dart` の固定値も更新する
 - **`lib/settings_repository.dart`**: 表示設定（ドロワーのスイッチで「今日の素因数分解」バナーの表示/非表示を切り替え、`shared_preferences` に保存。既定は表示）
@@ -160,7 +160,7 @@ The app supports Japanese and English:
 - Teal color scheme for consistent branding
 
 ### Testing
-- `test/judge_test.dart`: primality (Carmichael numbers, strong pseudoprimes), factorization (prime powers, trial-division boundary, ~30-digit semiprime), trivial inputs, `FactorRequest` round trip through the real `compute` isolate
+- `test/judge_test.dart`: primality (Carmichael numbers, strong pseudoprimes), factorization (prime powers, trial-division boundary, ~30-digit semiprime), trivial inputs, `FactorRequest` round trip through the real `compute` isolate, `factorizeAsync` / `factorizeInIsolate`（同期版と同じ結果・制御を返すこと・中止）
 - `test/trivia_test.dart`: each special-number category and near-miss numbers (e.g. 121, 120, 15)
 - `test/history_test.dart`: `HistoryEntry` JSON round trip and legacy-format migration, `HistoryRepository` load/save/corrupted data
 - `test/daily_puzzle_test.dart`: determinism, JST date rollover, p/q ranges, tier ratios, fixed-date regression values
@@ -169,11 +169,12 @@ The app supports Japanese and English:
 - `test/number_style_test.dart`: 各形式の整形、指数の除外、英語での単位つき無効化、設定の保存
 - `test/number_format_ui_test.dart`: ドロワーからの形式選択、結果・共有・履歴への反映、英語で単位つきが出ないこと
 - `test/settings_test.dart`: daily banner toggle in the drawer and its persistence
-- `test/widget_test.dart`: calculator UI, input validation errors, localized results, history save races (injected `HistoryRepository`), failed calculation (injected `Calculator`), drawer links (injected `UrlOpener`), wrapped result (line breaks only before `x`), copy/share buttons, fixed input position
+- `test/widget_test.dart`: calculator UI, input validation errors, localized results, history save races (injected `HistoryRepository`), failed and cancelled calculation (injected `Calculator`), drawer links (injected `UrlOpener`), wrapped result (line breaks only before `x`), copy/share buttons, fixed input position
 - Add tests alongside any change to `judge.dart` or the history format
 
 ### Known Limitations
-- Factoring a ~30-digit number whose prime factors are both ~15 digits can take a long time; `compute` cannot be cancelled, so the button stays disabled until it finishes (no practical fix without a different algorithm)
+- Factoring a ~30-digit number whose prime factors are both ~15 digits can take a long time (14 桁×14 桁で JIT 約 7 秒)。計算中は「中止」ボタンで止められるが、速くするには別のアルゴリズム（ECM / SIQS）が必要
+- Web は dart2js の BigInt が VM よりずっと遅く（24 桁で約 10 倍）、さらにタブが裏に回るとタイマーが間引かれて区切りのたびに待たされ、計算が大きく遅くなる。根本対応は Web Worker 化
 - History grows without a size limit
 - Daily challenge results (`daily_<yyyyMMdd>` in `shared_preferences`) are never deleted: one small key per day played
 - Daily challenge times use the device wall clock (no server): changing the clock can distort or zero the recorded time, and a negative elapsed time is shown as 0:00.0

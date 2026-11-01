@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:styled_text/styled_text.dart';
@@ -10,6 +10,7 @@ import 'daily_banner.dart';
 import 'daily_page.dart' show ShareOutcome, shareText;
 import 'daily_repository.dart';
 import 'judge.dart';
+import 'judge_isolate.dart';
 import 'links.dart';
 import 'number_style.dart';
 import 'settings_repository.dart';
@@ -20,11 +21,19 @@ import 'trivia.dart';
 
 void main() => runApp(const MyApp());
 
-/// `pri_fact_isolate` に渡す引数から結果の文字列を作る関数。
-typedef Calculator = Future<String> Function(FactorRequest request);
+/// 計算の依頼から結果の文字列を作る関数。[cancel] されたら [CancelledException] を投げる。
+typedef Calculator = Future<String> Function(
+  FactorRequest request,
+  CancelToken cancel,
+);
 
-Future<String> _defaultCalculator(FactorRequest request) =>
-    compute(pri_fact_isolate, request);
+/// Web には Isolate がないので、メインスレッドで区切りながら計算する（画面が固まらない）。
+/// それ以外は別 Isolate で計算する（メインスレッドを塞がず、描画も落ちない）。
+/// どちらも [CancelToken] で中止できる。
+Future<String> _defaultCalculator(FactorRequest request, CancelToken cancel) =>
+    kIsWeb
+    ? factorizeAsync(request, cancel)
+    : factorizeInIsolate(request, cancel);
 
 /// 結果の共有。テストで差し替える。
 typedef ResultSharer = Future<ShareOutcome> Function(String text, Rect? origin);
@@ -412,9 +421,11 @@ class _MyWidgetState extends State<MyWidget> {
   // 計算に成功した結果だけコピー・共有の対象にする（エラー文言は対象外）
   bool _resultShareable = false;
   String? _errorText;
+  CancelToken? _cancel;
 
   @override
   void dispose() {
+    _cancel?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -443,6 +454,8 @@ class _MyWidgetState extends State<MyWidget> {
     final failedText = loc.calcFailed;
     final trivia = triviaFor(inputNumber);
 
+    final cancel = CancelToken();
+    _cancel = cancel;
     setState(() => _isLoading = true);
 
     String? result;
@@ -452,12 +465,18 @@ class _MyWidgetState extends State<MyWidget> {
         isNotPrime: isNotPrime,
         isPrime: isPrime,
         special: trivia == null ? null : triviaHeader(loc, trivia),
-      ));
+      ), cancel);
     } catch (_) {
       // 失敗してもボタンが無効のまま残らないよう、下で必ず読み込み状態を戻す
     }
 
     if (!mounted) return;
+    _cancel = null;
+    if (cancel.isCancelled) {
+      // 中止: 履歴は残さず、直前の結果（あれば）をそのまま表示に戻す
+      setState(() => _isLoading = false);
+      return;
+    }
     setState(() {
       _result = result ?? failedText;
       _resultShareable = result != null;
@@ -545,7 +564,18 @@ class _MyWidgetState extends State<MyWidget> {
           ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 120),
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(),
+                        TextButton(
+                          onPressed: () => _cancel?.cancel(),
+                          child: Text(loc.cancelCalculation),
+                        ),
+                      ],
+                    ),
+                  )
                 : Column(
                     children: [
                       SizedBox(
