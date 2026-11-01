@@ -145,11 +145,11 @@ The app supports Japanese and English:
 - `flutter_localizations` (SDK) - Internationalization support
 - `intl: ^0.20.2` - Date/number formatting
 - `shared_preferences: ^2.3.0` - Persisting calculation history
-- `url_launcher: ^6.0.18` - External links in drawer
+- `url_launcher: ^6.3.0` - External links in drawer
 - `share_plus: ^13.3.1` - Sharing the daily challenge result
 
 ### Dev Dependencies
-- `flutter_launcher_icons: any` - Custom app icon generation
+- `flutter_launcher_icons: ^0.14.4` - Custom app icon generation
 
 ## Development Notes
 
