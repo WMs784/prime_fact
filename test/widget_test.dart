@@ -1,10 +1,10 @@
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_repository.dart';
 import 'package:prime_fact/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('App renders calculator UI', (WidgetTester tester) async {
@@ -75,16 +75,42 @@ void main() {
     expect(find.text('0 is not a prime number'), findsOneWidget);
   });
 
-  testWidgets('A new calculation keeps the previously stored history', (
+  testWidgets('A calculation made before history loads keeps stored history', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({
-      'calculation_history': jsonEncode([
-        {'input': '7', 'factors': null, 'timestamp': '2026-01-01T00:00:00.000'},
-      ]),
-    });
+    final loading = Completer<List<HistoryEntry>>();
+    final repo = _FakeHistoryRepository(() => loading.future);
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(historyRepository: repo));
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), '0');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 500)),
+    );
+    await tester.pump();
+    // 読み込みが終わるまでは保存しない
+    expect(repo.saved, isEmpty);
+
+    loading.complete([
+      HistoryEntry(input: '7', timestamp: DateTime.utc(2026, 1, 1)),
+    ]);
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pump();
+
+    expect(repo.saved.last.map((e) => e.input), ['7', '0']);
+  });
+
+  testWidgets('History is not saved when loading it failed', (tester) async {
+    final repo = _FakeHistoryRepository(
+      () => Future.error(StateError('storage unavailable')),
+    );
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(MyApp(historyRepository: repo));
+    await tester.pump();
 
     await tester.enterText(find.byType(TextField), '0');
     await tester.tap(find.byType(ElevatedButton));
@@ -93,8 +119,34 @@ void main() {
     );
     await tester.pump();
 
-    final saved = await tester.runAsync(HistoryRepository().load);
-    expect(saved!.map((e) => e.input), ['7', '0']);
+    expect(find.text('0 is not a prime number'), findsOneWidget);
+    expect(repo.saved, isEmpty);
+  });
+
+  testWidgets('A failed calculation shows an error and re-enables the button', (
+    tester,
+  ) async {
+    final repo = _FakeHistoryRepository(() async => []);
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(
+      MyApp(
+        historyRepository: repo,
+        calculator: (_) => Future.error(StateError('boom')),
+      ),
+    );
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Calculation failed. Please try again.'), findsOneWidget);
+    expect(
+      tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+      isNotNull,
+    );
+    expect(repo.saved, isEmpty);
   });
 
   testWidgets('57 is shown as the Grothendieck prime (ja)', (tester) async {
@@ -157,4 +209,19 @@ void main() {
 void _setLocale(WidgetTester tester, Locale locale) {
   tester.platformDispatcher.localesTestValue = [locale];
   addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+}
+
+class _FakeHistoryRepository extends HistoryRepository {
+  final Future<List<HistoryEntry>> Function() _load;
+  final saved = <List<HistoryEntry>>[];
+
+  _FakeHistoryRepository(this._load);
+
+  @override
+  Future<List<HistoryEntry>> load() => _load();
+
+  @override
+  Future<void> save(List<HistoryEntry> history) async {
+    saved.add(List.of(history));
+  }
 }
