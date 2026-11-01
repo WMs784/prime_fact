@@ -215,9 +215,8 @@ class _MyLayoutState extends State<MyLayout> {
         ],
       ),
     );
-    if (picked == null || !mounted) return;
-    Navigator.pop(context); // ドロワーを閉じて、結果への反映がすぐ見えるようにする
-    await _setNumberStyle(picked);
+    // ドロワーは開いたままにする（続けて他の設定を触れるように）
+    if (picked != null && mounted) await _setNumberStyle(picked);
   }
 
   /// ドロワーを閉じて外部リンクを開く。開けなければ知らせる。

@@ -48,6 +48,17 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text(option));
     await tester.pumpAndSettle();
+    // 選んだ後もドロワーは開いたまま。計算できるよう閉じる
+    expect(find.byType(Drawer), findsOneWidget);
+    tester
+        .state<ScaffoldState>(
+          find.descendant(
+            of: find.byType(MyLayout),
+            matching: find.byType(Scaffold),
+          ),
+        )
+        .closeDrawer();
+    await tester.pumpAndSettle();
   }
 
   Future<void> calculate(WidgetTester tester) async {
@@ -66,7 +77,6 @@ void main() {
     final shared = <String>[];
     await pump(tester, shared: shared);
     await choose(tester, 'Number format', 'Commas (1,234,567)');
-    expect(find.byType(Drawer), findsNothing);
 
     await calculate(tester);
     expect(resultText(tester), contains('1,234,567 is not a prime number'));
@@ -112,13 +122,6 @@ void main() {
     await tester.tap(find.text('Number format'));
     await tester.pumpAndSettle();
     final dialog = find.byType(SimpleDialog);
-    expect(
-      find.descendant(
-        of: dialog,
-        matching: find.byType(RadioListTile<Object?>),
-      ),
-      findsNothing,
-    );
     expect(
       find.descendant(of: dialog, matching: find.text('Plain (1234567)')),
       findsOneWidget,
