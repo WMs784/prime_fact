@@ -266,7 +266,7 @@ class _MyLayoutState extends State<MyLayout> {
             Expanded(
               // 結果の長さで入力欄が動かないよう、上寄せにして位置を固定する
               child: Align(
-                alignment: const Alignment(0, -0.5),
+                alignment: const Alignment(0, -0.2),
                 child: SingleChildScrollView(
                   child: MyWidget(
                     onCalculated: _addHistory,
