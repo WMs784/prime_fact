@@ -1,3 +1,5 @@
+import 'package:flutter/rendering.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -9,7 +11,6 @@ import 'package:prime_fact/daily_page.dart' show ShareOutcome;
 import 'package:prime_fact/main.dart';
 
 void main() {
-  _wrapAtTimesTests();
   testWidgets('App renders calculator UI', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
     await tester.pump();
@@ -278,6 +279,61 @@ void main() {
     },
   );
 
+  test('wrapAtTimes adds break points after = and before x, except on the first line', () {
+    const header = 'a=b is a header with an equals sign';
+    expect(wrapAtTimes('$header\n10=2x5'), '$header\n10=\u200B2\u200Bx5');
+    expect(wrapAtTimes(header), header);
+  });
+
+  // flutter test のフォント(Ahem)は全角 20dp 幅。実機の 360dp(20sp の数字で約 29 文字)に
+  // 近い状況は、32 文字(30 桁の n と「=」に少し余裕を足した幅)にすると再現できる。
+  for (final n in ['9999999999994400000000000783', '9' * 30]) {
+    testWidgets(
+      'A ${n.length}-digit n is never split mid-number on a narrow screen',
+      (tester) async {
+        _setLocale(tester, const Locale('en'));
+        const charWidth = 20.0;
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = const Size(32 * charWidth + 24, 2400);
+        addTearDown(tester.view.reset);
+
+        final result = 'x NP\n$n=99999999999971x99999999999973';
+        await tester.pumpWidget(MyApp(calculator: (_) async => result));
+        await tester.pump();
+        await tester.enterText(find.byType(TextField), '12');
+        await tester.tap(find.byType(ElevatedButton));
+        await tester.pump();
+        await tester.pump();
+
+        final p = tester.renderObject<RenderParagraph>(
+          find.byKey(const ValueKey('result')),
+        );
+        final text = p.text.toPlainText();
+        final factorLine = text.indexOf('\n') + 1;
+        var lastTop = -1.0;
+        var lines = 0;
+        for (var i = factorLine; i < text.length; i++) {
+          final boxes = p.getBoxesForSelection(
+            TextSelection(baseOffset: i, extentOffset: i + 1),
+          );
+          if (boxes.isEmpty || text[i] == '\u200B') continue;
+          if (boxes.first.top == lastTop) continue;
+          lastTop = boxes.first.top;
+          lines++;
+          if (lines == 1) continue;
+          // 行頭は「x」か、「=」の直後でなければならない（数字の途中ではない）
+          final prev = text.substring(0, i).replaceAll('\u200B', '');
+          expect(
+            text[i] == 'x' || prev.endsWith('='),
+            isTrue,
+            reason: 'line $lines starts mid-number at ${text.substring(i)}',
+          );
+        }
+        expect(lines, greaterThan(1));
+      },
+    );
+  }
+
   for (final c in [
     (ShareOutcome.copied, 'Copied'),
     (ShareOutcome.sheet, null),
@@ -408,15 +464,4 @@ class _FakeHistoryRepository extends HistoryRepository {
   Future<void> save(List<HistoryEntry> history) async {
     saved.add(List.of(history));
   }
-}
-
-void _wrapAtTimesTests() {
-  test(
-    'wrapAtTimes allows breaks after "=" and before "x" only on factor lines',
-    () {
-      expect(wrapAtTimes('12 NP'), '12 NP');
-      // 1 行目（素数判定の見出し）は触らない
-      expect(wrapAtTimes('1=2 NP\n10=2x5'), '1=2 NP\n10=​2​x5');
-    },
-  );
 }
