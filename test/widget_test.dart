@@ -200,9 +200,7 @@ void main() {
     }
   });
 
-  testWidgets('A long result wraps at full size and is selectable', (
-    tester,
-  ) async {
+  testWidgets('A long result wraps at full size', (tester) async {
     _setLocale(tester, const Locale('en'));
     await tester.pumpWidget(MyApp(calculator: (_) async => '${'2x' * 60}2'));
     await tester.pump();
@@ -212,9 +210,9 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.byType(SelectableText), findsOneWidget);
+    expect(find.byKey(const ValueKey('result')), findsOneWidget);
     expect(find.byType(FittedBox), findsNothing);
-    final height = tester.getSize(find.byType(SelectableText)).height;
+    final height = tester.getSize(find.byKey(const ValueKey('result'))).height;
     expect(height, greaterThan(40)); // 1 行(約 24)に収まらず折り返している
   });
 
@@ -272,7 +270,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    final text = tester.widget<SelectableText>(find.byType(SelectableText));
+    final text = tester.widget<Text>(find.byKey(const ValueKey('result')));
     expect(text.data, '60 NP\n60=2^2\u200Bx3\u200Bx5');
   });
 

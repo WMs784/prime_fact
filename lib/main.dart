@@ -442,9 +442,10 @@ class _MyWidgetState extends State<MyWidget> {
                     children: [
                       SizedBox(
                         width: double.infinity,
-                        // 長い因数分解は折り返して表示し、コピーできるようにする
-                        child: SelectableText(
+                        // 長い因数分解は折り返して表示する。コピーはボタンから（選択コピーだと折り返し用の不可視文字が混ざるため）
+                        child: Text(
                           wrapAtTimes(_result),
+                          key: const ValueKey('result'),
                           style: const TextStyle(fontSize: 20),
                         ),
                       ),

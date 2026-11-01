@@ -166,7 +166,7 @@ The app supports Japanese and English:
 - `test/daily_progress_test.dart`, `test/daily_challenge_test.dart`: progress/repository, banner → challenge → result flow, share text
 - `test/daily_robustness_test.dart`: load/save failures, share fallback rules, stale reloads, double submit, Enter key, share errors, banner at JST midnight, short screen with keyboard
 - `test/settings_test.dart`: daily banner toggle in the drawer and its persistence
-- `test/widget_test.dart`: calculator UI, input validation errors, localized results, history save races (injected `HistoryRepository`), failed calculation (injected `Calculator`), drawer links (injected `UrlOpener`), wrapped selectable result
+- `test/widget_test.dart`: calculator UI, input validation errors, localized results, history save races (injected `HistoryRepository`), failed calculation (injected `Calculator`), drawer links (injected `UrlOpener`), wrapped result (line breaks only before `x`), copy/share buttons, fixed input position
 - Add tests alongside any change to `judge.dart` or the history format
 
 ### Known Limitations
