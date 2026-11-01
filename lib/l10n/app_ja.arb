@@ -20,6 +20,7 @@
   "numberFormatComma": "カンマ区切り（1,234,567）",
   "numberFormatUnits": "単位つき（123万4567）",
   "errorEmpty": "数値を入力してください",
+  "cancelCalculation": "中止",
   "calcFailed": "計算に失敗しました。もう一度お試しください",
   "copyResult": "コピー",
   "copied": "コピーしました",

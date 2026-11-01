@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/judge.dart';
@@ -24,6 +26,56 @@ void main() {
       _req(BigInt.from(12), ' special'),
     );
     expect(result, '12 special\n12=2^2x3');
+  });
+
+  group('factorizeAsync', () {
+    // 14 桁 x 14 桁。同期だと数秒かかる重い入力
+    final heavy =
+        BigInt.parse('99999999999971') * BigInt.parse('99999999999973');
+
+    test('gives the same result as pri_fact_isolate', () async {
+      for (final n in ['0', '1', '97', '360', '1000000007000000063']) {
+        final req = _req(BigInt.parse(n));
+        expect(
+          await factorizeAsync(req, CancelToken()),
+          pri_fact_isolate(req),
+          reason: n,
+        );
+      }
+    });
+
+    test('hands control back to the event loop while computing', () async {
+      var ticks = 0;
+      final timer = Timer.periodic(
+        const Duration(milliseconds: 1),
+        (_) => ticks++,
+      );
+      // 区切りを 1ms にして、短い計算でも何度も制御が戻るようにする
+      final n = BigInt.parse('999999999989') * BigInt.parse('999999999989');
+      await factorizeAsync(_req(n), CancelToken(), slice: Duration.zero);
+      timer.cancel();
+      expect(ticks, greaterThan(0));
+    });
+
+    test('stops with CancelledException when cancelled mid-way', () async {
+      final token = CancelToken();
+      Timer(const Duration(milliseconds: 100), token.cancel);
+      final watch = Stopwatch()..start();
+      await expectLater(
+        factorizeAsync(_req(heavy), token),
+        throwsA(isA<CancelledException>()),
+      );
+      // 全体（数秒）を待たずに止まる
+      expect(watch.elapsedMilliseconds, lessThan(2000));
+    });
+
+    test('an already cancelled token never returns a result', () async {
+      final token = CancelToken()..cancel();
+      await expectLater(
+        factorizeAsync(_req(BigInt.from(12)), token),
+        throwsA(isA<CancelledException>()),
+      );
+    });
   });
 
   group('pri_fact_isolate: trivial inputs', () {

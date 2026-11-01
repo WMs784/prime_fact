@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:styled_text/styled_text.dart';
@@ -20,11 +19,15 @@ import 'trivia.dart';
 
 void main() => runApp(const MyApp());
 
-/// `pri_fact_isolate` に渡す引数から結果の文字列を作る関数。
-typedef Calculator = Future<String> Function(FactorRequest request);
+/// 計算の依頼から結果の文字列を作る関数。[cancel] されたら [CancelledException] を投げる。
+typedef Calculator = Future<String> Function(
+  FactorRequest request,
+  CancelToken cancel,
+);
 
-Future<String> _defaultCalculator(FactorRequest request) =>
-    compute(pri_fact_isolate, request);
+/// 区切りながらメインスレッドで計算する。Web でも画面が固まらず、中止もできる。
+Future<String> _defaultCalculator(FactorRequest request, CancelToken cancel) =>
+    factorizeAsync(request, cancel);
 
 /// 結果の共有。テストで差し替える。
 typedef ResultSharer = Future<ShareOutcome> Function(String text, Rect? origin);
@@ -412,9 +415,11 @@ class _MyWidgetState extends State<MyWidget> {
   // 計算に成功した結果だけコピー・共有の対象にする（エラー文言は対象外）
   bool _resultShareable = false;
   String? _errorText;
+  CancelToken? _cancel;
 
   @override
   void dispose() {
+    _cancel?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -443,6 +448,8 @@ class _MyWidgetState extends State<MyWidget> {
     final failedText = loc.calcFailed;
     final trivia = triviaFor(inputNumber);
 
+    final cancel = CancelToken();
+    _cancel = cancel;
     setState(() => _isLoading = true);
 
     String? result;
@@ -452,12 +459,22 @@ class _MyWidgetState extends State<MyWidget> {
         isNotPrime: isNotPrime,
         isPrime: isPrime,
         special: trivia == null ? null : triviaHeader(loc, trivia),
-      ));
+      ), cancel);
     } catch (_) {
       // 失敗してもボタンが無効のまま残らないよう、下で必ず読み込み状態を戻す
     }
 
     if (!mounted) return;
+    _cancel = null;
+    if (cancel.isCancelled) {
+      // 中止: 結果も履歴も残さず、入力前の状態に戻す
+      setState(() {
+        _result = '';
+        _resultShareable = false;
+        _isLoading = false;
+      });
+      return;
+    }
     setState(() {
       _result = result ?? failedText;
       _resultShareable = result != null;
@@ -545,7 +562,15 @@ class _MyWidgetState extends State<MyWidget> {
           ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 120),
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Column(
+                    children: [
+                      const CircularProgressIndicator(),
+                      TextButton(
+                        onPressed: () => _cancel?.cancel(),
+                        child: Text(loc.cancelCalculation),
+                      ),
+                    ],
+                  )
                 : Column(
                     children: [
                       SizedBox(
