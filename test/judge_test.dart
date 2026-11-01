@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +20,9 @@ String factorsOf(String n) {
   expect(out, startsWith('$n$_notPrime\n$n='), reason: 'n=$n out=$out');
   return out.split('=').last;
 }
+
+/// 結果もエラーも送らずに終わる Isolate の入口（異常終了の代わり）。
+void _silentEntry((SendPort, FactorRequest) args) {}
 
 void main() {
   test('FactorRequest survives the real compute isolate round trip', () async {
@@ -94,6 +98,17 @@ void main() {
       await expectLater(
         factorizeInIsolate(_req(heavy), token),
         throwsA(isA<CancelledException>()),
+      );
+    });
+
+    test('fails instead of hanging when the isolate exits silently', () async {
+      await expectLater(
+        factorizeInIsolate(
+          _req(BigInt.from(12)),
+          CancelToken(),
+          entry: _silentEntry,
+        ),
+        throwsA(isA<StateError>()),
       );
     });
 

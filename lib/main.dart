@@ -32,7 +32,7 @@ typedef Calculator = Future<String> Function(
 /// どちらも [CancelToken] で中止できる。
 Future<String> _defaultCalculator(FactorRequest request, CancelToken cancel) =>
     kIsWeb
-    ? factorizeAsync(request, cancel, slice: const Duration(milliseconds: 50))
+    ? factorizeAsync(request, cancel)
     : factorizeInIsolate(request, cancel);
 
 /// 結果の共有。テストで差し替える。

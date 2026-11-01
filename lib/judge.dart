@@ -235,7 +235,7 @@ class CancelledException implements Exception {
 Future<String> factorizeAsync(
   FactorRequest request,
   CancelToken token, {
-  Duration slice = const Duration(milliseconds: 20),
+  Duration slice = const Duration(milliseconds: 50),
 }) async {
   final out = _Box('');
   final watch = Stopwatch()..start();
