@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:styled_text/styled_text.dart';
@@ -9,6 +10,7 @@ import 'daily_banner.dart';
 import 'daily_page.dart' show ShareOutcome, shareText;
 import 'daily_repository.dart';
 import 'judge.dart';
+import 'judge_isolate.dart';
 import 'links.dart';
 import 'number_style.dart';
 import 'settings_repository.dart';
@@ -25,9 +27,13 @@ typedef Calculator = Future<String> Function(
   CancelToken cancel,
 );
 
-/// 区切りながらメインスレッドで計算する。Web でも画面が固まらず、中止もできる。
+/// Web には Isolate がないので、メインスレッドで区切りながら計算する（画面が固まらない）。
+/// それ以外は別 Isolate で計算する（メインスレッドを塞がず、描画も落ちない）。
+/// どちらも [CancelToken] で中止できる。
 Future<String> _defaultCalculator(FactorRequest request, CancelToken cancel) =>
-    factorizeAsync(request, cancel);
+    kIsWeb
+    ? factorizeAsync(request, cancel, slice: const Duration(milliseconds: 50))
+    : factorizeInIsolate(request, cancel);
 
 /// 結果の共有。テストで差し替える。
 typedef ResultSharer = Future<ShareOutcome> Function(String text, Rect? origin);
@@ -467,12 +473,8 @@ class _MyWidgetState extends State<MyWidget> {
     if (!mounted) return;
     _cancel = null;
     if (cancel.isCancelled) {
-      // 中止: 結果も履歴も残さず、入力前の状態に戻す
-      setState(() {
-        _result = '';
-        _resultShareable = false;
-        _isLoading = false;
-      });
+      // 中止: 履歴は残さず、直前の結果（あれば）をそのまま表示に戻す
+      setState(() => _isLoading = false);
       return;
     }
     setState(() {
@@ -562,14 +564,17 @@ class _MyWidgetState extends State<MyWidget> {
           ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 120),
             child: _isLoading
-                ? Column(
-                    children: [
-                      const CircularProgressIndicator(),
-                      TextButton(
-                        onPressed: () => _cancel?.cancel(),
-                        child: Text(loc.cancelCalculation),
-                      ),
-                    ],
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(),
+                        TextButton(
+                          onPressed: () => _cancel?.cancel(),
+                          child: Text(loc.cancelCalculation),
+                        ),
+                      ],
+                    ),
                   )
                 : Column(
                     children: [

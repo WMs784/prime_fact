@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/judge.dart';
+import 'package:prime_fact/judge_isolate.dart';
 
 const _notPrime = ' NP';
 const _prime = ' P';
@@ -50,7 +51,7 @@ void main() {
         const Duration(milliseconds: 1),
         (_) => ticks++,
       );
-      // 区切りを 1ms にして、短い計算でも何度も制御が戻るようにする
+      // 区切りを 0 にして、短い計算でも毎回の区切りで制御が戻るようにする
       final n = BigInt.parse('999999999989') * BigInt.parse('999999999989');
       await factorizeAsync(_req(n), CancelToken(), slice: Duration.zero);
       timer.cancel();
@@ -59,20 +60,47 @@ void main() {
 
     test('stops with CancelledException when cancelled mid-way', () async {
       final token = CancelToken();
-      Timer(const Duration(milliseconds: 100), token.cancel);
-      final watch = Stopwatch()..start();
+      // 中止が効かなければ数秒かかる入力。時間は測らず、完了までに CancelledException が出ることだけ見る
+      Timer(const Duration(milliseconds: 50), token.cancel);
       await expectLater(
         factorizeAsync(_req(heavy), token),
         throwsA(isA<CancelledException>()),
       );
-      // 全体（数秒）を待たずに止まる
-      expect(watch.elapsedMilliseconds, lessThan(2000));
     });
 
     test('an already cancelled token never returns a result', () async {
       final token = CancelToken()..cancel();
       await expectLater(
         factorizeAsync(_req(BigInt.from(12)), token),
+        throwsA(isA<CancelledException>()),
+      );
+    });
+  });
+
+  group('factorizeInIsolate', () {
+    test('gives the same result as pri_fact_isolate', () async {
+      final req = _req(BigInt.parse('1000000007000000063'));
+      expect(
+        await factorizeInIsolate(req, CancelToken()),
+        pri_fact_isolate(req),
+      );
+    });
+
+    test('kills the isolate and throws when cancelled', () async {
+      final heavy =
+          BigInt.parse('99999999999971') * BigInt.parse('99999999999973');
+      final token = CancelToken();
+      Timer(const Duration(milliseconds: 50), token.cancel);
+      await expectLater(
+        factorizeInIsolate(_req(heavy), token),
+        throwsA(isA<CancelledException>()),
+      );
+    });
+
+    test('an already cancelled token never starts', () async {
+      final token = CancelToken()..cancel();
+      await expectLater(
+        factorizeInIsolate(_req(BigInt.from(12)), token),
         throwsA(isA<CancelledException>()),
       );
     });

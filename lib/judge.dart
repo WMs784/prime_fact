@@ -1,3 +1,5 @@
+import 'dart:async';
+
 BigInt _gcd(BigInt a, BigInt b) {
   while (b != BigInt.zero) {
     final t = b;
@@ -206,9 +208,15 @@ String pri_fact_isolate(FactorRequest request) {
 
 /// 計算の中止の合図。[cancel] を呼ぶと、実行中の [factorizeAsync] が次の区切りで止まる。
 class CancelToken {
-  bool _cancelled = false;
-  bool get isCancelled => _cancelled;
-  void cancel() => _cancelled = true;
+  final _completer = Completer<void>();
+  bool get isCancelled => _completer.isCompleted;
+
+  /// 中止されたときに完了する。別 Isolate で動く計算を止めるのに使う。
+  Future<void> get whenCancelled => _completer.future;
+
+  void cancel() {
+    if (!_completer.isCompleted) _completer.complete();
+  }
 }
 
 /// [CancelToken] で中止されたときに [factorizeAsync] が投げる。
@@ -223,6 +231,7 @@ class CancelledException implements Exception {
 /// Web には Isolate がなく `compute` がメインスレッドで動くので、重い数で画面が固まる。
 /// こちらは区切りのたびにイベントループへ戻るので、描画も入力も止まらず、
 /// [token] による中止もできる（中止されると [CancelledException]）。
+/// Web 以外では別 Isolate で動く `factorizeInIsolate` を使う（区切りで描画が落ちないため）。
 Future<String> factorizeAsync(
   FactorRequest request,
   CancelToken token, {

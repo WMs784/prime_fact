@@ -129,23 +129,33 @@ void main() {
 
   for (final ignoresCancel in [false, true]) {
     testWidgets(
-      'Cancelling a calculation restores the input state and saves no history'
+      'Cancelling a calculation keeps the previous result and saves no history'
       '${ignoresCancel ? ' (even if the calculator still returns a result)' : ''}',
       (tester) async {
         final repo = _FakeHistoryRepository(() async => []);
         _setLocale(tester, const Locale('en'));
         final done = Completer<String>();
         CancelToken? token;
+        var calls = 0;
         await tester.pumpWidget(
           MyApp(
             historyRepository: repo,
             calculator: (_, cancel) {
+              // 1 回目はすぐ結果を返し、2 回目は止めて待つ
+              if (++calls == 1) return Future.value('10 NP\n10=2x5');
               token = cancel;
               return done.future;
             },
           ),
         );
         await tester.pump();
+
+        await tester.enterText(find.byType(TextField), '10');
+        await tester.tap(find.byType(ElevatedButton));
+        await tester.pump();
+        await tester.pump();
+        expect(find.textContaining('10=\u200B2'), findsOneWidget);
+        expect(repo.saved, hasLength(1));
 
         await tester.enterText(find.byType(TextField), '12');
         await tester.tap(find.byType(ElevatedButton));
@@ -170,6 +180,8 @@ void main() {
 
         expect(find.text('Cancel'), findsNothing);
         expect(find.textContaining('12='), findsNothing);
+        // 中止しても、直前の結果は残る
+        expect(find.textContaining('10=\u200B2'), findsOneWidget);
         expect(
           find.text('Calculation failed. Please try again.'),
           findsNothing,
@@ -178,7 +190,7 @@ void main() {
           tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
           isNotNull,
         );
-        expect(repo.saved, isEmpty);
+        expect(repo.saved, hasLength(1));
       },
     );
   }
