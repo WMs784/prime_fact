@@ -15,6 +15,7 @@
    "historyEmpty": "履歴がありません",
   "showDailyChallenge": "今日の素因数分解を表示",
   "errorEmpty": "数値を入力してください",
+  "calcFailed": "計算に失敗しました。もう一度お試しください",
   "isGrothendieckPrime": "は素数です！ by グロタンディーク",
   "isPerfectNumber": "は素数、ではなく完全数です！",
   "isMersennePrime": "はメルセンヌ素数です！",

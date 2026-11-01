@@ -18,6 +18,12 @@ import 'trivia.dart';
 
 void main() => runApp(const MyApp());
 
+/// `pri_fact_isolate` に渡す引数から結果の文字列を作る関数。
+typedef Calculator = Future<String> Function(List<dynamic> args);
+
+Future<String> _defaultCalculator(List<dynamic> args) =>
+    compute(pri_fact_isolate, args);
+
 class MyApp extends StatelessWidget {
   /// 「今日の素因数分解」の現在時刻。テストで差し替える。
   final DateTime Function() now;
@@ -25,7 +31,19 @@ class MyApp extends StatelessWidget {
   /// テストで差し替える。
   final DailyRepository? dailyRepository;
 
-  const MyApp({super.key, this.now = DateTime.now, this.dailyRepository});
+  /// テストで差し替える。
+  final HistoryRepository? historyRepository;
+
+  /// 計算の実行。テストで差し替える。
+  final Calculator calculator;
+
+  const MyApp({
+    super.key,
+    this.now = DateTime.now,
+    this.dailyRepository,
+    this.historyRepository,
+    this.calculator = _defaultCalculator,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +89,12 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [Locale('ja', ''), Locale('en', '')],
       home: Scaffold(
-        body: MyLayout(now: now, dailyRepository: dailyRepository),
+        body: MyLayout(
+          now: now,
+          dailyRepository: dailyRepository,
+          historyRepository: historyRepository,
+          calculator: calculator,
+        ),
       ),
     );
   }
@@ -81,12 +104,16 @@ class MyLayout extends StatefulWidget {
   final DateTime Function() now;
   final DailyRepository? dailyRepository;
   final SettingsRepository? settingsRepository;
+  final HistoryRepository? historyRepository;
+  final Calculator calculator;
 
   const MyLayout({
     super.key,
     this.now = DateTime.now,
     this.dailyRepository,
     this.settingsRepository,
+    this.historyRepository,
+    this.calculator = _defaultCalculator,
   });
 
   @override
@@ -95,7 +122,12 @@ class MyLayout extends StatefulWidget {
 
 class _MyLayoutState extends State<MyLayout> {
   List<HistoryEntry> _history = [];
-  final _repo = HistoryRepository();
+  late final Future<void> _historyLoaded;
+  late final HistoryRepository _repo =
+      widget.historyRepository ?? HistoryRepository();
+
+  /// 履歴を読めなかったとき true。保存済みの履歴を空で上書きしないよう、保存を控える。
+  bool _historyLoadFailed = false;
   late final DailyRepository _dailyRepo =
       widget.dailyRepository ?? DailyRepository();
   late final SettingsRepository _settings =
@@ -108,9 +140,15 @@ class _MyLayoutState extends State<MyLayout> {
   void initState() {
     super.initState();
     // 読み込み完了前に追加された履歴を失わないよう、後ろに連結する
-    _repo.load().then(
-      (list) => setState(() => _history = [...list, ..._history]),
-    );
+    _historyLoaded = _repo
+        .load()
+        .then((list) {
+          if (mounted) setState(() => _history = [...list, ..._history]);
+        })
+        .catchError((_) {
+          // 読めなくても、この起動中の履歴は使える（保存はしない）
+          _historyLoadFailed = true;
+        });
     _settings.loadShowDaily().then((v) {
       // 読み込み前に切り替えられていたら、その操作を優先する
       if (mounted && _showDaily == null) setState(() => _showDaily = v);
@@ -126,9 +164,16 @@ class _MyLayoutState extends State<MyLayout> {
     }
   }
 
-  void _addHistory(HistoryEntry entry) async {
+  Future<void> _addHistory(HistoryEntry entry) async {
     setState(() => _history.add(entry));
-    await _repo.save(_history);
+    // 読み込み前に保存すると、保存済みの履歴を上書きしてしまうので待つ
+    await _historyLoaded;
+    if (_historyLoadFailed) return;
+    try {
+      await _repo.save(_history);
+    } catch (_) {
+      // 保存に失敗しても、この起動中の履歴は保つ
+    }
   }
 
   @override
@@ -209,7 +254,10 @@ class _MyLayoutState extends State<MyLayout> {
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
-                  child: MyWidget(onCalculated: _addHistory),
+                  child: MyWidget(
+                    onCalculated: _addHistory,
+                    calculator: widget.calculator,
+                  ),
                 ),
               ),
             ),
@@ -223,7 +271,13 @@ class _MyLayoutState extends State<MyLayout> {
 class MyWidget extends StatefulWidget {
   final void Function(HistoryEntry)? onCalculated;
 
-  const MyWidget({super.key, this.onCalculated});
+  final Calculator calculator;
+
+  const MyWidget({
+    super.key,
+    this.onCalculated,
+    this.calculator = _defaultCalculator,
+  });
 
   @override
   State<MyWidget> createState() => _MyWidgetState();
@@ -250,6 +304,48 @@ class _MyWidgetState extends State<MyWidget> {
     return error == null ? value : null;
   }
 
+  Future<void> _calculate() async {
+    final loc = AppLocalizations.of(context)!;
+    final inputNumber = _validate(loc);
+    if (inputNumber == null) {
+      setState(() => _result = '');
+      return;
+    }
+    final isNotPrime = loc.isNotPrime;
+    final isPrime = loc.isPrime;
+    final failedText = loc.calcFailed;
+    final trivia = triviaFor(inputNumber);
+
+    setState(() => _isLoading = true);
+
+    String? result;
+    try {
+      result = await widget.calculator([
+        inputNumber,
+        isNotPrime,
+        isPrime,
+        trivia == null ? null : triviaHeader(loc, trivia),
+      ]);
+    } catch (_) {
+      // 失敗してもボタンが無効のまま残らないよう、下で必ず読み込み状態を戻す
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _result = result ?? failedText;
+      _isLoading = false;
+    });
+    if (result == null) return;
+
+    widget.onCalculated?.call(
+      HistoryEntry.fromResult(
+        input: inputNumber.toString(),
+        result: result,
+        timestamp: DateTime.now(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -273,47 +369,16 @@ class _MyWidgetState extends State<MyWidget> {
                 color: Theme.of(context).hintColor,
               ),
             ),
+            textInputAction: TextInputAction.done,
             onChanged: (_) {
               if (_errorText != null) setState(() => _errorText = null);
             },
+            onSubmitted: (_) {
+              if (!_isLoading) _calculate();
+            },
           ),
           ElevatedButton(
-            onPressed: _isLoading
-                ? null
-                : () async {
-                    final loc = AppLocalizations.of(context)!;
-                    final inputNumber = _validate(loc);
-                    if (inputNumber == null) {
-                      setState(() => _result = '');
-                      return;
-                    }
-                    final isNotPrime = loc.isNotPrime;
-                    final isPrime = loc.isPrime;
-                    final trivia = triviaFor(inputNumber);
-
-                    setState(() => _isLoading = true);
-
-                    final result = await compute(pri_fact_isolate, [
-                      inputNumber,
-                      isNotPrime,
-                      isPrime,
-                      trivia == null ? null : triviaHeader(loc, trivia),
-                    ]);
-
-                    if (!mounted) return;
-                    setState(() {
-                      _result = result;
-                      _isLoading = false;
-                    });
-
-                    widget.onCalculated?.call(
-                      HistoryEntry.fromResult(
-                        input: inputNumber.toString(),
-                        result: result,
-                        timestamp: DateTime.now(),
-                      ),
-                    );
-                  },
+            onPressed: _isLoading ? null : _calculate,
             child: Text(
               AppLocalizations.of(context)!.button,
               style: const TextStyle(fontSize: 20),
