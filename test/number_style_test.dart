@@ -13,8 +13,8 @@ void main() {
 
   test('comma groups by three and skips exponents', () {
     expect(
-      formatNumbers('1234567=1000x2^1000', NumberStyle.comma, ja: true),
-      '1,234,567=1,000x2^1000',
+      formatNumbers('1234567=1000x2^1234', NumberStyle.comma, ja: true),
+      '1,234,567=1,000x2^1234',
     );
   });
 

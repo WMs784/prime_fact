@@ -187,7 +187,7 @@ class _MyLayoutState extends State<MyLayout> {
 
   Future<void> _pickNumberStyle() async {
     final loc = AppLocalizations.of(context)!;
-    final ja = loc.localeName.startsWith('ja');
+    final ja = isJapanese(loc);
     final labels = {
       NumberStyle.plain: loc.numberFormatPlain,
       NumberStyle.comma: loc.numberFormatComma,
@@ -215,7 +215,9 @@ class _MyLayoutState extends State<MyLayout> {
         ],
       ),
     );
-    if (picked != null) await _setNumberStyle(picked);
+    if (picked == null || !mounted) return;
+    Navigator.pop(context); // ドロワーを閉じて、結果への反映がすぐ見えるようにする
+    await _setNumberStyle(picked);
   }
 
   /// ドロワーを閉じて外部リンクを開く。開けなければ知らせる。
@@ -266,7 +268,7 @@ class _MyLayoutState extends State<MyLayout> {
             DrawerHeader(
               decoration: BoxDecoration(color: _drawerHeaderColor),
               child: StyledText(
-                text: '<set/>&space;${loc.menu}',
+                text: '<set/>&space;${loc.settings}',
                 style: const TextStyle(fontSize: 24, color: Colors.white),
                 tags: const {
                   'set': StyledTextIconTag(
@@ -304,7 +306,7 @@ class _MyLayoutState extends State<MyLayout> {
               title: Text(loc.numberFormat),
               subtitle: Text(switch (effectiveStyle(
                 _numberStyle,
-                ja: loc.localeName.startsWith('ja'),
+                ja: isJapanese(loc),
               )) {
                 NumberStyle.plain => loc.numberFormatPlain,
                 NumberStyle.comma => loc.numberFormatComma,
@@ -314,7 +316,7 @@ class _MyLayoutState extends State<MyLayout> {
             ),
             ExpansionTile(
               leading: const Icon(Icons.info_outline),
-              title: Text(loc.other),
+              title: Text(loc.appInfo),
               shape: const Border(),
               collapsedShape: const Border(),
               children: <Widget>[
@@ -488,11 +490,8 @@ class _MyWidgetState extends State<MyWidget> {
   }
 
   /// 表示・コピー・共有に使う、形式を適用した結果。
-  String _displayed(AppLocalizations loc) => formatNumbers(
-    _result,
-    widget.numberStyle,
-    ja: loc.localeName.startsWith('ja'),
-  );
+  String _displayed(AppLocalizations loc) =>
+      formatForLocale(loc, _result, widget.numberStyle);
 
   @override
   Widget build(BuildContext context) {

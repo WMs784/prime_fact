@@ -1,3 +1,5 @@
+import 'package:prime_fact/l10n/app_localizations.dart';
+
 /// 結果に出てくる数の表示形式。
 enum NumberStyle {
   /// そのまま（既定）
@@ -16,8 +18,9 @@ enum NumberStyle {
 }
 
 const _jaUnits = ['', '万', '億', '兆', '京', '垓', '秭', '穰'];
-// 指数（`^` の直後）は整形しない
-final _numberPattern = RegExp(r'(?<!\^)\d+');
+// 指数（`^` に続く数字の並び）は整形しない。
+// 直前が `^` か数字の位置からは始めないので、`^1234` の途中（`234`）も拾わない。
+final _numberPattern = RegExp(r'(?<![\^\d])\d+');
 
 /// 言語 [ja] で実際に使う形式。英語では単位つきを使わず、そのまま表示する。
 NumberStyle effectiveStyle(NumberStyle style, {required bool ja}) =>
@@ -64,3 +67,10 @@ List<String> _group(String digits, int size) {
   }
   return groups;
 }
+
+/// 現在の言語が日本語か。単位つき表示の可否など、言語による分岐はこれで判定する。
+bool isJapanese(AppLocalizations loc) => loc.localeName.startsWith('ja');
+
+/// 現在の言語に合わせて [text] の数を [style] で整形する。
+String formatForLocale(AppLocalizations loc, String text, NumberStyle style) =>
+    formatNumbers(text, style, ja: isJapanese(loc));

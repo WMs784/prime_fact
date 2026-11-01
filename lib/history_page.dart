@@ -39,15 +39,10 @@ class HistoryPage extends StatelessWidget {
               itemCount: reversed.length,
               itemBuilder: (context, index) {
                 final entry = reversed[index];
-                final lines = _describe(loc, entry)
-                    .map(
-                      (l) => formatNumbers(
-                        l,
-                        numberStyle,
-                        ja: loc.localeName.startsWith('ja'),
-                      ),
-                    )
-                    .toList();
+                final lines = _describe(
+                  loc,
+                  entry,
+                ).map((l) => formatForLocale(loc, l, numberStyle)).toList();
                 final dateStr = dateFormat.format(entry.timestamp);
 
                 return ListTile(
