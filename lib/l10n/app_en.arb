@@ -19,6 +19,7 @@
   "copyResult": "Copy",
   "copied": "Copied",
   "shareResult": "Share",
+  "shareFailed": "Could not share.",
   "linkOpenFailed": "Could not open the link.",
   "isGrothendieckPrime": " is a prime number! by Grothendieck",
   "isPerfectNumber": " is not a prime, but a perfect number!",

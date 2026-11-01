@@ -19,6 +19,7 @@
   "copyResult": "コピー",
   "copied": "コピーしました",
   "shareResult": "共有",
+  "shareFailed": "共有できませんでした",
   "linkOpenFailed": "リンクを開けませんでした",
   "isGrothendieckPrime": "は素数です！ by グロタンディーク",
   "isPerfectNumber": "は素数、ではなく完全数です！",

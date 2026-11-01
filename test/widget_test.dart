@@ -1,11 +1,11 @@
-import 'package:flutter/services.dart';
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_repository.dart';
+import 'package:prime_fact/daily_page.dart' show ShareOutcome;
 import 'package:prime_fact/main.dart';
 
 void main() {
@@ -272,6 +272,45 @@ void main() {
 
     final text = tester.widget<Text>(find.byKey(const ValueKey('result')));
     expect(text.data, '60 NP\n60=2^2\u200Bx3\u200Bx5');
+  });
+
+  for (final c in [
+    (ShareOutcome.copied, 'Copied'),
+    (ShareOutcome.sheet, null),
+  ]) {
+    testWidgets('Share outcome ${c.$1} -> snackbar ${c.$2}', (tester) async {
+      _setLocale(tester, const Locale('en'));
+      await tester.pumpWidget(
+        MyApp(calculator: (_) async => 'R', share: (_, _) async => c.$1),
+      );
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), '12');
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.share));
+      await tester.pump();
+      expect(find.text('Copied'), c.$2 == null ? findsNothing : findsOneWidget);
+    });
+  }
+
+  testWidgets('A share error is reported (ja), tooltips are localized', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('ja'));
+    await tester.pumpWidget(
+      MyApp(calculator: (_) async => 'R', share: (_, _) async => throw 'x'),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+    expect(find.byTooltip('コピー'), findsOneWidget);
+    expect(find.byTooltip('共有'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.share));
+    await tester.pump();
+    expect(find.text('共有できませんでした'), findsOneWidget);
   });
 
   testWidgets('No copy/share buttons after a failed calculation', (

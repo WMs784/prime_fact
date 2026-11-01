@@ -7,7 +7,7 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'daily_banner.dart';
-import 'daily_page.dart' show shareText;
+import 'daily_page.dart' show ShareOutcome, shareText;
 import 'daily_repository.dart';
 import 'judge.dart';
 import 'links.dart';
@@ -24,6 +24,9 @@ typedef Calculator = Future<String> Function(FactorRequest request);
 
 Future<String> _defaultCalculator(FactorRequest request) =>
     compute(pri_fact_isolate, request);
+
+/// 結果の共有。テストで差し替える。
+typedef ResultSharer = Future<ShareOutcome> Function(String text, Rect? origin);
 
 /// 外部 URL を開く。開けたら true。
 typedef UrlOpener = Future<bool> Function(String url);
@@ -68,6 +71,9 @@ class MyApp extends StatelessWidget {
   /// 外部リンクの開き方。テストで差し替える。
   final UrlOpener openUrl;
 
+  /// 結果の共有の仕方。テストで差し替える。
+  final ResultSharer share;
+
   const MyApp({
     super.key,
     this.now = DateTime.now,
@@ -75,6 +81,7 @@ class MyApp extends StatelessWidget {
     this.historyRepository,
     this.calculator = _defaultCalculator,
     this.openUrl = _defaultUrlOpener,
+    this.share = shareText,
   });
 
   @override
@@ -97,6 +104,7 @@ class MyApp extends StatelessWidget {
         historyRepository: historyRepository,
         calculator: calculator,
         openUrl: openUrl,
+        share: share,
       ),
     );
   }
@@ -109,6 +117,7 @@ class MyLayout extends StatefulWidget {
   final HistoryRepository? historyRepository;
   final Calculator calculator;
   final UrlOpener openUrl;
+  final ResultSharer share;
 
   const MyLayout({
     super.key,
@@ -118,6 +127,7 @@ class MyLayout extends StatefulWidget {
     this.historyRepository,
     this.calculator = _defaultCalculator,
     this.openUrl = _defaultUrlOpener,
+    this.share = shareText,
   });
 
   @override
@@ -271,6 +281,7 @@ class _MyLayoutState extends State<MyLayout> {
                   child: MyWidget(
                     onCalculated: _addHistory,
                     calculator: widget.calculator,
+                    share: widget.share,
                   ),
                 ),
               ),
@@ -295,11 +306,13 @@ class MyWidget extends StatefulWidget {
   final void Function(HistoryEntry)? onCalculated;
 
   final Calculator calculator;
+  final ResultSharer share;
 
   const MyWidget({
     super.key,
     this.onCalculated,
     this.calculator = _defaultCalculator,
+    this.share = shareText,
   });
 
   @override
@@ -381,15 +394,20 @@ class _MyWidgetState extends State<MyWidget> {
     messenger.showSnackBar(SnackBar(content: Text(loc.copied)));
   }
 
-  Future<void> _share(BuildContext buttonContext) async {
+  Future<void> _share(BuildContext buttonContext, AppLocalizations loc) async {
+    final messenger = ScaffoldMessenger.of(context);
     final box = buttonContext.findRenderObject() as RenderBox?;
     final origin = box == null
         ? null
         : box.localToGlobal(Offset.zero) & box.size;
     try {
-      await shareText(_result, origin);
+      final outcome = await widget.share(_result, origin);
+      // 共有シートがない環境ではコピーになるので、そのことを知らせる
+      if (outcome == ShareOutcome.copied) {
+        messenger.showSnackBar(SnackBar(content: Text(loc.copied)));
+      }
     } catch (_) {
-      // 共有に失敗しても結果の表示は変えない
+      messenger.showSnackBar(SnackBar(content: Text(loc.shareFailed)));
     }
   }
 
@@ -462,7 +480,7 @@ class _MyWidgetState extends State<MyWidget> {
                               builder: (buttonContext) => IconButton(
                                 tooltip: loc.shareResult,
                                 icon: const Icon(Icons.share),
-                                onPressed: () => _share(buttonContext),
+                                onPressed: () => _share(buttonContext, loc),
                               ),
                             ),
                           ],
