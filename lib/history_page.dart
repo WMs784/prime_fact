@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
 import 'history_entry.dart';
+import 'number_style.dart';
 import 'trivia.dart';
 
 /// 保存データから、現在の言語で結果の表示行を組み立てる。
@@ -16,7 +17,13 @@ List<String> _describe(AppLocalizations loc, HistoryEntry entry) {
 class HistoryPage extends StatelessWidget {
   final List<HistoryEntry> history;
 
-  const HistoryPage({super.key, required this.history});
+  final NumberStyle numberStyle;
+
+  const HistoryPage({
+    super.key,
+    required this.history,
+    this.numberStyle = NumberStyle.plain,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +39,15 @@ class HistoryPage extends StatelessWidget {
               itemCount: reversed.length,
               itemBuilder: (context, index) {
                 final entry = reversed[index];
-                final lines = _describe(loc, entry);
+                final lines = _describe(loc, entry)
+                    .map(
+                      (l) => formatNumbers(
+                        l,
+                        numberStyle,
+                        ja: loc.localeName.startsWith('ja'),
+                      ),
+                    )
+                    .toList();
                 final dateStr = dateFormat.format(entry.timestamp);
 
                 return ListTile(
