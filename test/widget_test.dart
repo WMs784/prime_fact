@@ -257,6 +257,23 @@ void main() {
     expect(find.text('Copied'), findsOneWidget);
   });
 
+  testWidgets('Line breaks are only allowed before x in the factorization', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(
+      MyApp(calculator: (_) async => '60 NP\n60=2^2x3x5'),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), '60');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+
+    final text = tester.widget<SelectableText>(find.byType(SelectableText));
+    expect(text.data, '60 NP\n60=2^2\u200Bx3\u200Bx5');
+  });
+
   testWidgets('No copy/share buttons after a failed calculation', (
     tester,
   ) async {
@@ -285,7 +302,7 @@ void main() {
     );
     await tester.pump();
     expect(find.textContaining('57は素数です！ by グロタンディーク'), findsOneWidget);
-    expect(find.textContaining('57=3x19'), findsOneWidget);
+    expect(find.textContaining('57=3\u200Bx19'), findsOneWidget);
   });
 
   testWidgets('Special numbers get their own header (en)', (tester) async {
@@ -326,7 +343,7 @@ void main() {
     );
     await tester.pump();
     expect(find.textContaining('6は素数、ではなく完全数です！'), findsOneWidget);
-    expect(find.textContaining('6=2x3'), findsOneWidget);
+    expect(find.textContaining('6=2\u200Bx3'), findsOneWidget);
   });
 }
 

@@ -282,6 +282,15 @@ class _MyLayoutState extends State<MyLayout> {
   }
 }
 
+/// 因数分解の行（2 行目以降）で、「x」の直前だけ折り返せるようにする。
+/// 数字や「^」の途中では折り返さず、新しい行が「x」から始まる。
+String wrapAtTimes(String result) {
+  final i = result.indexOf('\n');
+  if (i < 0) return result;
+  return result.substring(0, i) +
+      result.substring(i).replaceAll('x', '\u200Bx');
+}
+
 class MyWidget extends StatefulWidget {
   final void Function(HistoryEntry)? onCalculated;
 
@@ -435,7 +444,7 @@ class _MyWidgetState extends State<MyWidget> {
                         width: double.infinity,
                         // 長い因数分解は折り返して表示し、コピーできるようにする
                         child: SelectableText(
-                          _result,
+                          wrapAtTimes(_result),
                           style: const TextStyle(fontSize: 20),
                         ),
                       ),
