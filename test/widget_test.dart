@@ -1,8 +1,7 @@
-import 'package:flutter/rendering.dart';
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/history_entry.dart';
@@ -293,8 +292,13 @@ void main() {
       (tester) async {
         _setLocale(tester, const Locale('en'));
         const charWidth = 20.0;
+        // 結果欄の左右の余白(MyWidget の horizontal: 12 × 2)。余白を変えたらここも直す
+        const sidePadding = 24.0;
         tester.view.devicePixelRatio = 1;
-        tester.view.physicalSize = const Size(32 * charWidth + 24, 2400);
+        tester.view.physicalSize = const Size(
+          32 * charWidth + sidePadding,
+          2400,
+        );
         addTearDown(tester.view.reset);
 
         final result = 'x NP\n$n=99999999999971x99999999999973';
