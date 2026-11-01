@@ -11,6 +11,7 @@ import 'daily_page.dart' show ShareOutcome, shareText;
 import 'daily_repository.dart';
 import 'judge.dart';
 import 'links.dart';
+import 'number_style.dart';
 import 'settings_repository.dart';
 import 'history_entry.dart';
 import 'history_repository.dart';
@@ -149,6 +150,8 @@ class _MyLayoutState extends State<MyLayout> {
 
   /// null は読み込み中。読み込み前に一瞬バナーが出ないよう、そのあいだは隠す。
   bool? _showDaily;
+  NumberStyle _numberStyle = NumberStyle.plain;
+  bool _numberStyleTouched = false;
 
   @override
   void initState() {
@@ -167,6 +170,53 @@ class _MyLayoutState extends State<MyLayout> {
       // 読み込み前に切り替えられていたら、その操作を優先する
       if (mounted && _showDaily == null) setState(() => _showDaily = v);
     });
+    _settings.loadNumberStyle().then((v) {
+      if (mounted && !_numberStyleTouched) setState(() => _numberStyle = v);
+    });
+  }
+
+  Future<void> _setNumberStyle(NumberStyle style) async {
+    _numberStyleTouched = true;
+    setState(() => _numberStyle = style);
+    try {
+      await _settings.saveNumberStyle(style);
+    } catch (_) {
+      // 保存に失敗しても、この起動中は切り替えた状態を保つ
+    }
+  }
+
+  Future<void> _pickNumberStyle() async {
+    final loc = AppLocalizations.of(context)!;
+    final ja = isJapanese(loc);
+    final labels = {
+      NumberStyle.plain: loc.numberFormatPlain,
+      NumberStyle.comma: loc.numberFormatComma,
+      if (ja) NumberStyle.units: loc.numberFormatUnits,
+    };
+    final picked = await showDialog<NumberStyle>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(loc.numberFormat),
+        children: [
+          RadioGroup<NumberStyle>(
+            groupValue: effectiveStyle(_numberStyle, ja: ja),
+            onChanged: (v) => Navigator.pop(context, v),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final e in labels.entries)
+                  RadioListTile<NumberStyle>(
+                    value: e.key,
+                    title: Text(e.value),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    // ドロワーは開いたままにする（続けて他の設定を触れるように）
+    if (picked != null && mounted) await _setNumberStyle(picked);
   }
 
   /// ドロワーを閉じて外部リンクを開く。開けなければ知らせる。
@@ -217,11 +267,11 @@ class _MyLayoutState extends State<MyLayout> {
             DrawerHeader(
               decoration: BoxDecoration(color: _drawerHeaderColor),
               child: StyledText(
-                text: '<set/>&space;${loc.info}',
+                text: '<set/>&space;${loc.settings}',
                 style: const TextStyle(fontSize: 24, color: Colors.white),
                 tags: const {
                   'set': StyledTextIconTag(
-                    Icons.info,
+                    Icons.settings,
                     size: 30,
                     color: Colors.white,
                   ),
@@ -236,7 +286,10 @@ class _MyLayoutState extends State<MyLayout> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => HistoryPage(history: _history),
+                    builder: (_) => HistoryPage(
+                      history: _history,
+                      numberStyle: _numberStyle,
+                    ),
                   ),
                 );
               },
@@ -248,20 +301,41 @@ class _MyLayoutState extends State<MyLayout> {
               onChanged: _setShowDaily,
             ),
             ListTile(
-              title: Text(loc.privacyPolicy),
-              onTap: () => _openLink(pagesUrl),
+              leading: const Icon(Icons.pin),
+              title: Text(loc.numberFormat),
+              subtitle: Text(switch (effectiveStyle(
+                _numberStyle,
+                ja: isJapanese(loc),
+              )) {
+                NumberStyle.plain => loc.numberFormatPlain,
+                NumberStyle.comma => loc.numberFormatComma,
+                NumberStyle.units => loc.numberFormatUnits,
+              }),
+              onTap: _pickNumberStyle,
             ),
-            ListTile(
-              title: Text(loc.review),
-              onTap: () => _openLink(playStoreUrl),
-            ),
-            ListTile(
-              title: Text(loc.contact),
-              onTap: () => _openLink(contactUrl),
-            ),
-            ListTile(
-              title: Text(loc.aboutUs),
-              onTap: () => _openLink(developerUrl),
+            ExpansionTile(
+              leading: const Icon(Icons.info_outline),
+              title: Text(loc.appInfo),
+              shape: const Border(),
+              collapsedShape: const Border(),
+              children: <Widget>[
+                ListTile(
+                  title: Text(loc.privacyPolicy),
+                  onTap: () => _openLink(pagesUrl),
+                ),
+                ListTile(
+                  title: Text(loc.review),
+                  onTap: () => _openLink(playStoreUrl),
+                ),
+                ListTile(
+                  title: Text(loc.contact),
+                  onTap: () => _openLink(contactUrl),
+                ),
+                ListTile(
+                  title: Text(loc.aboutUs),
+                  onTap: () => _openLink(developerUrl),
+                ),
+              ],
             ),
           ],
         ),
@@ -282,6 +356,7 @@ class _MyLayoutState extends State<MyLayout> {
                     onCalculated: _addHistory,
                     calculator: widget.calculator,
                     share: widget.share,
+                    numberStyle: _numberStyle,
                   ),
                 ),
               ),
@@ -307,9 +382,11 @@ class MyWidget extends StatefulWidget {
 
   final Calculator calculator;
   final ResultSharer share;
+  final NumberStyle numberStyle;
 
   const MyWidget({
     super.key,
+    this.numberStyle = NumberStyle.plain,
     this.onCalculated,
     this.calculator = _defaultCalculator,
     this.share = shareText,
@@ -390,7 +467,7 @@ class _MyWidgetState extends State<MyWidget> {
 
   Future<void> _copy(AppLocalizations loc) async {
     final messenger = ScaffoldMessenger.of(context);
-    await Clipboard.setData(ClipboardData(text: _result));
+    await Clipboard.setData(ClipboardData(text: _displayed(loc)));
     messenger.showSnackBar(SnackBar(content: Text(loc.copied)));
   }
 
@@ -401,7 +478,7 @@ class _MyWidgetState extends State<MyWidget> {
         ? null
         : box.localToGlobal(Offset.zero) & box.size;
     try {
-      final outcome = await widget.share(_result, origin);
+      final outcome = await widget.share(_displayed(loc), origin);
       // 共有シートがない環境ではコピーになるので、そのことを知らせる
       if (outcome == ShareOutcome.copied) {
         messenger.showSnackBar(SnackBar(content: Text(loc.copied)));
@@ -410,6 +487,10 @@ class _MyWidgetState extends State<MyWidget> {
       messenger.showSnackBar(SnackBar(content: Text(loc.shareFailed)));
     }
   }
+
+  /// 表示・コピー・共有に使う、形式を適用した結果。
+  String _displayed(AppLocalizations loc) =>
+      formatForLocale(loc, _result, widget.numberStyle);
 
   @override
   Widget build(BuildContext context) {
@@ -462,7 +543,7 @@ class _MyWidgetState extends State<MyWidget> {
                         width: double.infinity,
                         // 長い因数分解は折り返して表示する。コピーはボタンから（選択コピーだと折り返し用の不可視文字が混ざるため）
                         child: Text(
-                          wrapAtTimes(_result),
+                          wrapAtTimes(_displayed(loc)),
                           key: const ValueKey('result'),
                           style: const TextStyle(fontSize: 20),
                         ),
