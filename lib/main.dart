@@ -49,7 +49,7 @@ ThemeData _buildTheme(Brightness brightness) {
 }
 
 /// ドロワーのヘッダーの色。白い文字が読めるよう、明暗どちらのテーマでも濃い青緑にする。
-final _drawerHeaderColor = Colors.teal[700];
+final _drawerHeaderColor = Colors.teal.shade700;
 
 class MyApp extends StatelessWidget {
   /// 「今日の素因数分解」の現在時刻。テストで差し替える。

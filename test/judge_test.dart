@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/judge.dart';
 
@@ -17,6 +18,14 @@ String factorsOf(String n) {
 }
 
 void main() {
+  test('FactorRequest survives the real compute isolate round trip', () async {
+    final result = await compute(
+      pri_fact_isolate,
+      _req(BigInt.from(12), ' special'),
+    );
+    expect(result, '12 special\n12=2^2x3');
+  });
+
   group('pri_fact_isolate: trivial inputs', () {
     test('0 and 1 are neither prime nor factorable', () {
       expect(run('0'), '0$_notPrime');
