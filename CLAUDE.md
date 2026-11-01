@@ -171,7 +171,6 @@ The app supports Japanese and English:
 
 ### Known Limitations
 - Factoring a ~30-digit number whose prime factors are both ~15 digits can take a long time; `compute` cannot be cancelled, so the button stays disabled until it finishes (no practical fix without a different algorithm)
-- Until `HistoryRepository.load()` finishes at startup, saving a new entry would overwrite the stored history (only a window of a few milliseconds after launch)
 - History grows without a size limit
 - Daily challenge results (`daily_<yyyyMMdd>` in `shared_preferences`) are never deleted: one small key per day played
 - Daily challenge times use the device wall clock (no server): changing the clock can distort or zero the recorded time, and a negative elapsed time is shown as 0:00.0

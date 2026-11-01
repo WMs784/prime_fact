@@ -95,6 +95,7 @@ class MyLayout extends StatefulWidget {
 
 class _MyLayoutState extends State<MyLayout> {
   List<HistoryEntry> _history = [];
+  late final Future<void> _historyLoaded;
   final _repo = HistoryRepository();
   late final DailyRepository _dailyRepo =
       widget.dailyRepository ?? DailyRepository();
@@ -108,9 +109,14 @@ class _MyLayoutState extends State<MyLayout> {
   void initState() {
     super.initState();
     // 読み込み完了前に追加された履歴を失わないよう、後ろに連結する
-    _repo.load().then(
-      (list) => setState(() => _history = [...list, ..._history]),
-    );
+    _historyLoaded = _repo
+        .load()
+        .then((list) {
+          if (mounted) setState(() => _history = [...list, ..._history]);
+        })
+        .catchError((_) {
+          // 読めなくても、この起動中の履歴は使える
+        });
     _settings.loadShowDaily().then((v) {
       // 読み込み前に切り替えられていたら、その操作を優先する
       if (mounted && _showDaily == null) setState(() => _showDaily = v);
@@ -126,9 +132,15 @@ class _MyLayoutState extends State<MyLayout> {
     }
   }
 
-  void _addHistory(HistoryEntry entry) async {
+  Future<void> _addHistory(HistoryEntry entry) async {
     setState(() => _history.add(entry));
-    await _repo.save(_history);
+    // 読み込み前に保存すると、保存済みの履歴を上書きしてしまうので待つ
+    await _historyLoaded;
+    try {
+      await _repo.save(_history);
+    } catch (_) {
+      // 保存に失敗しても、この起動中の履歴は保つ
+    }
   }
 
   @override
@@ -250,6 +262,48 @@ class _MyWidgetState extends State<MyWidget> {
     return error == null ? value : null;
   }
 
+  Future<void> _calculate() async {
+    final loc = AppLocalizations.of(context)!;
+    final inputNumber = _validate(loc);
+    if (inputNumber == null) {
+      setState(() => _result = '');
+      return;
+    }
+    final isNotPrime = loc.isNotPrime;
+    final isPrime = loc.isPrime;
+    final failedText = loc.calcFailed;
+    final trivia = triviaFor(inputNumber);
+
+    setState(() => _isLoading = true);
+
+    String? result;
+    try {
+      result = await compute(pri_fact_isolate, [
+        inputNumber,
+        isNotPrime,
+        isPrime,
+        trivia == null ? null : triviaHeader(loc, trivia),
+      ]);
+    } catch (_) {
+      // 失敗してもボタンが無効のまま残らないよう、下で必ず読み込み状態を戻す
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _result = result ?? failedText;
+      _isLoading = false;
+    });
+    if (result == null) return;
+
+    widget.onCalculated?.call(
+      HistoryEntry.fromResult(
+        input: inputNumber.toString(),
+        result: result,
+        timestamp: DateTime.now(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -273,47 +327,16 @@ class _MyWidgetState extends State<MyWidget> {
                 color: Theme.of(context).hintColor,
               ),
             ),
+            textInputAction: TextInputAction.done,
             onChanged: (_) {
               if (_errorText != null) setState(() => _errorText = null);
             },
+            onSubmitted: (_) {
+              if (!_isLoading) _calculate();
+            },
           ),
           ElevatedButton(
-            onPressed: _isLoading
-                ? null
-                : () async {
-                    final loc = AppLocalizations.of(context)!;
-                    final inputNumber = _validate(loc);
-                    if (inputNumber == null) {
-                      setState(() => _result = '');
-                      return;
-                    }
-                    final isNotPrime = loc.isNotPrime;
-                    final isPrime = loc.isPrime;
-                    final trivia = triviaFor(inputNumber);
-
-                    setState(() => _isLoading = true);
-
-                    final result = await compute(pri_fact_isolate, [
-                      inputNumber,
-                      isNotPrime,
-                      isPrime,
-                      trivia == null ? null : triviaHeader(loc, trivia),
-                    ]);
-
-                    if (!mounted) return;
-                    setState(() {
-                      _result = result;
-                      _isLoading = false;
-                    });
-
-                    widget.onCalculated?.call(
-                      HistoryEntry.fromResult(
-                        input: inputNumber.toString(),
-                        result: result,
-                        timestamp: DateTime.now(),
-                      ),
-                    );
-                  },
+            onPressed: _isLoading ? null : _calculate,
             child: Text(
               AppLocalizations.of(context)!.button,
               style: const TextStyle(fontSize: 20),

@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prime_fact/history_repository.dart';
 import 'package:prime_fact/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('App renders calculator UI', (WidgetTester tester) async {
@@ -53,6 +57,44 @@ void main() {
     );
     await tester.pump();
     expect(find.text('0 is not a prime number'), findsOneWidget);
+  });
+
+  testWidgets('Enter key on the keyboard starts the calculation', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '0');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 500)),
+    );
+    await tester.pump();
+    expect(find.text('0 is not a prime number'), findsOneWidget);
+  });
+
+  testWidgets('A new calculation keeps the previously stored history', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'calculation_history': jsonEncode([
+        {'input': '7', 'factors': null, 'timestamp': '2026-01-01T00:00:00.000'},
+      ]),
+    });
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(const MyApp());
+
+    await tester.enterText(find.byType(TextField), '0');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 500)),
+    );
+    await tester.pump();
+
+    final saved = await tester.runAsync(HistoryRepository().load);
+    expect(saved!.map((e) => e.input), ['7', '0']);
   });
 
   testWidgets('57 is shown as the Grothendieck prime (ja)', (tester) async {
