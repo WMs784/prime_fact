@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/history_entry.dart';
@@ -259,22 +260,83 @@ void main() {
     expect(find.text('Copied'), findsOneWidget);
   });
 
-  testWidgets('Line breaks are only allowed before x in the factorization', (
-    tester,
-  ) async {
-    _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(
-      MyApp(calculator: (_) async => '60 NP\n60=2^2x3x5'),
-    );
-    await tester.pump();
-    await tester.enterText(find.byType(TextField), '60');
-    await tester.tap(find.byType(ElevatedButton));
-    await tester.pump();
-    await tester.pump();
+  testWidgets(
+    'Line breaks are only allowed after = and before x in the factorization',
+    (tester) async {
+      _setLocale(tester, const Locale('en'));
+      await tester.pumpWidget(
+        MyApp(calculator: (_) async => '60 NP\n60=2^2x3x5'),
+      );
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), '60');
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.pump();
 
-    final text = tester.widget<Text>(find.byKey(const ValueKey('result')));
-    expect(text.data, '60 NP\n60=2^2\u200Bx3\u200Bx5');
+      final text = tester.widget<Text>(find.byKey(const ValueKey('result')));
+      expect(text.data, '60 NP\n60=\u200B2^2\u200Bx3\u200Bx5');
+    },
+  );
+
+  test('wrapAtTimes adds break points after = and before x, except on the first line', () {
+    const header = 'a=b is a header with an equals sign';
+    expect(wrapAtTimes('$header\n10=2x5'), '$header\n10=\u200B2\u200Bx5');
+    expect(wrapAtTimes(header), header);
   });
+
+  // flutter test のフォント(Ahem)は全角 20dp 幅。実機の 360dp(20sp の数字で約 29 文字)に
+  // 近い状況は、32 文字(30 桁の n と「=」に少し余裕を足した幅)にすると再現できる。
+  for (final n in ['9999999999994400000000000783', '9' * 30]) {
+    testWidgets(
+      'A ${n.length}-digit n is never split mid-number on a narrow screen',
+      (tester) async {
+        _setLocale(tester, const Locale('en'));
+        const charWidth = 20.0;
+        // 結果欄の左右の余白(MyWidget の horizontal: 12 × 2)。余白を変えたらここも直す
+        const sidePadding = 24.0;
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = const Size(
+          32 * charWidth + sidePadding,
+          2400,
+        );
+        addTearDown(tester.view.reset);
+
+        final result = 'x NP\n$n=99999999999971x99999999999973';
+        await tester.pumpWidget(MyApp(calculator: (_) async => result));
+        await tester.pump();
+        await tester.enterText(find.byType(TextField), '12');
+        await tester.tap(find.byType(ElevatedButton));
+        await tester.pump();
+        await tester.pump();
+
+        final p = tester.renderObject<RenderParagraph>(
+          find.byKey(const ValueKey('result')),
+        );
+        final text = p.text.toPlainText();
+        final factorLine = text.indexOf('\n') + 1;
+        var lastTop = -1.0;
+        var lines = 0;
+        for (var i = factorLine; i < text.length; i++) {
+          final boxes = p.getBoxesForSelection(
+            TextSelection(baseOffset: i, extentOffset: i + 1),
+          );
+          if (boxes.isEmpty || text[i] == '\u200B') continue;
+          if (boxes.first.top == lastTop) continue;
+          lastTop = boxes.first.top;
+          lines++;
+          if (lines == 1) continue;
+          // 行頭は「x」か、「=」の直後でなければならない（数字の途中ではない）
+          final prev = text.substring(0, i).replaceAll('\u200B', '');
+          expect(
+            text[i] == 'x' || prev.endsWith('='),
+            isTrue,
+            reason: 'line $lines starts mid-number at ${text.substring(i)}',
+          );
+        }
+        expect(lines, greaterThan(1));
+      },
+    );
+  }
 
   for (final c in [
     (ShareOutcome.copied, 'Copied'),
@@ -343,7 +405,7 @@ void main() {
     );
     await tester.pump();
     expect(find.textContaining('57は素数です！ by グロタンディーク'), findsOneWidget);
-    expect(find.textContaining('57=3\u200Bx19'), findsOneWidget);
+    expect(find.textContaining('57=\u200B3\u200Bx19'), findsOneWidget);
   });
 
   testWidgets('Special numbers get their own header (en)', (tester) async {
@@ -384,7 +446,7 @@ void main() {
     );
     await tester.pump();
     expect(find.textContaining('6は素数、ではなく完全数です！'), findsOneWidget);
-    expect(find.textContaining('6=2\u200Bx3'), findsOneWidget);
+    expect(find.textContaining('6=\u200B2\u200Bx3'), findsOneWidget);
   });
 }
 

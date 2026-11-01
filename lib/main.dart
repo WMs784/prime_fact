@@ -368,13 +368,22 @@ class _MyLayoutState extends State<MyLayout> {
   }
 }
 
-/// 因数分解の行（2 行目以降）で、「x」の直前だけ折り返せるようにする。
-/// 数字や「^」の途中では折り返さず、新しい行が「x」から始まる。
+/// 因数分解の行（2 行目以降）で、「=」の直後と「x」の直前だけ折り返せるようにする。
+/// 数字や「^」の途中では折り返さない。
+///
+/// 「=」でも折り返すのは、`n=` と最初の因数が続けて 1 行に収まらないため。
+/// これで `n=`（30 桁なら 31 文字）が 1 行に入る幅（20sp で約 350dp）なら、
+/// 数字の途中で折り返さない。それより狭い画面では 30 桁の n だけは途中で折り返す。
 String wrapAtTimes(String result) {
   final i = result.indexOf('\n');
   if (i < 0) return result;
   return result.substring(0, i) +
-      result.substring(i).replaceAll('x', '\u200Bx');
+      result
+          .substring(i)
+          .replaceAllMapped(
+            RegExp('[x=]'),
+            (m) => m[0] == 'x' ? '\u200Bx' : '=\u200B',
+          );
 }
 
 class MyWidget extends StatefulWidget {
