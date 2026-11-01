@@ -238,7 +238,9 @@ void main() {
         null,
       ),
     );
-    await tester.pumpWidget(MyApp(calculator: (_) async => 'RESULT'));
+    await tester.pumpWidget(
+      MyApp(calculator: (_) async => 'RESULT\n${'2x' * 60}2'),
+    );
     await tester.pump();
     expect(find.byIcon(Icons.copy), findsNothing);
 
@@ -253,7 +255,7 @@ void main() {
     expect(find.byIcon(Icons.share), findsOneWidget);
     await tester.tap(find.byIcon(Icons.copy));
     await tester.pump();
-    expect(copied, 'RESULT');
+    expect(copied, startsWith('RESULT\n'));
     expect(find.text('Copied'), findsOneWidget);
   });
 

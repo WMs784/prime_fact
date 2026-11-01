@@ -264,10 +264,10 @@ class _MyLayoutState extends State<MyLayout> {
             if (_showDaily ?? false)
               DailyBanner(repository: _dailyRepo, now: widget.now),
             Expanded(
-              // 結果の長さで入力欄が動かないよう、上寄せにして位置を固定する
-              child: Align(
-                alignment: const Alignment(0, -0.2),
-                child: SingleChildScrollView(
+              // 結果の高さに関係なく入力欄の位置が変わらないよう、上からの余白を画面の高さの割合で固定する
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  padding: EdgeInsets.only(top: constraints.maxHeight * 0.25),
                   child: MyWidget(
                     onCalculated: _addHistory,
                     calculator: widget.calculator,
