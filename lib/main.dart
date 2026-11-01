@@ -270,7 +270,7 @@ class _MyLayoutState extends State<MyLayout> {
                 style: const TextStyle(fontSize: 24, color: Colors.white),
                 tags: const {
                   'set': StyledTextIconTag(
-                    Icons.info,
+                    Icons.settings,
                     size: 30,
                     color: Colors.white,
                   ),
