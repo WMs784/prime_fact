@@ -4,7 +4,10 @@ import 'package:prime_fact/judge.dart';
 const _notPrime = ' NP';
 const _prime = ' P';
 
-String run(String n) => pri_fact_isolate([BigInt.parse(n), _notPrime, _prime]);
+FactorRequest _req(BigInt n, [String? special]) =>
+    (n: n, isNotPrime: _notPrime, isPrime: _prime, special: special);
+
+String run(String n) => pri_fact_isolate(_req(BigInt.parse(n)));
 
 /// "n NP\nn=factors" 形式の結果から因数分解部分だけを取り出す。
 String factorsOf(String n) {
@@ -27,8 +30,7 @@ void main() {
 
   group('pri_fact_isolate: special header', () {
     const s = ' S';
-    String runS(String n) =>
-        pri_fact_isolate([BigInt.parse(n), _notPrime, _prime, s]);
+    String runS(String n) => pri_fact_isolate(_req(BigInt.parse(n), s));
 
     test('replaces the header of a composite but keeps its factorization', () {
       expect(runS('57'), '57$s\n57=3x19');
@@ -40,10 +42,7 @@ void main() {
     });
 
     test('is ignored when null or omitted', () {
-      expect(
-        pri_fact_isolate([BigInt.from(57), _notPrime, _prime, null]),
-        '57$_notPrime\n57=3x19',
-      );
+      expect(pri_fact_isolate(_req(BigInt.from(57))), '57$_notPrime\n57=3x19');
       expect(run('57'), '57$_notPrime\n57=3x19');
     });
   });

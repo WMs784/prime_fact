@@ -19,10 +19,37 @@ import 'trivia.dart';
 void main() => runApp(const MyApp());
 
 /// `pri_fact_isolate` に渡す引数から結果の文字列を作る関数。
-typedef Calculator = Future<String> Function(List<dynamic> args);
+typedef Calculator = Future<String> Function(FactorRequest request);
 
-Future<String> _defaultCalculator(List<dynamic> args) =>
-    compute(pri_fact_isolate, args);
+Future<String> _defaultCalculator(FactorRequest request) =>
+    compute(pri_fact_isolate, request);
+
+/// 外部 URL を開く。開けたら true。
+typedef UrlOpener = Future<bool> Function(String url);
+
+Future<bool> _defaultUrlOpener(String url) => launchUrlString(url);
+
+ThemeData _buildTheme(Brightness brightness) {
+  final dark = brightness == Brightness.dark;
+  return ThemeData(
+    brightness: brightness,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.teal,
+      brightness: brightness,
+      primary: dark ? Colors.teal[300]! : Colors.teal[700]!,
+    ),
+    focusColor: Colors.teal[200],
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: dark ? Colors.teal[200] : Colors.teal[700],
+        foregroundColor: dark ? Colors.grey[900] : Colors.white,
+      ),
+    ),
+  );
+}
+
+/// ドロワーのヘッダーの色。白い文字が読めるよう、明暗どちらのテーマでも濃い青緑にする。
+final _drawerHeaderColor = Colors.teal[700];
 
 class MyApp extends StatelessWidget {
   /// 「今日の素因数分解」の現在時刻。テストで差し替える。
@@ -37,49 +64,24 @@ class MyApp extends StatelessWidget {
   /// 計算の実行。テストで差し替える。
   final Calculator calculator;
 
+  /// 外部リンクの開き方。テストで差し替える。
+  final UrlOpener openUrl;
+
   const MyApp({
     super.key,
     this.now = DateTime.now,
     this.dailyRepository,
     this.historyRepository,
     this.calculator = _defaultCalculator,
+    this.openUrl = _defaultUrlOpener,
   });
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.title,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          primary: Colors.teal[700]!,
-        ),
-        primaryColor: Colors.teal[700],
-        focusColor: Colors.teal[200],
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.teal[700],
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.dark,
-          primary: Colors.teal[300]!,
-        ),
-        primaryColor: Colors.teal[700],
-        focusColor: Colors.teal[200],
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.teal[200],
-            foregroundColor: Colors.grey[900],
-          ),
-        ),
-      ),
+      theme: _buildTheme(Brightness.light),
+      darkTheme: _buildTheme(Brightness.dark),
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -87,14 +89,13 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [Locale('ja', ''), Locale('en', '')],
-      home: Scaffold(
-        body: MyLayout(
-          now: now,
-          dailyRepository: dailyRepository,
-          historyRepository: historyRepository,
-          calculator: calculator,
-        ),
+      supportedLocales: const [Locale('ja'), Locale('en')],
+      home: MyLayout(
+        now: now,
+        dailyRepository: dailyRepository,
+        historyRepository: historyRepository,
+        calculator: calculator,
+        openUrl: openUrl,
       ),
     );
   }
@@ -106,6 +107,7 @@ class MyLayout extends StatefulWidget {
   final SettingsRepository? settingsRepository;
   final HistoryRepository? historyRepository;
   final Calculator calculator;
+  final UrlOpener openUrl;
 
   const MyLayout({
     super.key,
@@ -114,6 +116,7 @@ class MyLayout extends StatefulWidget {
     this.settingsRepository,
     this.historyRepository,
     this.calculator = _defaultCalculator,
+    this.openUrl = _defaultUrlOpener,
   });
 
   @override
@@ -155,6 +158,22 @@ class _MyLayoutState extends State<MyLayout> {
     });
   }
 
+  /// ドロワーを閉じて外部リンクを開く。開けなければ知らせる。
+  Future<void> _openLink(String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failedText = AppLocalizations.of(context)!.linkOpenFailed;
+    Navigator.pop(context);
+    var opened = false;
+    try {
+      opened = await widget.openUrl(url);
+    } catch (_) {
+      // 開けなかった扱いにする
+    }
+    if (!opened) {
+      messenger.showSnackBar(SnackBar(content: Text(failedText)));
+    }
+  }
+
   Future<void> _setShowDaily(bool value) async {
     setState(() => _showDaily = value);
     try {
@@ -185,7 +204,7 @@ class _MyLayoutState extends State<MyLayout> {
         child: ListView(
           children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).primaryColor),
+              decoration: BoxDecoration(color: _drawerHeaderColor),
               child: StyledText(
                 text: '<set/>&space;${loc.info}',
                 style: const TextStyle(fontSize: 24, color: Colors.white),
@@ -219,27 +238,19 @@ class _MyLayoutState extends State<MyLayout> {
             ),
             ListTile(
               title: Text(loc.privacyPolicy),
-              onTap: () {
-                launchUrlString(pagesUrl);
-              },
+              onTap: () => _openLink(pagesUrl),
             ),
             ListTile(
               title: Text(loc.review),
-              onTap: () {
-                launchUrlString(playStoreUrl);
-              },
+              onTap: () => _openLink(playStoreUrl),
             ),
             ListTile(
               title: Text(loc.contact),
-              onTap: () {
-                launchUrlString(contactUrl);
-              },
+              onTap: () => _openLink(contactUrl),
             ),
             ListTile(
               title: Text(loc.aboutUs),
-              onTap: () {
-                launchUrlString(developerUrl);
-              },
+              onTap: () => _openLink(developerUrl),
             ),
           ],
         ),
@@ -320,12 +331,12 @@ class _MyWidgetState extends State<MyWidget> {
 
     String? result;
     try {
-      result = await widget.calculator([
-        inputNumber,
-        isNotPrime,
-        isPrime,
-        trivia == null ? null : triviaHeader(loc, trivia),
-      ]);
+      result = await widget.calculator((
+        n: inputNumber,
+        isNotPrime: isNotPrime,
+        isPrime: isPrime,
+        special: trivia == null ? null : triviaHeader(loc, trivia),
+      ));
     } catch (_) {
       // 失敗してもボタンが無効のまま残らないよう、下で必ず読み込み状態を戻す
     }
@@ -387,19 +398,13 @@ class _MyWidgetState extends State<MyWidget> {
           const SizedBox(height: 50),
           _isLoading
               ? const CircularProgressIndicator()
-              : Row(
-                  children: [
-                    Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          _result,
-                          style: const TextStyle(fontSize: 20),
-                        ),
-                      ),
-                    ),
-                  ],
+              : SizedBox(
+                  width: double.infinity,
+                  // 長い因数分解は折り返して表示し、コピーできるようにする
+                  child: SelectableText(
+                    _result,
+                    style: const TextStyle(fontSize: 20),
+                  ),
                 ),
         ],
       ),

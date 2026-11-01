@@ -149,6 +149,73 @@ void main() {
     expect(repo.saved, isEmpty);
   });
 
+  group('drawer links', () {
+    Future<List<String>> tapPrivacy(
+      WidgetTester tester,
+      Future<bool> Function(String) open,
+    ) async {
+      final opened = <String>[];
+      _setLocale(tester, const Locale('en'));
+      await tester.pumpWidget(
+        MyApp(
+          openUrl: (url) {
+            opened.add(url);
+            return open(url);
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      tester
+          .state<ScaffoldState>(
+            find.descendant(
+              of: find.byType(MyLayout),
+              matching: find.byType(Scaffold),
+            ),
+          )
+          .openDrawer();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Privacy Policy'));
+      await tester.pumpAndSettle();
+      return opened;
+    }
+
+    testWidgets('opens the link and closes the drawer', (tester) async {
+      final opened = await tapPrivacy(tester, (_) async => true);
+      expect(opened, hasLength(1));
+      expect(find.byType(Drawer), findsNothing);
+      expect(find.text('Could not open the link.'), findsNothing);
+    });
+
+    for (final failure in <String, Future<bool> Function(String)>{
+      'returns false': (_) async => false,
+      'throws': (_) => Future.error(StateError('no browser')),
+    }.entries) {
+      testWidgets('tells the user when opening ${failure.key}', (tester) async {
+        await tapPrivacy(tester, failure.value);
+        expect(find.byType(Drawer), findsNothing);
+        expect(find.text('Could not open the link.'), findsOneWidget);
+      });
+    }
+  });
+
+  testWidgets('A long result wraps at full size and is selectable', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(MyApp(calculator: (_) async => '${'2x' * 60}2'));
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(SelectableText), findsOneWidget);
+    expect(find.byType(FittedBox), findsNothing);
+    final height = tester.getSize(find.byType(SelectableText)).height;
+    expect(height, greaterThan(40)); // 1 行(約 24)に収まらず折り返している
+  });
+
   testWidgets('57 is shown as the Grothendieck prime (ja)', (tester) async {
     _setLocale(tester, const Locale('ja'));
     await tester.pumpWidget(const MyApp());
