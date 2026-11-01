@@ -266,7 +266,7 @@ class _MyLayoutState extends State<MyLayout> {
             DrawerHeader(
               decoration: BoxDecoration(color: _drawerHeaderColor),
               child: StyledText(
-                text: '<set/>&space;${loc.info}',
+                text: '<set/>&space;${loc.menu}',
                 style: const TextStyle(fontSize: 24, color: Colors.white),
                 tags: const {
                   'set': StyledTextIconTag(
