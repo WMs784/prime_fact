@@ -312,21 +312,29 @@ class _MyLayoutState extends State<MyLayout> {
               }),
               onTap: _pickNumberStyle,
             ),
-            ListTile(
-              title: Text(loc.privacyPolicy),
-              onTap: () => _openLink(pagesUrl),
-            ),
-            ListTile(
-              title: Text(loc.review),
-              onTap: () => _openLink(playStoreUrl),
-            ),
-            ListTile(
-              title: Text(loc.contact),
-              onTap: () => _openLink(contactUrl),
-            ),
-            ListTile(
-              title: Text(loc.aboutUs),
-              onTap: () => _openLink(developerUrl),
+            ExpansionTile(
+              leading: const Icon(Icons.info_outline),
+              title: Text(loc.other),
+              shape: const Border(),
+              collapsedShape: const Border(),
+              children: <Widget>[
+                ListTile(
+                  title: Text(loc.privacyPolicy),
+                  onTap: () => _openLink(pagesUrl),
+                ),
+                ListTile(
+                  title: Text(loc.review),
+                  onTap: () => _openLink(playStoreUrl),
+                ),
+                ListTile(
+                  title: Text(loc.contact),
+                  onTap: () => _openLink(contactUrl),
+                ),
+                ListTile(
+                  title: Text(loc.aboutUs),
+                  onTap: () => _openLink(developerUrl),
+                ),
+              ],
             ),
           ],
         ),

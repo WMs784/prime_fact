@@ -1,7 +1,8 @@
 {
   "@@locale": "en",
   "title": "Prime Factorizationer",
-  "menu": "Menu",
+  "menu": "Settings",
+  "other": "App Info",
   "button": "calculate",
   "description": "Please enter a positive integer of 30 digits or less",
   "isPrime": " is a prime number!",

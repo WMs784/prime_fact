@@ -176,6 +176,8 @@ void main() {
           )
           .openDrawer();
       await tester.pumpAndSettle();
+      await tester.tap(find.text('App Info'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Privacy Policy'));
       await tester.pumpAndSettle();
       return opened;
