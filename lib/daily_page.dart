@@ -7,7 +7,9 @@ import 'package:share_plus/share_plus.dart';
 
 import 'daily_progress.dart';
 import 'daily_puzzle.dart';
+import 'daily_records_page.dart';
 import 'daily_repository.dart';
+import 'daily_stats.dart';
 import 'links.dart';
 
 /// クリア済みの結果の共有文。問題の数・正解・難度はヒントになるので含めない。日付は投稿時刻で分かる。
@@ -84,6 +86,9 @@ class _DailyPageState extends State<DailyPage> {
   DailyProgress? _progress;
   bool _loadFailed = false;
 
+  /// クリア後に出す連続日数。記録を読めなければ null（表示を省く）。
+  int? _streak;
+
   /// 保存中は回答を受け付けない（連打で保存の順序が入れ替わるのを防ぐ）。
   bool _busy = false;
   String? _errorText;
@@ -102,8 +107,21 @@ class _DailyPageState extends State<DailyPage> {
       if (saved == null) await widget.repository.save(key, progress);
       if (!mounted) return;
       setState(() => _progress = progress);
+      if (progress.isCleared) _loadStreak(progress);
     } catch (_) {
       if (mounted) setState(() => _loadFailed = true);
+    }
+  }
+
+  Future<void> _loadStreak(DailyProgress cleared) async {
+    final stats = await loadDailyStats(
+      widget.repository,
+      widget.puzzle.dateKey,
+      today: cleared,
+    );
+    // 連続日数は付加情報なので、読めなければ出さない
+    if (mounted && stats != null) {
+      setState(() => _streak = stats.currentStreak);
     }
   }
 
@@ -145,6 +163,7 @@ class _DailyPageState extends State<DailyPage> {
       _busy = false;
       _errorText = correct ? null : loc.dailyWrong;
     });
+    if (correct) _loadStreak(next);
   }
 
   Future<void> _share(
@@ -187,7 +206,23 @@ class _DailyPageState extends State<DailyPage> {
       );
     }
     return Scaffold(
-      appBar: AppBar(title: Text(loc.dailyTitle)),
+      appBar: AppBar(
+        title: Text(loc.dailyTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            tooltip: loc.dailyRecords,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => DailyRecordsPage(
+                  repository: widget.repository,
+                  now: widget.now,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(child: body),
     );
   }
@@ -298,6 +333,21 @@ class _DailyPageState extends State<DailyPage> {
           ),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium,
+        ),
+        // 読み込みが遅れて後から出ても、画面が跳ねないよう高さをなめらかに広げる
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.topCenter,
+          child: (_streak ?? 0) >= 2
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    loc.dailyStreak(_streak!),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
         ),
         const SizedBox(height: 24),
         Builder(
