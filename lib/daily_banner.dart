@@ -6,7 +6,9 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 import 'daily_page.dart';
 import 'daily_progress.dart';
 import 'daily_puzzle.dart';
+import 'daily_records_page.dart';
 import 'daily_repository.dart';
+import 'daily_stats.dart';
 
 /// ホーム画面の「今日の素因数分解に挑戦する」バナー。
 class DailyBanner extends StatefulWidget {
@@ -21,6 +23,9 @@ class DailyBanner extends StatefulWidget {
 
 class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
   DailyProgress? _progress;
+
+  /// 連続日数などの累計。記録を読めなかったときは null（連続の表示を省くだけにする）。
+  DailyStats? _stats;
 
   /// [_progress] を読み込んだ日。表示と、タップ先の問題はこの日に揃える。null は読み込み中。
   int? _loadedKey;
@@ -61,15 +66,22 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
     final key = jstDateKey(widget.now());
     _loadingKey = key;
     DailyProgress? progress;
+    DailyStats? stats;
     try {
       progress = await widget.repository.load(key);
     } catch (_) {
       // 読めなければ未開始として扱う。挑戦画面側でエラーを表示する
     }
+    try {
+      stats = DailyStats.compute(await widget.repository.loadAll(), key);
+    } catch (_) {
+      // 累計は付加情報なので、読めなくてもバナー自体は出す
+    }
     if (!mounted || generation != _generation) return;
     _loadingKey = null;
     setState(() {
       _progress = progress;
+      _stats = stats;
       _loadedKey = key;
     });
   }
@@ -106,6 +118,15 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
     await _reload();
   }
 
+  Future<void> _openRecords() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            DailyRecordsPage(repository: widget.repository, now: widget.now),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -132,6 +153,11 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
       title = loc.dailyBannerContinue;
       subtitle = loc.dailyBannerStartSub;
     }
+    // 連続日数。今日クリア済みなら 2 日以上のとき、未クリアなら昨日までの連続があるときに出す
+    final streak = _stats?.currentStreak ?? 0;
+    final showStreak =
+        loaded && streak >= (progress?.isCleared == true ? 2 : 1);
+    final subtitleStyle = TextStyle(color: colors.onPrimaryContainer);
     return Card(
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       color: colors.primaryContainer,
@@ -148,11 +174,24 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
             color: colors.onPrimaryContainer,
           ),
         ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(color: colors.onPrimaryContainer),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(subtitle, style: subtitleStyle),
+            if (showStreak) Text(loc.dailyStreak(streak), style: subtitleStyle),
+          ],
         ),
-        trailing: Icon(Icons.chevron_right, color: colors.onPrimaryContainer),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.bar_chart, color: colors.onPrimaryContainer),
+              tooltip: loc.dailyRecords,
+              onPressed: loaded ? _openRecords : null,
+            ),
+            Icon(Icons.chevron_right, color: colors.onPrimaryContainer),
+          ],
+        ),
         onTap: loaded ? _open : null,
       ),
     );

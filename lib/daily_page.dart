@@ -7,7 +7,9 @@ import 'package:share_plus/share_plus.dart';
 
 import 'daily_progress.dart';
 import 'daily_puzzle.dart';
+import 'daily_records_page.dart';
 import 'daily_repository.dart';
+import 'daily_stats.dart';
 import 'links.dart';
 
 /// クリア済みの結果の共有文。問題の数・正解・難度はヒントになるので含めない。日付は投稿時刻で分かる。
@@ -84,6 +86,9 @@ class _DailyPageState extends State<DailyPage> {
   DailyProgress? _progress;
   bool _loadFailed = false;
 
+  /// クリア後に出す連続日数。記録を読めなければ null（表示を省く）。
+  int? _streak;
+
   /// 保存中は回答を受け付けない（連打で保存の順序が入れ替わるのを防ぐ）。
   bool _busy = false;
   String? _errorText;
@@ -102,8 +107,21 @@ class _DailyPageState extends State<DailyPage> {
       if (saved == null) await widget.repository.save(key, progress);
       if (!mounted) return;
       setState(() => _progress = progress);
+      if (progress.isCleared) _loadStreak();
     } catch (_) {
       if (mounted) setState(() => _loadFailed = true);
+    }
+  }
+
+  Future<void> _loadStreak() async {
+    try {
+      final stats = DailyStats.compute(
+        await widget.repository.loadAll(),
+        widget.puzzle.dateKey,
+      );
+      if (mounted) setState(() => _streak = stats.currentStreak);
+    } catch (_) {
+      // 連続日数は付加情報なので、読めなければ出さない
     }
   }
 
@@ -145,6 +163,7 @@ class _DailyPageState extends State<DailyPage> {
       _busy = false;
       _errorText = correct ? null : loc.dailyWrong;
     });
+    if (correct) _loadStreak();
   }
 
   Future<void> _share(
@@ -187,7 +206,23 @@ class _DailyPageState extends State<DailyPage> {
       );
     }
     return Scaffold(
-      appBar: AppBar(title: Text(loc.dailyTitle)),
+      appBar: AppBar(
+        title: Text(loc.dailyTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            tooltip: loc.dailyRecords,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => DailyRecordsPage(
+                  repository: widget.repository,
+                  now: widget.now,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(child: body),
     );
   }
@@ -299,6 +334,14 @@ class _DailyPageState extends State<DailyPage> {
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium,
         ),
+        if ((_streak ?? 0) >= 2) ...[
+          const SizedBox(height: 8),
+          Text(
+            loc.dailyStreak(_streak!),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ],
         const SizedBox(height: 24),
         Builder(
           builder: (buttonContext) => ElevatedButton.icon(
