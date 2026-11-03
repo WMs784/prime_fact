@@ -107,21 +107,21 @@ class _DailyPageState extends State<DailyPage> {
       if (saved == null) await widget.repository.save(key, progress);
       if (!mounted) return;
       setState(() => _progress = progress);
-      if (progress.isCleared) _loadStreak();
+      if (progress.isCleared) _loadStreak(progress);
     } catch (_) {
       if (mounted) setState(() => _loadFailed = true);
     }
   }
 
-  Future<void> _loadStreak() async {
-    try {
-      final stats = DailyStats.compute(
-        await widget.repository.loadAll(),
-        widget.puzzle.dateKey,
-      );
-      if (mounted) setState(() => _streak = stats.currentStreak);
-    } catch (_) {
-      // 連続日数は付加情報なので、読めなければ出さない
+  Future<void> _loadStreak(DailyProgress cleared) async {
+    final stats = await loadDailyStats(
+      widget.repository,
+      widget.puzzle.dateKey,
+      today: cleared,
+    );
+    // 連続日数は付加情報なので、読めなければ出さない
+    if (mounted && stats != null) {
+      setState(() => _streak = stats.currentStreak);
     }
   }
 
@@ -163,7 +163,7 @@ class _DailyPageState extends State<DailyPage> {
       _busy = false;
       _errorText = correct ? null : loc.dailyWrong;
     });
-    if (correct) _loadStreak();
+    if (correct) _loadStreak(next);
   }
 
   Future<void> _share(
@@ -334,14 +334,21 @@ class _DailyPageState extends State<DailyPage> {
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        if ((_streak ?? 0) >= 2) ...[
-          const SizedBox(height: 8),
-          Text(
-            loc.dailyStreak(_streak!),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ],
+        // 読み込みが遅れて後から出ても、画面が跳ねないよう高さをなめらかに広げる
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.topCenter,
+          child: (_streak ?? 0) >= 2
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    loc.dailyStreak(_streak!),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
         const SizedBox(height: 24),
         Builder(
           builder: (buttonContext) => ElevatedButton.icon(

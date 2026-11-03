@@ -35,6 +35,9 @@ class _DailyRecordsPageState extends State<DailyRecordsPage> {
     try {
       final records = await widget.repository.loadAll();
       if (!mounted) return;
+      // 端末の時計を進めて残った未来の日付は出さない
+      final todayKey = jstDateKey(widget.now());
+      records.removeWhere((key, _) => key > todayKey);
       setState(() => _records = records);
     } catch (_) {
       if (mounted) setState(() => _loadFailed = true);
@@ -110,29 +113,24 @@ class _DailyRecordsPageState extends State<DailyRecordsPage> {
     ];
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+      // 2 列。幅やフォントが変わっても、同じ行のカードは同じ幅・同じ高さにそろえる
+      child: Column(
         children: [
-          for (final (label, value) in tiles)
-            SizedBox(
-              width: 150,
-              child: Card(
-                margin: EdgeInsets.zero,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(label, style: Theme.of(context).textTheme.bodySmall),
-                      const SizedBox(height: 4),
-                      Text(
-                        value,
-                        style: Theme.of(context).textTheme.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
+          for (var i = 0; i < tiles.length; i += 2)
+            Padding(
+              padding: EdgeInsets.only(top: i == 0 ? 0 : 8),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: _tile(tiles[i].$1, tiles[i].$2)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: i + 1 < tiles.length
+                          ? _tile(tiles[i + 1].$1, tiles[i + 1].$2)
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -140,6 +138,25 @@ class _DailyRecordsPageState extends State<DailyRecordsPage> {
       ),
     );
   }
+
+  Widget _tile(String label, String value) => Card(
+    margin: EdgeInsets.zero,
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    ),
+  );
 
   Widget _row(
     AppLocalizations loc,
@@ -164,7 +181,9 @@ class _DailyRecordsPageState extends State<DailyRecordsPage> {
       contentPadding: EdgeInsets.zero,
       leading: Icon(
         progress.isCleared ? Icons.check_circle : Icons.radio_button_unchecked,
-        color: progress.isCleared ? Colors.teal : null,
+        color: progress.isCleared
+            ? Theme.of(context).colorScheme.primary
+            : null,
       ),
       title: Text(formatDateKey(key)),
       subtitle: Text(text),

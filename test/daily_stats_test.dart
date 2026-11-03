@@ -97,6 +97,20 @@ void main() {
       expect(leap.currentStreak, 3);
     });
 
+    test('records dated after today are ignored', () {
+      final s = DailyStats.compute({
+        20261030: _cleared(),
+        20261031: _cleared(),
+        20261101: _cleared(), // 時計を進めて残った未来の記録
+        20991231: _cleared(wrong: 0, millis: 1),
+      }, 20261031);
+      expect(s.cleared, 2);
+      expect(s.noMiss, 2);
+      expect(s.bestStreak, 2);
+      expect(s.currentStreak, 2);
+      expect(s.bestTime, const Duration(seconds: 5));
+    });
+
     test('no-miss count and best time ignore uncleared and zero times', () {
       final s = DailyStats.compute({
         20261029: _cleared(wrong: 1, millis: 3000),
@@ -232,6 +246,47 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('未クリア'), findsOneWidget);
       expect(find.text('挑戦中'), findsOneWidget);
+    });
+
+    testWidgets('records page hides future days', (tester) async {
+      setLocale(tester, const Locale('ja'));
+      await seed({20261031: _cleared(), 20991231: _cleared()});
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: DailyRecordsPage(repository: DailyRepository(), now: () => now),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('2026-10-31'), findsOneWidget);
+      expect(find.text('2099-12-31'), findsNothing);
+      expect(find.text('1日'), findsNWidgets(4)); // 現在・最長・クリア日数・ノーミス
+    });
+
+    testWidgets('narrow screen, English, big font: no overflow', (
+      tester,
+    ) async {
+      setLocale(tester, const Locale('en'));
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await seed({
+        20261029: _cleared(),
+        20261030: _cleared(),
+        20261031: _cleared(),
+      });
+      await tester.pumpWidget(MyApp(now: () => now));
+      await tester.pumpAndSettle();
+      expect(find.text('🔥 3-day streak'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.byTooltip('Records'));
+      await tester.pumpAndSettle();
+      expect(find.text('No-miss clears'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('records page offers a retry when loading fails', (

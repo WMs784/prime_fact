@@ -1,4 +1,5 @@
 import 'daily_progress.dart';
+import 'daily_repository.dart';
 
 /// 「今日の素因数分解」の累計成績。出題日（JST の `yyyyMMdd`）ごとの記録から求める。
 class DailyStats {
@@ -27,12 +28,15 @@ class DailyStats {
 
   /// [records] の全記録と [todayKey]（今日の出題日）から求める。
   ///
+  /// [todayKey] より後の日の記録は数えない。端末の時計を進めて挑戦すると未来の日付の記録が
+  /// 残るが、それが累計や最長連続に混ざらないようにする（その日が実際に来れば数える）。
+  ///
   /// 今日がまだ未クリアでも、昨日までの連続は「続行中」として [currentStreak] に数える
   /// （今日のうちにクリアすれば続く）。
   factory DailyStats.compute(Map<int, DailyProgress> records, int todayKey) {
     final clearedKeys =
         records.entries
-            .where((e) => e.value.isCleared)
+            .where((e) => e.key <= todayKey && e.value.isCleared)
             .map((e) => e.key)
             .toList()
           ..sort();
@@ -86,4 +90,22 @@ int _dayIndex(int dateKey) => DateTime.utc(
 int _keyOf(int dayIndex) {
   final d = DateTime.utc(1970).add(Duration(days: dayIndex));
   return d.year * 10000 + d.month * 100 + d.day;
+}
+
+/// バナーと挑戦画面が付加情報として出す累計を読む。読めなければ null（表示を省くだけにする）。
+///
+/// 今日の記録は呼び出し側が画面に出している [today] を使い、表示と累計がずれないようにする
+/// （保存済みの記録を読み直すと、読む間に状態が変わり得る）。
+Future<DailyStats?> loadDailyStats(
+  DailyRepository repository,
+  int todayKey, {
+  DailyProgress? today,
+}) async {
+  try {
+    final records = await repository.loadAll();
+    if (today != null) records[todayKey] = today;
+    return DailyStats.compute(records, todayKey);
+  } catch (_) {
+    return null;
+  }
 }

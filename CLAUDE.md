@@ -180,4 +180,5 @@ The app supports Japanese and English:
 - History grows without a size limit
 - Daily challenge results (`daily_<yyyyMMdd>` in `shared_preferences`) are never deleted: one small key per day played
 - Daily challenge times use the device wall clock (no server): changing the clock can distort or zero the recorded time, and a negative elapsed time is shown as 0:00.0
+- Daily records dated after today (left by moving the device clock forward) are ignored by the stats and the records page until that date actually arrives
 - A corrupted daily record is treated as "not started" and overwritten, so the cleared state is lost (it cannot be recovered anyway)

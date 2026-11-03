@@ -66,17 +66,13 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
     final key = jstDateKey(widget.now());
     _loadingKey = key;
     DailyProgress? progress;
-    DailyStats? stats;
     try {
       progress = await widget.repository.load(key);
     } catch (_) {
       // 読めなければ未開始として扱う。挑戦画面側でエラーを表示する
     }
-    try {
-      stats = DailyStats.compute(await widget.repository.loadAll(), key);
-    } catch (_) {
-      // 累計は付加情報なので、読めなくてもバナー自体は出す
-    }
+    // 累計は付加情報なので、読めなくてもバナー自体は出す
+    final stats = await loadDailyStats(widget.repository, key, today: progress);
     if (!mounted || generation != _generation) return;
     _loadingKey = null;
     setState(() {
