@@ -76,6 +76,7 @@ git config core.hooksPath .githooks
 
 - **Lint**: `very_good_analysis`（`analysis_options.yaml`）。`flutter analyze` が CI とプリコミットで警告ゼロを要求する
 - **Codecov**: CI の `flutter test --coverage` の結果を `codecov/codecov-action` で送る。リポジトリの Secrets に `CODECOV_TOKEN` が必要。設定は `codecov.yml`
+- **Complexity**: CI の `lizard` が `lib/` の関数ごとの循環的複雑度（CCN）を測り、15 を超えると落とす（Codacy は Dart の複雑度を測れないため）。手元では `pip install lizard` のあと `lizard lib -l dart -x "lib/l10n/app_localizations*" -C 15 -w`。現状の最大は 14（`triviaFor`）。IBM などが推奨する 10 は目標で、10 超の関数が 5 つある
 - **Codacy**: GitHub App として PR を自動レビューする（Codacy 側でリポジトリを追加する）。除外パスと Dart 解析の無効化（`languages.dart.enabled: false`）（Flutter SDK / `pub get` なしで動き、未定義シンボルの誤検知が大量に出るため。Dart の検査は `flutter analyze` が担う）は `.codacy.yaml`
 
 ## Git Hooks
