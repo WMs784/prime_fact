@@ -205,6 +205,7 @@ class _MyLayoutState extends State<MyLayout> {
     final labels = {
       NumberStyle.plain: loc.numberFormatPlain,
       NumberStyle.comma: loc.numberFormatComma,
+      NumberStyle.apostrophe: loc.numberFormatApostrophe,
       if (ja) NumberStyle.units: loc.numberFormatUnits,
     };
     final picked = await showDialog<NumberStyle>(
@@ -323,6 +324,7 @@ class _MyLayoutState extends State<MyLayout> {
               )) {
                 NumberStyle.plain => loc.numberFormatPlain,
                 NumberStyle.comma => loc.numberFormatComma,
+                NumberStyle.apostrophe => loc.numberFormatApostrophe,
                 NumberStyle.units => loc.numberFormatUnits,
               }),
               onTap: _pickNumberStyle,
@@ -432,6 +434,16 @@ class _MyWidgetState extends State<MyWidget> {
     _cancel?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// 入力・エラー・結果をすべて消して初期状態に戻す。
+  void _clear() {
+    _controller.clear();
+    setState(() {
+      _errorText = null;
+      _result = '';
+      _resultShareable = false;
+    });
   }
 
   /// 入力を検証して BigInt を返す。不正な場合は _errorText を設定して null を返す。
@@ -556,12 +568,37 @@ class _MyWidgetState extends State<MyWidget> {
               if (!_isLoading) _calculate();
             },
           ),
-          ElevatedButton(
-            onPressed: _isLoading ? null : _calculate,
-            child: Text(
-              AppLocalizations.of(context)!.button,
-              style: const TextStyle(fontSize: 20),
-            ),
+          // クリアは消すものがないときも置いておく（隠すと判定ボタンの位置が動くため）
+          // 狭い画面や大きい文字では折り返す
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            children: [
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _controller,
+                builder: (context, value, _) => OutlinedButton(
+                  onPressed:
+                      !_isLoading &&
+                          (value.text.isNotEmpty ||
+                              _result.isNotEmpty ||
+                              _errorText != null)
+                      ? _clear
+                      : null,
+                  child: Text(
+                    loc.clearInput,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _calculate,
+                child: Text(
+                  AppLocalizations.of(context)!.button,
+                  style: const TextStyle(fontSize: 20),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 50),
           // 読み込み中と結果表示で高さが変わると入力欄が動くので、最低の高さを確保する

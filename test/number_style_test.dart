@@ -18,6 +18,17 @@ void main() {
     );
   });
 
+  test('apostrophe groups by three and skips exponents', () {
+    expect(
+      formatNumbers('1234567=1000x2^1234', NumberStyle.apostrophe, ja: false),
+      "1'234'567=1'000x2^1234",
+    );
+    expect(
+      effectiveStyle(NumberStyle.apostrophe, ja: false),
+      NumberStyle.apostrophe,
+    );
+  });
+
   test('units in Japanese', () {
     expect(
       formatDigits('123456789', NumberStyle.units, ja: true),
