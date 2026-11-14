@@ -9,6 +9,8 @@
 analyzer:
   exclude:
     - build/**
+    # gen-l10n の生成物（旧 flutter_localizations のクラスを参照しており直せない）
+    - lib/l10n/app_localizations*.dart
     - android/**
     - ios/**
     - web/**

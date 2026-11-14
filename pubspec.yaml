@@ -18,16 +18,18 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 4.4.0+21
 
 environment:
-  sdk: ">=3.13.0 <4.0.0"
-  flutter: ">=3.47.0"
+  sdk: ">=3.14.0 <4.0.0"
+  flutter: ">=3.50.0"
 
 dependencies:
+  cupertino_ui: ^1.1.6
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
 
   intl: ^0.20.2
+  material_ui: ^1.11.0
   share_plus: ^13.3.1
   shared_preferences: ^2.3.0
   styled_text: ^10.0.0

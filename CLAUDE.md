@@ -9,7 +9,7 @@ This is a Flutter application that calculates prime factorization of numbers. Th
 **Key Details:**
 - App Name: Prime Factorization Calculator (素因数分解計算機)
 - Version: 4.4.0+21
-- Flutter SDK: 3.47.8 (stable, Dart 3.13) 以上。AGP 9 / Gradle 9 を使うため、古い Flutter ではビルドできない
+- Flutter SDK: 3.50.0 (stable, Dart 3.14) 以上。AGP 9 / Gradle 9 を使うため、古い Flutter ではビルドできない
 - Package ID: `project.My_prime_nember` (Android)
 
 ## Common Commands
@@ -137,7 +137,7 @@ The app supports Japanese and English:
 ### Android
 - **Min SDK**: `flutter.minSdkVersion` (Flutter の既定値に従う)
 - **Target SDK**: 36 (Android 16)
-- **Build tools**: AGP 9.1.0 / Gradle 9.3.1 (`android.newDsl=false` で opt-out)
+- **Build tools**: AGP 9.1.1 / Gradle 9.3.1 (`android.newDsl=false` で opt-out)
 - **Build file**: `android/app/build.gradle`
 - **Release signing**: Configured with keystore properties
 
@@ -149,6 +149,7 @@ The app supports Japanese and English:
 ## Dependencies
 
 ### Core Dependencies
+- `material_ui` / `cupertino_ui` - Material/Cupertino（`flutter/material.dart` は 3.47 で非推奨）
 - `styled_text: ^10.0.0` - Rich text formatting for results
 - `flutter_localizations` (SDK) - Internationalization support
 - `intl: ^0.20.2` - Date/number formatting

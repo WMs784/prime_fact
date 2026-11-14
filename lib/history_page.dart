@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/number_style.dart';

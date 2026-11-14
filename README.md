@@ -44,7 +44,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 必要環境
 
-- Flutter 3.47 以上 (Dart 3.13 以上)
+- Flutter 3.50 以上 (Dart 3.14 以上)
 - Android: AGP 9.1 / Gradle 9.3 (ラッパーに同梱)。古い Flutter ではビルドできません
 
 ## セットアップ
