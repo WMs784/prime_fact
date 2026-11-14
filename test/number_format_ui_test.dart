@@ -96,31 +96,35 @@ void main() {
     expect(resultText(tester), contains("1'234'567 is not a prime number"));
   });
 
-  testWidgets('the clear button empties the input and appears only with text', (
-    tester,
-  ) async {
-    setLocale(tester, 'en');
-    await pump(tester);
-    Finder clear() => find.byTooltip('Clear input');
-    // 空のときは見えない
-    expect(
-      tester
-          .widget<Visibility>(
-            find.ancestor(of: clear(), matching: find.byType(Visibility)).first,
-          )
-          .visible,
-      isFalse,
-    );
+  testWidgets(
+    'the clear button is enabled only when there is something to clear '
+    'and clears the input and the result',
+    (tester) async {
+      setLocale(tester, 'en');
+      await pump(tester);
+      Finder clear() => find.widgetWithText(OutlinedButton, 'Clear');
+      bool enabled() =>
+          tester.widget<OutlinedButton>(clear()).onPressed != null;
 
-    await tester.enterText(find.byType(TextField), '123');
-    await tester.pump();
-    await tester.tap(clear());
-    await tester.pump();
-    expect(
-      tester.widget<TextField>(find.byType(TextField)).controller!.text,
-      isEmpty,
-    );
-  });
+      expect(enabled(), isFalse);
+      await tester.enterText(find.byType(TextField), '123');
+      await tester.pump();
+      expect(enabled(), isTrue);
+
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+      expect(resultText(tester), isNotEmpty);
+
+      await tester.tap(clear());
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        isEmpty,
+      );
+      expect(resultText(tester), isEmpty);
+      expect(enabled(), isFalse);
+    },
+  );
 
   testWidgets('units style in Japanese changes the result and history', (
     tester,
