@@ -35,6 +35,7 @@ void main() {
         matching: find.byType(Scaffold),
       ),
     );
+    // ignore: cascade_invocations -- 前後の行と別の対象への操作
     scaffold.openDrawer();
     await tester.pumpAndSettle();
     await tester.tap(find.text('今日の素因数分解を表示'));

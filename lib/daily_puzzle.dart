@@ -70,17 +70,9 @@ String formatDateKey(int dateKey) {
 }
 
 class DailyPuzzle {
-  final int dateKey;
+  const new _(this.dateKey, this.p, this.q);
 
-  /// 最小の素因数（正解）。
-  final int p;
-  final int q;
-
-  const DailyPuzzle._(this.dateKey, this.p, this.q);
-
-  int get n => p * q;
-
-  factory DailyPuzzle.forDateKey(int dateKey) {
+  factory forDateKey(int dateKey) {
     final roll = _rand(dateKey, 0) % 100;
     var acc = 0;
     var tier = _tiers.length - 1;
@@ -99,8 +91,14 @@ class DailyPuzzle {
     return DailyPuzzle._(dateKey, p, q);
   }
 
-  factory DailyPuzzle.forDate(DateTime now) =>
-      DailyPuzzle.forDateKey(jstDateKey(now));
+  factory forDate(DateTime now) => DailyPuzzle.forDateKey(jstDateKey(now));
+  final int dateKey;
+
+  /// 最小の素因数（正解）。
+  final int p;
+  final int q;
+
+  int get n => p * q;
 
   bool isCorrect(int answer) => answer == p;
 }

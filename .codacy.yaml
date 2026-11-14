@@ -1,0 +1,12 @@
+# https://docs.codacy.com/repositories-configure/codacy-configuration-file/
+---
+exclude_paths:
+  - "android/**"
+  - "ios/**"
+  - "web/**"
+  - "windows/**"
+  - "macos/**"
+  - "linux/**"
+  - "build/**"
+  - "docs/**"
+  - "lib/l10n/app_localizations*.dart"

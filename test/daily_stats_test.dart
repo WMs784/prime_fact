@@ -9,7 +9,7 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final _t0 = DateTime.utc(2026, 1, 1);
+final _t0 = DateTime.utc(2026);
 
 DailyProgress _cleared({int wrong = 0, int millis = 5000}) => DailyProgress(
   startedAt: _t0,
@@ -102,7 +102,7 @@ void main() {
         20261030: _cleared(),
         20261031: _cleared(),
         20261101: _cleared(), // 時計を進めて残った未来の記録
-        20991231: _cleared(wrong: 0, millis: 1),
+        20991231: _cleared(millis: 1),
       }, 20261031);
       expect(s.cleared, 2);
       expect(s.noMiss, 2);
@@ -200,13 +200,13 @@ void main() {
       await tester.pumpWidget(MyApp(now: () => now));
       await tester.pumpAndSettle();
       await tester.tap(find.text('今日の素因数分解に挑戦する'));
-      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byType(TextField),
         '${DailyPuzzle.forDate(now).p}',
       );
       await tester.tap(find.text('回答する'));
-      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
       expect(find.text('🔥 3日連続'), findsOneWidget);
     });
 

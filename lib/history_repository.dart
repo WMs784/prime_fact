@@ -1,8 +1,7 @@
 import 'dart:convert';
 
+import 'package:prime_fact/history_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'history_entry.dart';
 
 class HistoryRepository {
   static const _key = 'calculation_history';

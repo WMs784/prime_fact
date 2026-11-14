@@ -1,6 +1,5 @@
+import 'package:prime_fact/judge.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-
-import 'judge.dart';
 
 /// 素数判定の見出しを差し替える、数の種類。優先度の高い順に並べている。
 enum Trivia {
@@ -14,8 +13,14 @@ enum Trivia {
   twinPrime,
 }
 
-final _two = BigInt.two;
-final _fermatPrimes = {3, 5, 17, 257, 65537}.map(BigInt.from).toSet();
+final BigInt _two = BigInt.two;
+final Set<BigInt> _fermatPrimes = {
+  3,
+  5,
+  17,
+  257,
+  65537,
+}.map(BigInt.from).toSet();
 
 /// [n] に当てはまる豆知識を返す。なければ null。
 Trivia? triviaFor(BigInt n) {

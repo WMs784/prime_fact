@@ -1,23 +1,22 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:styled_text/styled_text.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:prime_fact/daily_banner.dart';
+import 'package:prime_fact/daily_page.dart' show ShareOutcome, shareText;
+import 'package:prime_fact/daily_repository.dart';
+import 'package:prime_fact/history_entry.dart';
+import 'package:prime_fact/history_page.dart';
+import 'package:prime_fact/history_repository.dart';
+import 'package:prime_fact/judge.dart';
+import 'package:prime_fact/judge_isolate.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
+import 'package:prime_fact/links.dart';
+import 'package:prime_fact/number_style.dart';
+import 'package:prime_fact/settings_repository.dart';
+import 'package:prime_fact/trivia.dart';
+import 'package:styled_text/styled_text.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-
-import 'daily_banner.dart';
-import 'daily_page.dart' show ShareOutcome, shareText;
-import 'daily_repository.dart';
-import 'judge.dart';
-import 'judge_isolate.dart';
-import 'links.dart';
-import 'number_style.dart';
-import 'settings_repository.dart';
-import 'history_entry.dart';
-import 'history_repository.dart';
-import 'history_page.dart';
-import 'trivia.dart';
 
 void main() => runApp(const MyApp());
 
@@ -63,9 +62,19 @@ ThemeData _buildTheme(Brightness brightness) {
 }
 
 /// ドロワーのヘッダーの色。白い文字が読めるよう、明暗どちらのテーマでも濃い青緑にする。
-final _drawerHeaderColor = Colors.teal.shade700;
+final Color _drawerHeaderColor = Colors.teal.shade700;
 
 class MyApp extends StatelessWidget {
+  const new({
+    super.key,
+    this.now = DateTime.now,
+    this.dailyRepository,
+    this.historyRepository,
+    this.calculator = _defaultCalculator,
+    this.openUrl = _defaultUrlOpener,
+    this.share = shareText,
+  });
+
   /// 「今日の素因数分解」の現在時刻。テストで差し替える。
   final DateTime Function() now;
 
@@ -83,16 +92,6 @@ class MyApp extends StatelessWidget {
 
   /// 結果の共有の仕方。テストで差し替える。
   final ResultSharer share;
-
-  const MyApp({
-    super.key,
-    this.now = DateTime.now,
-    this.dailyRepository,
-    this.historyRepository,
-    this.calculator = _defaultCalculator,
-    this.openUrl = _defaultUrlOpener,
-    this.share = shareText,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -121,15 +120,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyLayout extends StatefulWidget {
-  final DateTime Function() now;
-  final DailyRepository? dailyRepository;
-  final SettingsRepository? settingsRepository;
-  final HistoryRepository? historyRepository;
-  final Calculator calculator;
-  final UrlOpener openUrl;
-  final ResultSharer share;
-
-  const MyLayout({
+  const new({
     super.key,
     this.now = DateTime.now,
     this.dailyRepository,
@@ -139,6 +130,13 @@ class MyLayout extends StatefulWidget {
     this.openUrl = _defaultUrlOpener,
     this.share = shareText,
   });
+  final DateTime Function() now;
+  final DailyRepository? dailyRepository;
+  final SettingsRepository? settingsRepository;
+  final HistoryRepository? historyRepository;
+  final Calculator calculator;
+  final UrlOpener openUrl;
+  final ResultSharer share;
 
   @override
   State<MyLayout> createState() => _MyLayoutState();
@@ -294,7 +292,7 @@ class _MyLayoutState extends State<MyLayout> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (_) => HistoryPage(
                       history: _history,
                       numberStyle: _numberStyle,
@@ -396,19 +394,18 @@ String wrapAtTimes(String result) {
 }
 
 class MyWidget extends StatefulWidget {
-  final void Function(HistoryEntry)? onCalculated;
-
-  final Calculator calculator;
-  final ResultSharer share;
-  final NumberStyle numberStyle;
-
-  const MyWidget({
+  const new({
     super.key,
     this.numberStyle = NumberStyle.plain,
     this.onCalculated,
     this.calculator = _defaultCalculator,
     this.share = shareText,
   });
+  final void Function(HistoryEntry)? onCalculated;
+
+  final Calculator calculator;
+  final ResultSharer share;
+  final NumberStyle numberStyle;
 
   @override
   State<MyWidget> createState() => _MyWidgetState();
@@ -524,7 +521,7 @@ class _MyWidgetState extends State<MyWidget> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[

@@ -11,8 +11,6 @@ concurrency:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   build:
@@ -29,8 +27,9 @@ jobs:
           source: ./docs
           destination: ./_site
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
+          flutter-version: "3.47.8"
           channel: stable
           cache: true
 
@@ -55,6 +54,10 @@ jobs:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
+    # Pages へのデプロイ（OIDC で deploy-pages が認証する）に必要な権限は、このジョブにだけ付ける
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

@@ -72,7 +72,7 @@ void main() {
     test('save then load preserves order and content', () async {
       final repo = HistoryRepository();
       final entries = [
-        HistoryEntry(input: '7', timestamp: DateTime.utc(2026, 1, 1)),
+        HistoryEntry(input: '7', timestamp: DateTime.utc(2026)),
         HistoryEntry(
           input: '8',
           factors: '2^3',

@@ -3,7 +3,7 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
-import 'judge.dart';
+import 'package:prime_fact/judge.dart';
 
 void _entry((SendPort, FactorRequest) args) =>
     args.$1.send(pri_fact_isolate(args.$2));

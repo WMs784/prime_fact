@@ -1,24 +1,9 @@
-import 'daily_progress.dart';
-import 'daily_repository.dart';
+import 'package:prime_fact/daily_progress.dart';
+import 'package:prime_fact/daily_repository.dart';
 
 /// 「今日の素因数分解」の累計成績。出題日（JST の `yyyyMMdd`）ごとの記録から求める。
 class DailyStats {
-  /// クリアした日数。
-  final int cleared;
-
-  /// ノーミスでクリアした日数。
-  final int noMiss;
-
-  /// 今日（クリア前なら昨日）まで途切れずにクリアしている日数。今日も昨日もクリアしていなければ 0。
-  final int currentStreak;
-
-  /// これまでで最長の連続クリア日数。
-  final int bestStreak;
-
-  /// 最速のクリアタイム。クリア記録がない、または時計の変更で 0 になった記録しかなければ null。
-  final Duration? bestTime;
-
-  const DailyStats({
+  const new({
     required this.cleared,
     required this.noMiss,
     required this.currentStreak,
@@ -33,7 +18,7 @@ class DailyStats {
   ///
   /// 今日がまだ未クリアでも、昨日までの連続は「続行中」として [currentStreak] に数える
   /// （今日のうちにクリアすれば続く）。
-  factory DailyStats.compute(Map<int, DailyProgress> records, int todayKey) {
+  factory compute(Map<int, DailyProgress> records, int todayKey) {
     final clearedKeys =
         records.entries
             .where((e) => e.key <= todayKey && e.value.isCleared)
@@ -78,6 +63,21 @@ class DailyStats {
       bestTime: bestTime,
     );
   }
+
+  /// クリアした日数。
+  final int cleared;
+
+  /// ノーミスでクリアした日数。
+  final int noMiss;
+
+  /// 今日（クリア前なら昨日）まで途切れずにクリアしている日数。今日も昨日もクリアしていなければ 0。
+  final int currentStreak;
+
+  /// これまでで最長の連続クリア日数。
+  final int bestStreak;
+
+  /// 最速のクリアタイム。クリア記録がない、または時計の変更で 0 になった記録しかなければ null。
+  final Duration? bestTime;
 }
 
 /// `yyyyMMdd` を、連続判定用の通し日数（UTC の 1970-01-01 からの日数）にする。

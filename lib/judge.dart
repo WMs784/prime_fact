@@ -39,8 +39,8 @@ bool _isPrime(BigInt n) {
   if (n.isEven) return false;
   if (n < BigInt.from(9)) return true;
 
-  BigInt d = n - BigInt.one;
-  int r = 0;
+  var d = n - BigInt.one;
+  var r = 0;
   while (d.isEven) {
     d >>= 1;
     r++;
@@ -51,10 +51,10 @@ bool _isPrime(BigInt n) {
     final aBig = BigInt.from(a);
     if (aBig >= n) continue;
 
-    BigInt x = aBig.modPow(d, n);
+    var x = aBig.modPow(d, n);
     if (x == BigInt.one || x == n - BigInt.one) continue;
 
-    for (int i = 0; i < r - 1; i++) {
+    for (var i = 0; i < r - 1; i++) {
       x = x.modPow(BigInt.two, n);
       if (x == n - BigInt.one) continue outer;
     }
@@ -68,8 +68,8 @@ bool isProbablePrime(BigInt n) => _isPrime(n);
 
 /// `sync*` の途中経過から値を受け取るための入れ物。
 class _Box<T> {
+  new(this.value);
   T value;
-  _Box(this.value);
 }
 
 // 以下の因数分解は、一定の計算ごとに `yield` して呼び出し側へ制御を返せる形（Iterable）で書く。
@@ -78,25 +78,25 @@ class _Box<T> {
 
 // Brent's improvement of Pollard's rho with batch GCD (m=128)
 Iterable<void> _pollardBrent(BigInt n, BigInt c, _Box<BigInt> out) sync* {
-  BigInt y = BigInt.from(2);
-  BigInt x = BigInt.zero;
-  BigInt ys = BigInt.zero;
-  BigInt d = BigInt.one;
-  BigInt q = BigInt.one;
-  int r = 1;
+  var y = BigInt.from(2);
+  var x = BigInt.zero;
+  var ys = BigInt.zero;
+  var d = BigInt.one;
+  var q = BigInt.one;
+  var r = 1;
   const m = 128;
 
   while (d == BigInt.one) {
     x = y;
-    for (int i = 0; i < r; i++) {
+    for (var i = 0; i < r; i++) {
       y = (y * y + c) % n;
       if (i & 1023 == 1023) yield null;
     }
-    int k = 0;
+    var k = 0;
     while (k < r && d == BigInt.one) {
       ys = y;
       final steps = (r - k) < m ? (r - k) : m;
-      for (int i = 0; i < steps; i++) {
+      for (var i = 0; i < steps; i++) {
         y = (y * y + c) % n;
         q = q * (x - y).abs() % n;
       }
@@ -123,7 +123,7 @@ Iterable<void> _findFactor(BigInt n, _Box<BigInt> out) sync* {
     out.value = BigInt.two;
     return;
   }
-  for (int c = 1; ; c++) {
+  for (var c = 1; ; c++) {
     final d = _Box(n);
     yield* _pollardBrent(n, BigInt.from(c), d);
     if (d.value != n) {
@@ -137,7 +137,7 @@ Iterable<void> _factorHelper(BigInt n, Map<BigInt, int> factors) sync* {
   if (n == BigInt.one) return;
 
   // Trial division up to 1000 for small prime factors
-  for (int p = 2; p <= 1000; p += p == 2 ? 1 : 2) {
+  for (var p = 2; p <= 1000; p += p == 2 ? 1 : 2) {
     final pBig = BigInt.from(p);
     while (n % pBig == BigInt.zero) {
       factors.update(pBig, (v) => v + 1, ifAbsent: () => 1);
@@ -221,7 +221,7 @@ class CancelToken {
 
 /// [CancelToken] で中止されたときに [factorizeAsync] が投げる。
 class CancelledException implements Exception {
-  const CancelledException();
+  const new();
   @override
   String toString() => 'CancelledException';
 }

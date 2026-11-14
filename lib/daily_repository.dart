@@ -1,8 +1,7 @@
 import 'dart:convert';
 
+import 'package:prime_fact/daily_progress.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'daily_progress.dart';
 
 class DailyRepository {
   static String _key(int dateKey) => 'daily_$dateKey';

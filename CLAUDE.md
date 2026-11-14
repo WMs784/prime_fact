@@ -72,6 +72,12 @@ flutter gen-l10n
 git config core.hooksPath .githooks
 ```
 
+## Code Quality Services
+
+- **Lint**: `very_good_analysis`（`analysis_options.yaml`）。`flutter analyze` が CI とプリコミットで警告ゼロを要求する
+- **Codecov**: CI の `flutter test --coverage` の結果を `codecov/codecov-action` で送る。リポジトリの Secrets に `CODECOV_TOKEN` が必要。設定は `codecov.yml`
+- **Codacy**: GitHub App として PR を自動レビューする（Codacy 側でリポジトリを追加する）。除外パスは `.codacy.yaml`
+
 ## Git Hooks
 
 Pre-commit hooks are stored in `.githooks/` and run `dart format` (check only), `flutter analyze` and `flutter test` before each commit. If the format check fails, run `dart format .`. Enable them once per clone:
@@ -152,6 +158,7 @@ The app supports Japanese and English:
 
 ### Dev Dependencies
 - `flutter_launcher_icons: ^0.14.4` - Custom app icon generation
+- `very_good_analysis: ^11.0.0` - Lint rules (`analysis_options.yaml`)。アプリの設計上合わない一部のルールは理由付きで無効化している
 
 ## Development Notes
 

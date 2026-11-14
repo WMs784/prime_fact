@@ -21,8 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
+          flutter-version: "3.47.8"
           channel: stable
           cache: true
 
@@ -38,6 +39,15 @@ jobs:
       - name: Test
         run: flutter test --coverage
 
+      # リポジトリの Secrets に CODECOV_TOKEN が必要。fork からの PR など
+      # トークンが無い場合でも CI を落とさない
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
+        with:
+          files: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
   build-android:
     name: Build Android (debug)
     runs-on: ubuntu-latest
@@ -51,8 +61,9 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
+          flutter-version: "3.47.8"
           channel: stable
           cache: true
 
@@ -70,8 +81,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
+          flutter-version: "3.47.8"
           channel: stable
           cache: true
 

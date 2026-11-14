@@ -1,21 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:prime_fact/daily_page.dart';
+import 'package:prime_fact/daily_progress.dart';
+import 'package:prime_fact/daily_puzzle.dart';
+import 'package:prime_fact/daily_records_page.dart';
+import 'package:prime_fact/daily_repository.dart';
+import 'package:prime_fact/daily_stats.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-
-import 'daily_page.dart';
-import 'daily_progress.dart';
-import 'daily_puzzle.dart';
-import 'daily_records_page.dart';
-import 'daily_repository.dart';
-import 'daily_stats.dart';
 
 /// ホーム画面の「今日の素因数分解に挑戦する」バナー。
 class DailyBanner extends StatefulWidget {
+  const new({required this.repository, required this.now, super.key});
   final DailyRepository repository;
   final DateTime Function() now;
-
-  const DailyBanner({super.key, required this.repository, required this.now});
 
   @override
   State<DailyBanner> createState() => _DailyBannerState();
@@ -102,7 +100,7 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
     // 表示している日の問題を開く（now() を取り直すと、表示と遷移先が食い違い得る）
     final puzzle = DailyPuzzle.forDateKey(key);
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => DailyPage(
           puzzle: puzzle,
           repository: widget.repository,
@@ -116,7 +114,7 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
 
   Future<void> _openRecords() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) =>
             DailyRecordsPage(repository: widget.repository, now: widget.now),
       ),
