@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+# git worktree からのコミットでは git が GIT_DIR などをフックに渡す。残っていると
+# Flutter が SDK ではなくこのリポジトリを見てバージョンを 0.0.0-unknown と判定し、
+# pub get が失敗するので、検査の前に消しておく。
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX
+
 echo "--- dart format ---"
 dart format --output=none --set-exit-if-changed . || {
   echo "Run 'dart format .' to fix the files above."
