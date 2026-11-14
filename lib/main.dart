@@ -205,6 +205,7 @@ class _MyLayoutState extends State<MyLayout> {
     final labels = {
       NumberStyle.plain: loc.numberFormatPlain,
       NumberStyle.comma: loc.numberFormatComma,
+      NumberStyle.apostrophe: loc.numberFormatApostrophe,
       if (ja) NumberStyle.units: loc.numberFormatUnits,
     };
     final picked = await showDialog<NumberStyle>(
@@ -323,6 +324,7 @@ class _MyLayoutState extends State<MyLayout> {
               )) {
                 NumberStyle.plain => loc.numberFormatPlain,
                 NumberStyle.comma => loc.numberFormatComma,
+                NumberStyle.apostrophe => loc.numberFormatApostrophe,
                 NumberStyle.units => loc.numberFormatUnits,
               }),
               onTap: _pickNumberStyle,
@@ -434,6 +436,12 @@ class _MyWidgetState extends State<MyWidget> {
     super.dispose();
   }
 
+  /// 入力欄を空にする（エラー表示も消す。結果はそのまま残す）。
+  void _clearInput() {
+    _controller.clear();
+    setState(() => _errorText = null);
+  }
+
   /// 入力を検証して BigInt を返す。不正な場合は _errorText を設定して null を返す。
   BigInt? _validate(AppLocalizations loc) {
     final text = _controller.text.trim();
@@ -541,6 +549,21 @@ class _MyWidgetState extends State<MyWidget> {
             maxLength: 30,
             decoration: InputDecoration(
               errorText: _errorText,
+              // 空のときは見えなくするが場所は残す（出入りで中央寄せの文字がずれないように）
+              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _controller,
+                builder: (context, value, _) => Visibility(
+                  visible: value.text.isNotEmpty,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: IconButton(
+                    tooltip: loc.clearInput,
+                    icon: const Icon(Icons.clear),
+                    onPressed: _clearInput,
+                  ),
+                ),
+              ),
               hintText: AppLocalizations.of(context)!.description,
               hintTextDirection: TextDirection.ltr,
               hintStyle: TextStyle(

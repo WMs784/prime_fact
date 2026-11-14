@@ -8,6 +8,9 @@ enum NumberStyle {
   /// 3 桁区切りのカンマ（1,234,567）
   comma,
 
+  /// 3 桁区切りのアポストロフィ（1'234'567。スイスなどで使われる）
+  apostrophe,
+
   /// 単位つき（日本語のみ: 1億2345万。英語では一般的でないため使わない）
   units;
 
@@ -43,6 +46,8 @@ String formatDigits(String digits, NumberStyle style, {required bool ja}) {
       return digits;
     case NumberStyle.comma:
       return _group(digits, 3).join(',');
+    case NumberStyle.apostrophe:
+      return _group(digits, 3).join("'");
     case NumberStyle.units:
       if (!ja) return digits;
       final groups = _group(digits, 4);

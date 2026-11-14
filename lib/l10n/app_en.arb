@@ -18,6 +18,8 @@
   "numberFormat": "Number format",
   "numberFormatPlain": "Plain (1234567)",
   "numberFormatComma": "Commas (1,234,567)",
+  "numberFormatApostrophe": "Apostrophes (1'234'567)",
+  "clearInput": "Clear input",
   "numberFormatUnits": "Units (Japanese only)",
   "errorEmpty": "Please enter a number",
   "cancelCalculation": "Cancel",

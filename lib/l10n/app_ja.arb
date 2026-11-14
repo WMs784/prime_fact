@@ -18,6 +18,8 @@
   "numberFormat": "数の表示形式",
   "numberFormatPlain": "そのまま（1234567）",
   "numberFormatComma": "カンマ区切り（1,234,567）",
+  "numberFormatApostrophe": "アポストロフィ区切り（1'234'567）",
+  "clearInput": "入力を消す",
   "numberFormatUnits": "単位つき（123万4567）",
   "errorEmpty": "数値を入力してください",
   "cancelCalculation": "中止",

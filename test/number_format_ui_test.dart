@@ -87,6 +87,41 @@ void main() {
     expect(shared.single, contains('1,234,567='));
   });
 
+  testWidgets('apostrophe style changes the result (en)', (tester) async {
+    setLocale(tester, 'en');
+    await pump(tester);
+    await choose(tester, 'Number format', "Apostrophes (1'234'567)");
+
+    await calculate(tester);
+    expect(resultText(tester), contains("1'234'567 is not a prime number"));
+  });
+
+  testWidgets('the clear button empties the input and appears only with text', (
+    tester,
+  ) async {
+    setLocale(tester, 'en');
+    await pump(tester);
+    Finder clear() => find.byTooltip('Clear input');
+    // 空のときは見えない
+    expect(
+      tester
+          .widget<Visibility>(
+            find.ancestor(of: clear(), matching: find.byType(Visibility)).first,
+          )
+          .visible,
+      isFalse,
+    );
+
+    await tester.enterText(find.byType(TextField), '123');
+    await tester.pump();
+    await tester.tap(clear());
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      isEmpty,
+    );
+  });
+
   testWidgets('units style in Japanese changes the result and history', (
     tester,
   ) async {
