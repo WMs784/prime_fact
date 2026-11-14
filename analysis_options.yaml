@@ -5,8 +5,7 @@
 # IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
 # invoked from the command line by running `flutter analyze`.
 
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
+# very_good_analysis は flutter_lints より厳しい lint セット。
 analyzer:
   exclude:
     - build/**
@@ -16,7 +15,7 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
-include: package:flutter_lints/flutter.yaml
+include: package:very_good_analysis/analysis_options.yaml
 
 linter:
   # The lint rules applied to this project can be customized in the
@@ -30,8 +29,21 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # アプリ（ライブラリではない）なので公開 API の doc コメントは必須にしない
+    public_member_api_docs: false
+    # 永続化・共有・URL 起動などの失敗は種類を問わず握りつぶして継続する設計
+    avoid_catches_without_on_clauses: false
+    avoid_catching_errors: false
+    # UI コールバックからの fire-and-forget を許容する
+    discarded_futures: false
+    unawaited_futures: false
+    # 素数判定などアルゴリズム内で引数を更新するほうが読みやすい
+    parameter_assignments: false
+    # テストで Exception 以外を投げて異常系を確かめている
+    only_throw_errors: false
+    avoid_positional_boolean_parameters: false
+    comment_references: false
+    lines_longer_than_80_chars: false
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

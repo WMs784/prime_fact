@@ -18,7 +18,7 @@ int _smallestFactor(int n) {
 
 /// 2026-01-01 から 3000 日分の dateKey。
 Iterable<int> _dateKeys() sync* {
-  var d = DateTime.utc(2026, 1, 1);
+  var d = DateTime.utc(2026);
   for (var i = 0; i < 3000; i++) {
     yield jstDateKey(d);
     d = d.add(const Duration(days: 1));
@@ -76,7 +76,9 @@ void main() {
     });
 
     test('p falls in the three tiers with the expected weights', () {
-      var easy = 0, medium = 0, hard = 0;
+      var easy = 0;
+      var medium = 0;
+      var hard = 0;
       for (final key in _dateKeys()) {
         final p = DailyPuzzle.forDateKey(key).p;
         if (p <= 13) {

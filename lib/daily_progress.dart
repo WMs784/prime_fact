@@ -1,14 +1,20 @@
 /// その日の挑戦の進行状況。画面を閉じても時間が進み続けるよう、開始時刻を保存する。
 class DailyProgress {
+  const new({required this.startedAt, this.wrong = 0, this.clearedAt});
+
+  factory fromJson(Map<String, dynamic> json) {
+    final cleared = json['clearedAt'] as int?;
+    return DailyProgress(
+      startedAt: DateTime.fromMillisecondsSinceEpoch(json['startedAt'] as int),
+      wrong: json['wrong'] as int,
+      clearedAt: cleared == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(cleared),
+    );
+  }
   final DateTime startedAt;
   final int wrong;
   final DateTime? clearedAt;
-
-  const DailyProgress({
-    required this.startedAt,
-    this.wrong = 0,
-    this.clearedAt,
-  });
 
   bool get isCleared => clearedAt != null;
 
@@ -29,17 +35,6 @@ class DailyProgress {
     'wrong': wrong,
     'clearedAt': clearedAt?.millisecondsSinceEpoch,
   };
-
-  factory DailyProgress.fromJson(Map<String, dynamic> json) {
-    final cleared = json['clearedAt'] as int?;
-    return DailyProgress(
-      startedAt: DateTime.fromMillisecondsSinceEpoch(json['startedAt'] as int),
-      wrong: json['wrong'] as int,
-      clearedAt: cleared == null
-          ? null
-          : DateTime.fromMillisecondsSinceEpoch(cleared),
-    );
-  }
 }
 
 /// `1:05.3` / `1:02:03.4` 形式。言語に依存しない。

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/daily_page.dart';
 import 'package:prime_fact/daily_progress.dart';
+import 'package:prime_fact/daily_puzzle.dart';
+import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/l10n/app_localizations_en.dart';
 import 'package:prime_fact/l10n/app_localizations_ja.dart';
-import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/links.dart';
-import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,7 +25,7 @@ Future<void> _openChallenge(
   await tester.pumpWidget(MyApp(now: now));
   await tester.pumpAndSettle();
   await tester.tap(find.text('今日の素因数分解に挑戦する'));
-  await tester.pumpAndSettle(const Duration(milliseconds: 100));
+  await tester.pumpAndSettle();
 }
 
 void main() {

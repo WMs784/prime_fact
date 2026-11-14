@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-
-import 'history_entry.dart';
-import 'number_style.dart';
-import 'trivia.dart';
+import 'package:prime_fact/number_style.dart';
+import 'package:prime_fact/trivia.dart';
 
 /// 保存データから、現在の言語で結果の表示行を組み立てる。
 List<String> _describe(AppLocalizations loc, HistoryEntry entry) {
@@ -15,15 +14,14 @@ List<String> _describe(AppLocalizations loc, HistoryEntry entry) {
 }
 
 class HistoryPage extends StatelessWidget {
+  const new({
+    required this.history,
+    super.key,
+    this.numberStyle = NumberStyle.plain,
+  });
   final List<HistoryEntry> history;
 
   final NumberStyle numberStyle;
-
-  const HistoryPage({
-    super.key,
-    required this.history,
-    this.numberStyle = NumberStyle.plain,
-  });
 
   @override
   Widget build(BuildContext context) {

@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prime_fact/daily_page.dart' show ShareOutcome;
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_repository.dart';
-import 'package:prime_fact/daily_page.dart' show ShareOutcome;
 import 'package:prime_fact/judge.dart' show CancelToken, CancelledException;
 import 'package:prime_fact/main.dart';
 
 void main() {
-  testWidgets('App renders calculator UI', (WidgetTester tester) async {
+  testWidgets('App renders calculator UI', (tester) async {
     await tester.pumpWidget(const MyApp());
     await tester.pump();
 
@@ -19,9 +19,7 @@ void main() {
     expect(find.byType(ElevatedButton), findsOneWidget);
   });
 
-  testWidgets('Input field rejects non-numeric input', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('Input field rejects non-numeric input', (tester) async {
     await tester.pumpWidget(const MyApp());
     await tester.pump();
 
@@ -57,7 +55,7 @@ void main() {
     await tester.tap(find.byType(ElevatedButton));
     // compute() は実 isolate で動くため、実時間で完了を待つ
     await tester.runAsync(
-      () => Future.delayed(const Duration(milliseconds: 500)),
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
     );
     await tester.pump();
     expect(find.text('0 is not a prime number'), findsOneWidget);
@@ -73,7 +71,7 @@ void main() {
     await tester.enterText(find.byType(TextField), '0');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.runAsync(
-      () => Future.delayed(const Duration(milliseconds: 500)),
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
     );
     await tester.pump();
     expect(find.text('0 is not a prime number'), findsOneWidget);
@@ -91,17 +89,15 @@ void main() {
     await tester.enterText(find.byType(TextField), '0');
     await tester.tap(find.byType(ElevatedButton));
     await tester.runAsync(
-      () => Future.delayed(const Duration(milliseconds: 500)),
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
     );
     await tester.pump();
     // 読み込みが終わるまでは保存しない
     expect(repo.saved, isEmpty);
 
-    loading.complete([
-      HistoryEntry(input: '7', timestamp: DateTime.utc(2026, 1, 1)),
-    ]);
+    loading.complete([HistoryEntry(input: '7', timestamp: DateTime.utc(2026))]);
     await tester.runAsync(
-      () => Future.delayed(const Duration(milliseconds: 50)),
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
     );
     await tester.pump();
 
@@ -119,7 +115,7 @@ void main() {
     await tester.enterText(find.byType(TextField), '0');
     await tester.tap(find.byType(ElevatedButton));
     await tester.runAsync(
-      () => Future.delayed(const Duration(milliseconds: 500)),
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
     );
     await tester.pump();
 
@@ -470,7 +466,7 @@ void main() {
     await tester.enterText(find.byType(TextField), '57');
     await tester.tap(find.byType(ElevatedButton));
     await tester.runAsync(
-      () => Future.delayed(const Duration(milliseconds: 500)),
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
     );
     await tester.pump();
     expect(find.textContaining('57は素数です！ by グロタンディーク'), findsOneWidget);
@@ -482,7 +478,7 @@ void main() {
       await tester.enterText(find.byType(TextField), n);
       await tester.tap(find.byType(ElevatedButton));
       await tester.runAsync(
-        () => Future.delayed(const Duration(milliseconds: 500)),
+        () => Future<void>.delayed(const Duration(milliseconds: 500)),
       );
       await tester.pump();
     }
@@ -511,7 +507,7 @@ void main() {
     await tester.enterText(find.byType(TextField), '6');
     await tester.tap(find.byType(ElevatedButton));
     await tester.runAsync(
-      () => Future.delayed(const Duration(milliseconds: 500)),
+      () => Future<void>.delayed(const Duration(milliseconds: 500)),
     );
     await tester.pump();
     expect(find.textContaining('6は素数、ではなく完全数です！'), findsOneWidget);
@@ -525,10 +521,9 @@ void _setLocale(WidgetTester tester, Locale locale) {
 }
 
 class _FakeHistoryRepository extends HistoryRepository {
+  new(this._load);
   final Future<List<HistoryEntry>> Function() _load;
   final saved = <List<HistoryEntry>>[];
-
-  _FakeHistoryRepository(this._load);
 
   @override
   Future<List<HistoryEntry>> load() => _load();

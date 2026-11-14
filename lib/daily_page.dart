@@ -2,15 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:prime_fact/daily_progress.dart';
+import 'package:prime_fact/daily_puzzle.dart';
+import 'package:prime_fact/daily_records_page.dart';
+import 'package:prime_fact/daily_repository.dart';
+import 'package:prime_fact/daily_stats.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
+import 'package:prime_fact/links.dart';
 import 'package:share_plus/share_plus.dart';
-
-import 'daily_progress.dart';
-import 'daily_puzzle.dart';
-import 'daily_records_page.dart';
-import 'daily_repository.dart';
-import 'daily_stats.dart';
-import 'links.dart';
 
 /// クリア済みの結果の共有文。問題の数・正解・難度はヒントになるので含めない。日付は投稿時刻で分かる。
 String dailyShareText(AppLocalizations loc, DailyProgress progress) {
@@ -64,18 +63,17 @@ Future<ShareOutcome> shareText(
 /// 記録は開いた時点の問題の日付（[DailyPuzzle.dateKey]）で保存する。0 時をまたいで
 /// 答えても前日の問題の記録として残り、ホームのバナーは新しい日の問題に切り替わる。
 class DailyPage extends StatefulWidget {
+  const new({
+    required this.puzzle,
+    required this.repository,
+    required this.now,
+    super.key,
+    this.onShare = shareText,
+  });
   final DailyPuzzle puzzle;
   final DailyRepository repository;
   final DateTime Function() now;
   final Future<ShareOutcome> Function(String text, Rect? origin) onShare;
-
-  const DailyPage({
-    super.key,
-    required this.puzzle,
-    required this.repository,
-    required this.now,
-    this.onShare = shareText,
-  });
 
   @override
   State<DailyPage> createState() => _DailyPageState();
@@ -213,7 +211,7 @@ class _DailyPageState extends State<DailyPage> {
             icon: const Icon(Icons.bar_chart),
             tooltip: loc.dailyRecords,
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
+              MaterialPageRoute<void>(
                 builder: (_) => DailyRecordsPage(
                   repository: widget.repository,
                   now: widget.now,
@@ -372,15 +370,10 @@ class _DailyPageState extends State<DailyPage> {
 
 /// 経過時間の表示。100ms ごとの再描画をこの Widget の中だけに閉じ込める。
 class _ElapsedText extends StatefulWidget {
+  const new({required this.progress, required this.now, required this.style});
   final DailyProgress progress;
   final DateTime Function() now;
   final TextStyle? style;
-
-  const _ElapsedText({
-    required this.progress,
-    required this.now,
-    required this.style,
-  });
 
   @override
   State<_ElapsedText> createState() => _ElapsedTextState();
