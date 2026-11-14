@@ -16,7 +16,7 @@ permissions:
 jobs:
   analyze-and-test:
     name: Analyze & Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -42,7 +42,7 @@ jobs:
       # リポジトリの Secrets に CODECOV_TOKEN が必要。fork からの PR など
       # トークンが無い場合でも CI を落とさない
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           files: coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -50,7 +50,7 @@ jobs:
 
   build-android:
     name: Build Android (debug)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     needs: analyze-and-test
     steps:
@@ -75,7 +75,7 @@ jobs:
 
   build-web:
     name: Build Web
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: analyze-and-test
     steps:
