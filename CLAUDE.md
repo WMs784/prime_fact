@@ -96,6 +96,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/trivia.dart`**: Replaces the primality header for special numbers (perfect / Mersenne / Fermat / palindromic / Sophie Germain / twin primes, 1729, 57 Grothendieck), e.g. "6は素数、ではなく完全数です！". The result is passed to the calculator (`factorizeAsync` / `factorizeInIsolate`) as `FactorRequest.special`; `HistoryPage` re-derives it via `headerFor`. To extend: add a `Trivia` value, its `isXxx` ARB strings (suffix after the number), a `triviaHeader` case and a test
 - **`lib/history_*.dart`**: Calculation history (`HistoryEntry`, `HistoryRepository` persisting via `shared_preferences`, `HistoryPage`)
 - **`lib/daily_*.dart`**: 「今日の素因数分解」。`DailyPuzzle` が JST の日付だけから決定的に `n = p×q`（`p` は 7〜53 の最小の素因数、`q` は `p`〜293）を生成する（`p` の範囲は易/中/難 = 50/35/15% の 3 段階。難度は画面にもシェア文にも出さない）。`DailyProgress`/`DailyRepository` が開始時刻・ミス回数・クリア時刻を `shared_preferences` に保存し（離脱中も時間は進む）、`DailyBanner`（ホーム）→`DailyPage`（出題・結果・シェア）と遷移する。生成手順を変えると同じ日の問題が変わるので、変更時は日付で分岐し `test/daily_puzzle_test.dart` の固定値も更新する
+- **`lib/daily_stats.dart` / `lib/daily_records_page.dart`**: 「今日の素因数分解」の累計成績と記録画面。`DailyRepository.loadAll()` が `daily_<yyyyMMdd>` を全部読み（破損した日は除く）、`DailyStats.compute` が連続日数（今日が未クリアなら昨日までの連続を続行中として数える）・最長連続・クリア日数・ノーミス数・ベストタイム（時計変更で 0 になった記録は除く）を求める。バナー（記録ボタンと連続日数）、挑戦画面（AppBar の記録ボタン、クリア後の連続日数）から使う
 - **`lib/settings_repository.dart`**: 表示設定（ドロワーのスイッチで「今日の素因数分解」バナーの表示/非表示を切り替え、`shared_preferences` に保存。既定は表示）
 - **`lib/number_style.dart`**: 数の表示形式（そのまま/カンマ区切り/単位つき）。結果・履歴・コピー・共有の表示時に整形する（保存値は素の数字）。単位つき（万・億…）は日本語のみで、英語では選択肢を出さず `effectiveStyle` で plain 扱いにする。指数（`^` の直後）は整形しない。設定は `SettingsRepository` に保存。コピー・共有は画面に出ている形式のまま出す（入力欄は `digitsOnly` なのでカンマ付きは貼っても数字に戻るが、単位つきの「万」「億」は消えて別の数になる）。「今日の素因数分解」の画面・シェア文は対象外（n が小さく効果が薄いため）
 - **`lib/links.dart`**: 外部リンク（プライバシーポリシー、Play ストア、Web アプリなど）の定数。ドロワーとシェア文で共有する
@@ -165,6 +166,7 @@ The app supports Japanese and English:
 - `test/history_test.dart`: `HistoryEntry` JSON round trip and legacy-format migration, `HistoryRepository` load/save/corrupted data
 - `test/daily_puzzle_test.dart`: determinism, JST date rollover, p/q ranges, tier ratios, fixed-date regression values
 - `test/daily_progress_test.dart`, `test/daily_challenge_test.dart`: progress/repository, banner → challenge → result flow, share text
+- `test/daily_stats_test.dart`: 連続日数（途切れ・月/年/うるう年またぎ・未クリア日）、ノーミス数、ベストタイム、`loadAll`、バナーの連続表示と記録画面
 - `test/daily_robustness_test.dart`: load/save failures, share fallback rules, stale reloads, double submit, Enter key, share errors, banner at JST midnight, short screen with keyboard
 - `test/number_style_test.dart`: 各形式の整形、指数の除外、英語での単位つき無効化、設定の保存
 - `test/number_format_ui_test.dart`: ドロワーからの形式選択、結果・共有・履歴への反映、英語で単位つきが出ないこと
@@ -178,4 +180,5 @@ The app supports Japanese and English:
 - History grows without a size limit
 - Daily challenge results (`daily_<yyyyMMdd>` in `shared_preferences`) are never deleted: one small key per day played
 - Daily challenge times use the device wall clock (no server): changing the clock can distort or zero the recorded time, and a negative elapsed time is shown as 0:00.0
+- Daily records dated after today (left by moving the device clock forward) are ignored by the stats and the records page until that date actually arrives
 - A corrupted daily record is treated as "not started" and overwritten, so the cleared state is lost (it cannot be recovered anyway)

@@ -55,5 +55,17 @@
   "dailyLoadFailed": "今日の挑戦を読み込めませんでした",
   "dailyRetry": "再試行",
   "dailySaveFailed": "保存できませんでした。もう一度お試しください",
-  "dailyShareFailed": "共有できませんでした"
+  "dailyShareFailed": "共有できませんでした",
+  "dailyRecords": "記録",
+  "dailyStreak": "🔥 {days}日連続",
+  "dailyStatCurrentStreak": "現在の連続",
+  "dailyStatBestStreak": "最長の連続",
+  "dailyStatCleared": "クリア日数",
+  "dailyStatNoMiss": "ノーミス",
+  "dailyStatBestTime": "ベストタイム",
+  "dailyDays": "{days}日",
+  "dailyRecordsEmpty": "まだ記録がありません",
+  "dailyRecordsLoadFailed": "記録を読み込めませんでした",
+  "dailyRecordInProgress": "挑戦中",
+  "dailyRecordUnfinished": "未クリア"
 }

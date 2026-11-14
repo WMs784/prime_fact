@@ -102,5 +102,31 @@
   "dailyLoadFailed": "Couldn't load today's challenge",
   "dailyRetry": "Retry",
   "dailySaveFailed": "Couldn't save your answer. Please try again",
-  "dailyShareFailed": "Couldn't share the result"
+  "dailyShareFailed": "Couldn't share the result",
+  "dailyRecords": "Records",
+  "dailyStreak": "🔥 {days, plural, =1{1-day streak} other{{days}-day streak}}",
+  "@dailyStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyStatCurrentStreak": "Current streak",
+  "dailyStatBestStreak": "Best streak",
+  "dailyStatCleared": "Days cleared",
+  "dailyStatNoMiss": "No-miss clears",
+  "dailyStatBestTime": "Best time",
+  "dailyDays": "{days, plural, =1{1 day} other{{days} days}}",
+  "@dailyDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyRecordsEmpty": "No records yet",
+  "dailyRecordsLoadFailed": "Couldn't load your records",
+  "dailyRecordInProgress": "In progress",
+  "dailyRecordUnfinished": "Not cleared"
 }
