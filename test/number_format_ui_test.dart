@@ -126,6 +126,46 @@ void main() {
     },
   );
 
+  testWidgets('the clear button also clears an error shown with empty input', (
+    tester,
+  ) async {
+    setLocale(tester, 'en');
+    await pump(tester);
+    Finder clear() => find.widgetWithText(OutlinedButton, 'Clear');
+
+    // 空のまま判定するとエラーだけが残る（入力も結果も空）
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Please enter a number'), findsOneWidget);
+    expect(tester.widget<OutlinedButton>(clear()).onPressed, isNotNull);
+
+    await tester.tap(clear());
+    await tester.pump();
+    expect(find.text('Please enter a number'), findsNothing);
+    expect(tester.widget<OutlinedButton>(clear()).onPressed, isNull);
+  });
+
+  testWidgets('clear button label in Japanese', (tester) async {
+    setLocale(tester, 'ja');
+    await pump(tester);
+    expect(find.widgetWithText(OutlinedButton, 'クリア'), findsOneWidget);
+  });
+
+  testWidgets('the apostrophe style is applied to history too (ja)', (
+    tester,
+  ) async {
+    setLocale(tester, 'ja');
+    await pump(tester);
+    await choose(tester, '数の表示形式', "アポストロフィ区切り（1'234'567）");
+    await calculate(tester);
+    expect(resultText(tester), contains("1'234'567"));
+
+    await openDrawer(tester);
+    await tester.tap(find.text('履歴'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining("1'234'567"), findsWidgets);
+  });
+
   testWidgets('units style in Japanese changes the result and history', (
     tester,
   ) async {

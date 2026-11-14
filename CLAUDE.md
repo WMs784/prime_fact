@@ -178,7 +178,7 @@ The app supports Japanese and English:
 - `test/daily_stats_test.dart`: 連続日数（途切れ・月/年/うるう年またぎ・未クリア日）、ノーミス数、ベストタイム、`loadAll`、バナーの連続表示と記録画面
 - `test/daily_robustness_test.dart`: load/save failures, share fallback rules, stale reloads, double submit, Enter key, share errors, banner at JST midnight, short screen with keyboard
 - `test/number_style_test.dart`: 各形式の整形、指数の除外、英語での単位つき無効化、設定の保存
-- `test/number_format_ui_test.dart`: ドロワーからの形式選択、結果・共有・履歴への反映、英語で単位つきが出ないこと
+- `test/number_format_ui_test.dart`: ドロワーからの形式選択（カンマ・アポストロフィ・単位つき）、結果・共有・履歴への反映、英語で単位つきが出ないこと、クリアボタン（有効条件: 入力/結果/エラーのいずれか、入力と結果の消去、日本語ラベル）
 - `test/settings_test.dart`: daily banner toggle in the drawer and its persistence
 - `test/widget_test.dart`: calculator UI, input validation errors, localized results, history save races (injected `HistoryRepository`), failed and cancelled calculation (injected `Calculator`), drawer links (injected `UrlOpener`), wrapped result (line breaks only before `x`), copy/share buttons, fixed input position
 - Add tests alongside any change to `judge.dart` or the history format
