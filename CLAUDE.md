@@ -137,7 +137,7 @@ The app supports Japanese and English:
 ### Android
 - **Min SDK**: `flutter.minSdkVersion` (Flutter の既定値に従う)
 - **Target SDK**: 36 (Android 16)
-- **Build tools**: AGP 9.1.0 / Gradle 9.3.1 (`android.newDsl=false` で opt-out)
+- **Build tools**: AGP 9.1.1 / Gradle 9.3.1 (`android.newDsl=false` で opt-out)
 - **Build file**: `android/app/build.gradle`
 - **Release signing**: Configured with keystore properties
 
