@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_records_page.dart';
@@ -226,7 +226,7 @@ void main() {
       setLocale(tester, const Locale('ja'));
       await tester.pumpWidget(
         MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: DailyRecordsPage(repository: DailyRepository(), now: () => now),
         ),
@@ -238,7 +238,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           key: UniqueKey(),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: DailyRecordsPage(repository: DailyRepository(), now: () => now),
         ),
@@ -253,7 +253,7 @@ void main() {
       await seed({20261031: _cleared(), 20991231: _cleared()});
       await tester.pumpWidget(
         MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: DailyRecordsPage(repository: DailyRepository(), now: () => now),
         ),
@@ -296,7 +296,7 @@ void main() {
       final repo = _FailOnceRepo();
       await tester.pumpWidget(
         MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: DailyRecordsPage(repository: repo, now: () => now),
         ),

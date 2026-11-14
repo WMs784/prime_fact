@@ -1,7 +1,10 @@
+import 'package:cupertino_ui/cupertino_ui.dart'
+    show GlobalCupertinoLocalizations;
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'
+    show GlobalWidgetsLocalizations;
+import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/daily_banner.dart';
 import 'package:prime_fact/daily_page.dart' show ShareOutcome, shareText;
 import 'package:prime_fact/daily_repository.dart';
@@ -64,6 +67,15 @@ ThemeData _buildTheme(Brightness brightness) {
 /// ドロワーのヘッダーの色。白い文字が読めるよう、明暗どちらのテーマでも濃い青緑にする。
 final Color _drawerHeaderColor = Colors.teal.shade700;
 
+/// gen-l10n の `AppLocalizations.localizationsDelegates` は旧 flutter_localizations
+/// の Material/Cupertino デリゲートを含むため、material_ui / cupertino_ui 版を使う。
+const appLocalizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  AppLocalizations.delegate,
+  GlobalMaterialLocalizations.delegate,
+  GlobalWidgetsLocalizations.delegate,
+  GlobalCupertinoLocalizations.delegate,
+];
+
 class MyApp extends StatelessWidget {
   const new({
     super.key,
@@ -100,12 +112,7 @@ class MyApp extends StatelessWidget {
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: const [Locale('ja'), Locale('en')],
       home: MyLayout(
         now: now,

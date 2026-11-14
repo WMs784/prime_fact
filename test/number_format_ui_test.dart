@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/daily_page.dart' show ShareOutcome;
 import 'package:prime_fact/judge.dart' show CancelToken, FactorRequest;
 import 'package:prime_fact/main.dart';
