@@ -8,6 +8,8 @@ coverage:
     patch:
       default:
         target: auto
+        # 導入直後は参考表示にとどめ、小さな PR で赤くならないようにする
+        informational: true
 
 ignore:
   - lib/l10n/**
