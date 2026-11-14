@@ -36,8 +36,7 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
-      # 関数ごとの循環的複雑度（CCN）が 15 を超えたら落とす。Codacy は Dart の複雑度を
-      # 測れないので lizard で見る。l10n の生成物は除く
+      # 関数ごとの循環的複雑度（CCN）が 15 を超えたら落とす。l10n の生成物は除く
       - name: Check cyclomatic complexity
         run: |
           pip install lizard==1.26.0
