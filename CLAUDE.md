@@ -78,6 +78,22 @@ git config core.hooksPath .githooks
 - **Codecov**: CI の `flutter test --coverage` の結果を `codecov/codecov-action` で送る。リポジトリの Secrets に `CODECOV_TOKEN` が必要。設定は `codecov.yml`
 - **Complexity**: CI の `lizard` が `lib/` の関数ごとの循環的複雑度（CCN）を測り、15 を超えると落とす。手元では `pip install lizard` のあと `lizard lib -l dart -x "lib/l10n/app_localizations*" -C 15 -w`。現状の最大は 14（`triviaFor`）。IBM などが推奨する 10 は目標で、10 超の関数が 5 つある
 
+## Mutation Testing
+
+行カバレッジでは見えない「テストが挙動の変化を検出できるか」を `mutation_test`（dev 依存）で測る。ソースを 1 箇所ずつ書き換え（`==`→`!=`、`+`→`-` など）、対応するテストが落ちれば検出とみなす。
+
+```bash
+mutation_test/run.sh              # judge / trivia / number_style / daily_puzzle / daily_stats を順に実行
+mutation_test/run.sh trivia       # 1 ファイルだけ
+```
+
+- 対象は UI に依存しない純粋ロジックの 5 ファイルだけ（`mutation_test/<name>.xml`。変異ごとに `flutter test test/<name>_test.dart` を走らせる）。UI を含めると 1 変異ごとの時間が桁違いに増える
+- 全体で約 20 分（`judge.dart` が大半）。PR ごとには回さず、`.github/workflows/mutation.yml`（毎週月曜と手動）で実行する。レポートは `mutation-test-report/`（HTML）と CI のアーティファクト
+- ルールは組み込みから「数の負数化」を除いた `mutation_test/rules.xml`（Dart の `%` は常に非負なので素数リスト等で等価変異になるため）
+- 無限ループになる変異は 30 秒でタイムアウトし、検出扱いになる。ループ条件は変異対象から外している
+- 検出できない等価変異（性能だけの分岐、実時間の境界など）は各 XML の `<exclude><lines>` に理由付きで除外している。**ファイルの行が動いたら行番号を直すこと**
+- `judge.dart` / `trivia.dart` などを変更したら、該当ファイルで `mutation_test/run.sh <name>` を回して生き残りを確認する
+
 ## Git Hooks
 
 Pre-commit hooks are stored in `.githooks/` and run `dart format` (check only), `flutter analyze` and `flutter test` before each commit. If the format check fails, run `dart format .`. Enable them once per clone:

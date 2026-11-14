@@ -1,0 +1,39 @@
+name: Mutation Test
+
+# 時間がかかる（judge.dart だけで 10 分超）ので、PR ごとには回さず
+# 毎週月曜 03:00 JST と手動実行だけにする。
+on:
+  schedule:
+    - cron: "0 18 * * 0" # 日曜 18:00 UTC = 月曜 03:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: Mutation test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: "3.50.0"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 検出率が各設定の threshold（70%）を下回るとコマンドが失敗する
+      - name: Run mutation tests
+        run: mutation_test/run.sh
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-test-report
+          path: mutation-test-report/

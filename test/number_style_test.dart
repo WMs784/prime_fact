@@ -36,6 +36,9 @@ void main() {
     );
     expect(formatDigits('100000000', NumberStyle.units, ja: true), '1億');
     expect(formatDigits('9999', NumberStyle.units, ja: true), '9999');
+    // 単位（穰まで）より桁が多いときは整形せずそのまま返す（落ちない）
+    final tooLong = '1${'0' * 32}'; // 33 桁 = 9 グループ
+    expect(formatDigits(tooLong, NumberStyle.units, ja: true), tooLong);
   });
 
   test('units are not used in English', () {
