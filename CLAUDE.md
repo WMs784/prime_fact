@@ -90,9 +90,11 @@ mutation_test/run.sh trivia       # 1 ファイルだけ
 - 対象は UI に依存しない純粋ロジックの 5 ファイルだけ（`mutation_test/<name>.xml`。変異ごとに `flutter test test/<name>_test.dart` を走らせる）。UI を含めると 1 変異ごとの時間が桁違いに増える
 - 全体で約 20 分（`judge.dart` が大半）。PR ごとには回さず、`.github/workflows/mutation.yml`（毎週月曜と手動）で実行する。レポートは `mutation-test-report/`（HTML）と CI のアーティファクト
 - ルールは組み込みから「数の負数化」を除いた `mutation_test/rules.xml`（Dart の `%` は常に非負なので素数リスト等で等価変異になるため）
-- 無限ループになる変異は 30 秒でタイムアウトし、検出扱いになる。ループ条件は変異対象から外している
-- 検出できない等価変異（性能だけの分岐、実時間の境界など）は各 XML の `<exclude><lines>` に理由付きで除外している。**ファイルの行が動いたら行番号を直すこと**
-- `judge.dart` / `trivia.dart` などを変更したら、該当ファイルで `mutation_test/run.sh <name>` を回して生き残りを確認する
+- 無限ループになる変異は 30 秒でタイムアウトする（テストが止めたので検出済み）。ループ条件は変異対象から外している
+- **合否は検出率ではなく「生き残り数」で決める**（`run.sh` の `max_survivors`）。ツールはタイムアウトも未検出に数えるので検出率では判定できない。生き残り = 未検出 - タイムアウト。基準値は `trivia` / `judge` が 1、他は 0（どれも結果が変わらない等価変異）。基準値を上げるときは、増えた変異が等価変異である理由を PR に書く
+- 検出できない等価変異（性能だけの分岐、実時間の境界など）は、各 XML の `<exclude>` に**コードの正規表現**で理由付きで除外している（行番号ではない）。組み込みの `if` ルールは前の空白から `{` までを 1 つの変異にするので、正規表現も `\s` で始めて `{` まで含める。行がずれても追従するが、コードを書き換えて正規表現が合わなくなると等価変異が生き残り、基準値を超えて失敗する
+- 数を確認するだけなら `dart run mutation_test -d --rules mutation_test/rules.xml mutation_test/<name>.xml`（dry run。テストは走らない）
+- `judge.dart` / `trivia.dart` / `number_style.dart` / `daily_*.dart` を変更したら、該当ファイルで `mutation_test/run.sh <name>` を回して生き残りを確認する
 
 ## Git Hooks
 

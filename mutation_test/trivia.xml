@@ -13,7 +13,8 @@
     <regex pattern="[\s]while[\s]*\(.*?\)[\s]*{" dotAll="true"/>
     <regex pattern="[\s]for[\s]*\(.*?\)[\s]*{" dotAll="true"/>
     <!-- 等価変異: 奇数・6 未満を先に弾く高速化。外しても後続のループが false を返す -->
-    <lines begin="46" end="46"/>
+    <regex pattern="\sif \(n\.isOdd \|\| n &lt; BigInt\.from\(6\)\) return false;"/>
   </exclude>
-  <threshold failure="70"/>
+  <!-- 合否は run.sh が生き残り数で決める（ここでは判定しない） -->
+  <threshold failure="0"/>
 </mutations>

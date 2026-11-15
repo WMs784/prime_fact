@@ -13,11 +13,10 @@
     <regex pattern="[\s]while[\s]*\(.*?\)[\s]*{" dotAll="true"/>
     <regex pattern="[\s]for[\s]*\(.*?\)[\s]*{" dotAll="true"/>
     <!-- 等価変異: バッチ内の複数因数を絞り込む高速化。外すと別の c で再試行するだけで結果は同じ -->
-    <lines begin="109" end="117"/>
+    <regex pattern="\sif \(d == n\) \{.*?while \(d == BigInt\.one\);\s*\}" dotAll="true"/>
     <!-- 等価変異: 時間の区切り（>= / > / ==）の境界は実時間なので決定的にテストできない -->
-    <lines begin="244" end="244"/>
+    <regex pattern="\sif \(watch\.elapsed &gt;= slice\) \{"/>
   </exclude>
-  <!-- 無限ループでタイムアウトした変異（検出済みの扱いが正しい）もツールは未検出に数えるので、
-       他のファイルより閾値を下げている。実際の検出率は 95% 超 -->
-  <threshold failure="50"/>
+  <!-- 合否は run.sh が生き残り数で決める（ここでは判定しない） -->
+  <threshold failure="0"/>
 </mutations>

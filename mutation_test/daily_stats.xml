@@ -13,5 +13,6 @@
     <regex pattern="[\s]while[\s]*\(.*?\)[\s]*{" dotAll="true"/>
     <regex pattern="[\s]for[\s]*\(.*?\)[\s]*{" dotAll="true"/>
   </exclude>
-  <threshold failure="70"/>
+  <!-- 合否は run.sh が生き残り数で決める（ここでは判定しない） -->
+  <threshold failure="0"/>
 </mutations>
