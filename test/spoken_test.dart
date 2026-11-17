@@ -12,6 +12,8 @@ import 'package:prime_fact/main.dart';
 import 'package:prime_fact/number_style.dart';
 import 'package:prime_fact/spoken.dart';
 
+import 'helpers/localized_app.dart';
+
 void main() {
   final ja = AppLocalizationsJa();
   final en = AppLocalizationsEn();
@@ -149,10 +151,8 @@ void main() {
       tester.platformDispatcher.localesTestValue = [const Locale('ja')];
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: appLocalizationsDelegates,
-          supportedLocales: const [Locale('ja'), Locale('en')],
-          home: Scaffold(
+        localizedApp(
+          Scaffold(
             body: AppScope(
               dependencies: AppDependencies(
                 calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
@@ -186,10 +186,8 @@ void main() {
       tester.platformDispatcher.localesTestValue = [const Locale('ja')];
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: appLocalizationsDelegates,
-          supportedLocales: const [Locale('ja'), Locale('en')],
-          home: Scaffold(
+        localizedApp(
+          Scaffold(
             body: AppScope(
               dependencies: AppDependencies(
                 calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
@@ -247,10 +245,8 @@ void main() {
       tester.platformDispatcher.localesTestValue = [const Locale('en')];
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: appLocalizationsDelegates,
-          supportedLocales: const [Locale('ja'), Locale('en')],
-          home: HistoryPage(
+        localizedApp(
+          HistoryPage(
             history: [
               HistoryEntry(
                 input: '60',

@@ -1,17 +1,14 @@
 import 'dart:async';
 
-import 'package:cupertino_ui/cupertino_ui.dart'
-    show GlobalCupertinoLocalizations;
-import 'package:flutter_localizations/flutter_localizations.dart'
-    show GlobalWidgetsLocalizations;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/home_page.dart';
-import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/main.dart';
 import 'package:prime_fact/settings_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers/localized_app.dart';
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
@@ -57,21 +54,15 @@ void main() {
     expect(find.text('今日の素因数分解に挑戦する'), findsOneWidget);
   });
 
-  Widget layout(SettingsRepository repo) => MaterialApp(
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
-    supportedLocales: const [Locale('ja')],
-    home: AppScope(
+  Widget layout(SettingsRepository repo) => localizedApp(
+    AppScope(
       dependencies: AppDependencies(
         now: () => DateTime.utc(2026, 5, 1, 3),
         settingsRepository: repo,
       ),
       child: const HomePage(),
     ),
+    locale: const Locale('ja'),
   );
 
   Future<void> openDrawer(WidgetTester tester) async {

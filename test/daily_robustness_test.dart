@@ -9,11 +9,12 @@ import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/home_page.dart';
-import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/main.dart';
 import 'package:prime_fact/share.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers/localized_app.dart';
 
 final _day = DateTime.utc(2026, 10, 31, 3); // 12:00 JST
 final _puzzle = DailyPuzzle.forDate(_day);
@@ -76,12 +77,7 @@ Future<ShareResult> Function(ShareParams) _fakeShare(
   return result ?? (throw UnimplementedError());
 };
 
-Widget _app(Widget home) => MaterialApp(
-  locale: const Locale('ja'),
-  localizationsDelegates: appLocalizationsDelegates,
-  supportedLocales: AppLocalizations.supportedLocales,
-  home: home,
-);
+Widget _app(Widget home) => localizedApp(home, locale: const Locale('ja'));
 
 DailyPage _page(
   _FakeRepo repo, {
