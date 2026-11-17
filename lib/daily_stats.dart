@@ -20,13 +20,39 @@ class DailyStats {
   /// 今日がまだ未クリアでも、昨日までの連続は「続行中」として [currentStreak] に数える
   /// （今日のうちにクリアすれば続く）。
   factory compute(Map<int, DailyProgress> records, int todayKey) {
-    final clearedKeys =
-        records.entries
-            .where((e) => e.key <= todayKey && e.value.isCleared)
-            .map((e) => e.key)
-            .toList()
-          ..sort();
+    final clearedKeys = _clearedKeysUpTo(records, todayKey);
+    final (:noMiss, :bestTime) = _tally(records, clearedKeys);
+    final runEndingAt = _runLengths(clearedKeys);
 
+    // 今日がクリア済みなら今日まで、そうでなければ昨日までの連続を数える
+    final lastDay = records[todayKey]?.isCleared == true
+        ? todayKey
+        : dateKeyOfDayIndex(dayIndexOf(todayKey) - 1);
+    return DailyStats(
+      cleared: clearedKeys.length,
+      noMiss: noMiss,
+      currentStreak: runEndingAt[lastDay] ?? 0,
+      bestStreak: runEndingAt.values.fold(0, (a, b) => a > b ? a : b),
+      bestTime: bestTime,
+    );
+  }
+
+  /// [todayKey] 以前にクリアした日（昇順）。未来の日付の記録は含めない。
+  static List<int> _clearedKeysUpTo(
+    Map<int, DailyProgress> records,
+    int todayKey,
+  ) =>
+      records.entries
+          .where((e) => e.key <= todayKey && e.value.isCleared)
+          .map((e) => e.key)
+          .toList()
+        ..sort();
+
+  /// クリアした日のうち、ノーミスの日数と最速のクリアタイム。
+  static ({int noMiss, Duration? bestTime}) _tally(
+    Map<int, DailyProgress> records,
+    List<int> clearedKeys,
+  ) {
     var noMiss = 0;
     Duration? bestTime;
     for (final key in clearedKeys) {
@@ -38,31 +64,22 @@ class DailyStats {
         bestTime = t;
       }
     }
+    return (noMiss: noMiss, bestTime: bestTime);
+  }
 
-    var best = 0;
+  /// 昇順の [clearedKeys] について、各日で終わる連続クリア日数（出題日 → 日数）。
+  static Map<int, int> _runLengths(List<int> clearedKeys) {
+    final runEndingAt = <int, int>{};
     var run = 0;
     int? previous;
-    final runEndingAt = <int, int>{};
     for (final key in clearedKeys) {
       run = previous != null && dayIndexOf(key) - dayIndexOf(previous) == 1
           ? run + 1
           : 1;
       runEndingAt[key] = run;
-      if (run > best) best = run;
       previous = key;
     }
-
-    // 今日がクリア済みなら今日まで、そうでなければ昨日までの連続を数える
-    final lastDay = records[todayKey]?.isCleared == true
-        ? todayKey
-        : dateKeyOfDayIndex(dayIndexOf(todayKey) - 1);
-    return DailyStats(
-      cleared: clearedKeys.length,
-      noMiss: noMiss,
-      currentStreak: runEndingAt[lastDay] ?? 0,
-      bestStreak: best,
-      bestTime: bestTime,
-    );
+    return runEndingAt;
   }
 
   /// クリアした日数。
