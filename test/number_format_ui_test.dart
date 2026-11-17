@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/home_page.dart';
 import 'package:prime_fact/judge.dart' show CancelToken, FactorRequest;
 import 'package:prime_fact/main.dart';
@@ -21,11 +22,13 @@ void main() {
   Future<void> pump(WidgetTester tester, {List<String>? shared}) async {
     await tester.pumpWidget(
       MyApp(
-        calculator: fakeCalc,
-        share: (text, _) async {
-          shared?.add(text);
-          return ShareOutcome.sheet;
-        },
+        dependencies: AppDependencies(
+          calculator: fakeCalc,
+          share: (text, _) async {
+            shared?.add(text);
+            return ShareOutcome.sheet;
+          },
+        ),
       ),
     );
     await tester.pumpAndSettle();

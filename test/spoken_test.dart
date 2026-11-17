@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/calculator_widget.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_page.dart';
@@ -115,7 +116,11 @@ void main() {
       tester.platformDispatcher.localesTestValue = [const Locale('en')];
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
       await tester.pumpWidget(
-        MyApp(calculator: (_, _) async => '60 NP\n60=2^2x3x5'),
+        MyApp(
+          dependencies: AppDependencies(
+            calculator: (_, _) async => '60 NP\n60=2^2x3x5',
+          ),
+        ),
       );
       await tester.pump();
       await tester.enterText(find.byType(TextField), '60');
@@ -148,9 +153,11 @@ void main() {
           localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: const [Locale('ja'), Locale('en')],
           home: Scaffold(
-            body: MyWidget(
-              numberStyle: NumberStyle.apostrophe,
-              calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
+            body: AppScope(
+              dependencies: AppDependencies(
+                calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
+              ),
+              child: const MyWidget(numberStyle: NumberStyle.apostrophe),
             ),
           ),
         ),
@@ -183,9 +190,11 @@ void main() {
           localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: const [Locale('ja'), Locale('en')],
           home: Scaffold(
-            body: MyWidget(
-              numberStyle: NumberStyle.units,
-              calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
+            body: AppScope(
+              dependencies: AppDependencies(
+                calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
+              ),
+              child: const MyWidget(numberStyle: NumberStyle.units),
             ),
           ),
         ),
@@ -210,7 +219,11 @@ void main() {
       tester.platformDispatcher.localesTestValue = [const Locale('ja')];
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
       await tester.pumpWidget(
-        MyApp(calculator: (_, _) => Completer<String>().future),
+        MyApp(
+          dependencies: AppDependencies(
+            calculator: (_, _) => Completer<String>().future,
+          ),
+        ),
       );
       await tester.pump();
       await tester.enterText(find.byType(TextField), '60');

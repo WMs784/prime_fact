@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_records_page.dart';
@@ -169,7 +170,9 @@ void main() {
         20261030: _cleared(wrong: 2, millis: 65300),
         20261031: _cleared(),
       });
-      await tester.pumpWidget(MyApp(now: () => now));
+      await tester.pumpWidget(
+        MyApp(dependencies: AppDependencies(now: () => now)),
+      );
       await tester.pumpAndSettle();
       expect(find.text('🔥 3日連続'), findsOneWidget);
 
@@ -187,7 +190,9 @@ void main() {
     ) async {
       setLocale(tester, const Locale('en'));
       await seed({20261030: _cleared()});
-      await tester.pumpWidget(MyApp(now: () => now));
+      await tester.pumpWidget(
+        MyApp(dependencies: AppDependencies(now: () => now)),
+      );
       await tester.pumpAndSettle();
       expect(find.text('🔥 1-day streak'), findsOneWidget);
     });
@@ -197,7 +202,9 @@ void main() {
     ) async {
       setLocale(tester, const Locale('ja'));
       await seed({20261029: _cleared(), 20261030: _cleared()});
-      await tester.pumpWidget(MyApp(now: () => now));
+      await tester.pumpWidget(
+        MyApp(dependencies: AppDependencies(now: () => now)),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('今日の素因数分解に挑戦する'));
       await tester.pumpAndSettle();
@@ -215,7 +222,9 @@ void main() {
     ) async {
       setLocale(tester, const Locale('ja'));
       await seed({20261031: _cleared()});
-      await tester.pumpWidget(MyApp(now: () => now));
+      await tester.pumpWidget(
+        MyApp(dependencies: AppDependencies(now: () => now)),
+      );
       await tester.pumpAndSettle();
       expect(find.textContaining('日連続'), findsNothing);
     });
@@ -278,7 +287,9 @@ void main() {
         20261030: _cleared(),
         20261031: _cleared(),
       });
-      await tester.pumpWidget(MyApp(now: () => now));
+      await tester.pumpWidget(
+        MyApp(dependencies: AppDependencies(now: () => now)),
+      );
       await tester.pumpAndSettle();
       expect(find.text('🔥 3-day streak'), findsOneWidget);
       expect(tester.takeException(), isNull);

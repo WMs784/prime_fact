@@ -3,13 +3,9 @@ import 'package:cupertino_ui/cupertino_ui.dart'
 import 'package:flutter_localizations/flutter_localizations.dart'
     show GlobalWidgetsLocalizations;
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/calculator_widget.dart';
-import 'package:prime_fact/daily_repository.dart';
-import 'package:prime_fact/history_repository.dart';
+import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/home_page.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/links.dart';
-import 'package:prime_fact/share.dart';
 
 void main() => runApp(const MyApp());
 
@@ -42,51 +38,25 @@ const appLocalizationsDelegates = <LocalizationsDelegate<dynamic>>[
 ];
 
 class MyApp extends StatelessWidget {
-  const new({
-    super.key,
-    this.now = DateTime.now,
-    this.dailyRepository,
-    this.historyRepository,
-    this.calculator = defaultCalculator,
-    this.openUrl = defaultUrlOpener,
-    this.share = shareText,
-  });
+  const new({super.key, this.dependencies});
 
-  /// 「今日の素因数分解」の現在時刻。テストで差し替える。
-  final DateTime Function() now;
-
-  /// テストで差し替える。
-  final DailyRepository? dailyRepository;
-
-  /// テストで差し替える。
-  final HistoryRepository? historyRepository;
-
-  /// 計算の実行。テストで差し替える。
-  final Calculator calculator;
-
-  /// 外部リンクの開き方。テストで差し替える。
-  final UrlOpener openUrl;
-
-  /// 結果の共有の仕方。テストで差し替える。
-  final ResultSharer share;
+  /// 時計・保存先・計算・共有・URL の差し替え口。テストで差し替える。省くと本番の実装を使う。
+  final AppDependencies? dependencies;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    final app = MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.title,
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       debugShowCheckedModeBanner: false,
       localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: const [Locale('ja'), Locale('en')],
-      home: MyLayout(
-        now: now,
-        dailyRepository: dailyRepository,
-        historyRepository: historyRepository,
-        calculator: calculator,
-        openUrl: openUrl,
-        share: share,
-      ),
+      home: const MyLayout(),
     );
+    final dependencies = this.dependencies;
+    return dependencies == null
+        ? app
+        : AppScope(dependencies: dependencies, child: app);
   }
 }

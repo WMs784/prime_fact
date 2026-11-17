@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/daily_page.dart';
 import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/daily_puzzle.dart';
@@ -22,7 +23,7 @@ Future<void> _openChallenge(
   WidgetTester tester,
   DateTime Function() now,
 ) async {
-  await tester.pumpWidget(MyApp(now: now));
+  await tester.pumpWidget(MyApp(dependencies: AppDependencies(now: now)));
   await tester.pumpAndSettle();
   await tester.tap(find.text('今日の素因数分解に挑戦する'));
   await tester.pumpAndSettle();
@@ -36,7 +37,9 @@ void main() {
   ) async {
     _setLocale(tester, const Locale('ja'));
     var now = _day;
-    await tester.pumpWidget(MyApp(now: () => now));
+    await tester.pumpWidget(
+      MyApp(dependencies: AppDependencies(now: () => now)),
+    );
     await tester.pumpAndSettle();
     expect(find.text('今日の素因数分解に挑戦する'), findsOneWidget);
 
@@ -127,7 +130,11 @@ void main() {
       ),
     );
     await tester.pumpWidget(
-      MyApp(now: () => _day.add(const Duration(hours: 1))),
+      MyApp(
+        dependencies: AppDependencies(
+          now: () => _day.add(const Duration(hours: 1)),
+        ),
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.text('今日の挑戦はクリア済み'), findsOneWidget);
