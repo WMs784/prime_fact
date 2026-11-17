@@ -633,7 +633,11 @@ class _MyWidgetState extends State<MyWidget> {
                             wrapAtTimes(_displayed(loc)),
                             semanticsLabel: _result.isEmpty
                                 ? null
-                                : spokenResult(loc, _result),
+                                : spokenResult(
+                                    loc,
+                                    _result,
+                                    numberStyle: widget.numberStyle,
+                                  ),
                             key: const ValueKey('result'),
                             style: const TextStyle(fontSize: 20),
                           ),

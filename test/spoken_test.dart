@@ -56,6 +56,39 @@ void main() {
       },
     );
 
+    test('units style is read with units in Japanese only', () {
+      const units = NumberStyle.units;
+      expect(
+        spokenResult(ja, '12345は素数ではありません\n12345=3x5x823', numberStyle: units),
+        '1万2345は素数ではありません。1万2345は3かける5かける823',
+      );
+      // 底も単位つきにし、指数は整形しない
+      expect(
+        spokenResult(ja, '100000000は\n100000000=2^8x5^8', numberStyle: units),
+        '1億は。1億は2の8乗かける5の8乗',
+      );
+      expect(
+        spokenResult(ja, '20000は\n20000=10000^2x2', numberStyle: units),
+        '2万は。2万は1万の2乗かける2',
+      );
+      // 素数など因数分解の行がないときも、数は単位つきで読む
+      expect(spokenResult(ja, '10007は素数です！', numberStyle: units), '1万7は素数です！');
+      // 英語では単位つきは使わない
+      expect(
+        spokenResult(en, '12345 NP\n12345=3x5x823', numberStyle: units),
+        '12345 NP. 12345 equals 3 times 5 times 823',
+      );
+    });
+
+    test('comma and apostrophe styles are not applied to the spoken text', () {
+      for (final style in [NumberStyle.comma, NumberStyle.apostrophe]) {
+        expect(
+          spokenResult(ja, '12345は\n12345=3x5x823', numberStyle: style),
+          '12345は。12345は3かける5かける823',
+        );
+      }
+    });
+
     test('returns the text as is when there is no factorization line', () {
       expect(spokenResult(ja, '7は素数です！'), '7は素数です！');
       expect(spokenResult(ja, ''), '');
@@ -134,6 +167,37 @@ void main() {
       expect(
         tester.getSemantics(find.byKey(const ValueKey('result'))).label,
         '12345は素数ではありません。12345は3かける5かける823',
+      );
+      handle.dispose();
+    });
+
+    testWidgets('the result includes units in units style (ja)', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      tester.platformDispatcher.localesTestValue = [const Locale('ja')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: appLocalizationsDelegates,
+          supportedLocales: const [Locale('ja'), Locale('en')],
+          home: Scaffold(
+            body: MyWidget(
+              numberStyle: NumberStyle.units,
+              calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), '12345');
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        tester.getSemantics(find.byKey(const ValueKey('result'))).label,
+        '1万2345は素数ではありません。1万2345は3かける5かける823',
       );
       handle.dispose();
     });

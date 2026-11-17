@@ -43,7 +43,11 @@ class HistoryPage extends StatelessWidget {
                     .map((l) => formatForLocale(loc, l, numberStyle))
                     .toList();
                 final dateStr = dateFormat.format(entry.timestamp);
-                final spoken = spokenResult(loc, raw.join('\n'));
+                final spoken = spokenResult(
+                  loc,
+                  raw.join('\n'),
+                  numberStyle: numberStyle,
+                );
 
                 return Semantics(
                   label: '$spoken${loc.spokenLineSeparator}$dateStr',
