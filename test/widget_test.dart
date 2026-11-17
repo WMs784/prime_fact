@@ -4,11 +4,11 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/daily_page.dart' show ShareOutcome;
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_repository.dart';
 import 'package:prime_fact/judge.dart' show CancelToken, CancelledException;
 import 'package:prime_fact/main.dart';
+import 'package:prime_fact/share.dart' show ShareOutcome;
 
 void main() {
   testWidgets('App renders calculator UI', (tester) async {

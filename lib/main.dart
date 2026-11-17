@@ -6,7 +6,6 @@ import 'package:flutter_localizations/flutter_localizations.dart'
     show GlobalWidgetsLocalizations;
 import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/daily_banner.dart';
-import 'package:prime_fact/daily_page.dart' show ShareOutcome, shareText;
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_page.dart';
@@ -17,6 +16,7 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/links.dart';
 import 'package:prime_fact/number_style.dart';
 import 'package:prime_fact/settings_repository.dart';
+import 'package:prime_fact/share.dart';
 import 'package:prime_fact/spoken.dart';
 import 'package:prime_fact/trivia.dart';
 import 'package:styled_text/styled_text.dart';
@@ -518,12 +518,11 @@ class _MyWidgetState extends State<MyWidget> {
 
   Future<void> _share(BuildContext buttonContext, AppLocalizations loc) async {
     final messenger = ScaffoldMessenger.of(context);
-    final box = buttonContext.findRenderObject() as RenderBox?;
-    final origin = box == null
-        ? null
-        : box.localToGlobal(Offset.zero) & box.size;
     try {
-      final outcome = await widget.share(_displayed(loc), origin);
+      final outcome = await widget.share(
+        _displayed(loc),
+        originOf(buttonContext),
+      );
       // 共有シートがない環境ではコピーになるので、そのことを知らせる
       if (outcome == ShareOutcome.copied) {
         messenger.showSnackBar(SnackBar(content: Text(loc.copied)));

@@ -9,7 +9,7 @@ import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/daily_stats.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/links.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:prime_fact/share.dart';
 
 /// クリア済みの結果の共有文。問題の数・正解・難度はヒントになるので含めない。日付は投稿時刻で分かる。
 String dailyShareText(AppLocalizations loc, DailyProgress progress) {
@@ -21,41 +21,6 @@ String dailyShareText(AppLocalizations loc, DailyProgress progress) {
     playStoreUrl,
     webAppUrl,
   );
-}
-
-/// 共有の結果。
-enum ShareOutcome {
-  /// 共有シートを開いた（共有したか閉じたかは判別しない）。
-  sheet,
-
-  /// 共有シートを持たない環境のため、クリップボードにコピーした。
-  copied,
-}
-
-/// 共有シートで共有する。共有シートを持たない環境（プラグイン未実装）のときだけ、
-/// クリップボードにコピーして [ShareOutcome.copied] を返す。
-///
-/// `ShareResultStatus.unavailable` は「共有の成否を判別できない」という意味で、
-/// Android・Windows・Web では共有に成功しても返るので、コピーの理由にしてはいけない。
-/// それ以外の失敗は例外のまま呼び出し側に伝える。
-/// [origin] は iPad の共有ポップオーバーの基準位置。
-Future<ShareOutcome> shareText(
-  String text,
-  Rect? origin, {
-  Future<ShareResult> Function(ShareParams)? share,
-}) async {
-  try {
-    await (share ?? SharePlus.instance.share)(
-      ShareParams(text: text, sharePositionOrigin: origin),
-    );
-    return ShareOutcome.sheet;
-  } on MissingPluginException {
-    await Clipboard.setData(ClipboardData(text: text));
-    return ShareOutcome.copied;
-  } on UnimplementedError {
-    await Clipboard.setData(ClipboardData(text: text));
-    return ShareOutcome.copied;
-  }
 }
 
 /// 今日の問題に挑戦する画面。開いた時点で計時が始まる（初回のみ。以降は保存した開始時刻から続く）。
@@ -351,11 +316,7 @@ class _DailyPageState extends State<DailyPage> {
         Builder(
           builder: (buttonContext) => ElevatedButton.icon(
             onPressed: () {
-              final box = buttonContext.findRenderObject() as RenderBox?;
-              final origin = box == null
-                  ? null
-                  : box.localToGlobal(Offset.zero) & box.size;
-              _share(loc, progress, origin);
+              _share(loc, progress, originOf(buttonContext));
             },
             icon: const Icon(Icons.share),
             label: Text(loc.dailyShare),
