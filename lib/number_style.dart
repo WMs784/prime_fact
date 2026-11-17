@@ -1,4 +1,5 @@
 import 'package:prime_fact/l10n/app_localizations.dart';
+import 'package:prime_fact/language.dart';
 
 /// 結果に出てくる数の表示形式。
 enum NumberStyle {
@@ -72,9 +73,6 @@ List<String> _group(String digits, int size) {
   }
   return groups;
 }
-
-/// 現在の言語が日本語か。単位つき表示の可否など、言語による分岐はこれで判定する。
-bool isJapanese(AppLocalizations loc) => loc.localeName.startsWith('ja');
 
 /// 現在の言語に合わせて [text] の数を [style] で整形する。
 String formatForLocale(AppLocalizations loc, String text, NumberStyle style) =>
