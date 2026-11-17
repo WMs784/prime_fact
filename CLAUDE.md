@@ -83,11 +83,11 @@ git config core.hooksPath .githooks
 行カバレッジでは見えない「テストが挙動の変化を検出できるか」を `mutation_test`（dev 依存）で測る。ソースを 1 箇所ずつ書き換え（`==`→`!=`、`+`→`-` など）、対応するテストが落ちれば検出とみなす。
 
 ```bash
-mutation_test/run.sh              # judge / trivia / number_style / daily_puzzle / daily_stats を順に実行
+mutation_test/run.sh              # judge / trivia / number_style / daily_puzzle / daily_stats / spoken を順に実行
 mutation_test/run.sh trivia       # 1 ファイルだけ
 ```
 
-- 対象は UI に依存しない純粋ロジックの 5 ファイルだけ（`mutation_test/<name>.xml`。変異ごとに `flutter test test/<name>_test.dart` を走らせる）。UI を含めると 1 変異ごとの時間が桁違いに増える
+- 対象は UI に依存しない純粋ロジックの 6 ファイルだけ（`mutation_test/<name>.xml`。変異ごとに `flutter test test/<name>_test.dart` を走らせる）。UI を含めると 1 変異ごとの時間が桁違いに増える
 - 全体で約 20 分（`judge.dart` が大半）。PR ごとには回さず、`.github/workflows/mutation.yml`（master への push（`lib/` `test/` `mutation_test/` `pubspec.*` の変更時だけ）、手動）で実行する。マージのゲートではなく、マージ後の事後検知。レポートは `mutation-test-report/`（HTML）と CI のアーティファクト
 - ルールは組み込みから「数の負数化」を除いた `mutation_test/rules.xml`（Dart の `%` は常に非負なので素数リスト等で等価変異になるため）
 - 無限ループになる変異は 30 秒でタイムアウトする（テストが止めたので検出済み）。ループ条件は変異対象から外している
@@ -123,6 +123,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/daily_stats.dart` / `lib/daily_records_page.dart`**: 「今日の素因数分解」の累計成績と記録画面。`DailyRepository.loadAll()` が `daily_<yyyyMMdd>` を全部読み（破損した日は除く）、`DailyStats.compute` が連続日数（今日が未クリアなら昨日までの連続を続行中として数える）・最長連続・クリア日数・ノーミス数・ベストタイム（時計変更で 0 になった記録は除く）を求める。バナー（記録ボタンと連続日数）、挑戦画面（AppBar の記録ボタン、クリア後の連続日数）から使う
 - **`lib/settings_repository.dart`**: 表示設定（ドロワーのスイッチで「今日の素因数分解」バナーの表示/非表示を切り替え、`shared_preferences` に保存。既定は表示）
 - **`lib/number_style.dart`**: 数の表示形式（そのまま/カンマ区切り/アポストロフィ区切り/単位つき）。結果・履歴・コピー・共有の表示時に整形する（保存値は素の数字）。単位つき（万・億…）は日本語のみで、英語では選択肢を出さず `effectiveStyle` で plain 扱いにする。指数（`^` の直後）は整形しない。設定は `SettingsRepository` に保存。コピー・共有は画面に出ている形式のまま出す（入力欄は `digitsOnly` なのでカンマ付きは貼っても数字に戻るが、単位つきの「万」「億」は消えて別の数になる）。「今日の素因数分解」の画面・シェア文は対象外（n が小さく効果が薄いため）
+- **`lib/spoken.dart`**: スクリーンリーダー向けの読み上げ文。結果の `^` `x` `=` を「60は2の2乗かける3かける5」のように言葉にする（ARB の `spoken*`）。結果の `Text.semanticsLabel`（`liveRegion` で計算完了も読み上げる）、計算中のインジケーター、履歴の各行に使う。数の整形は適用せず素の数字のまま読ませる。表示用の文字列（折り返し用の不可視文字を含む）は変えない。`semanticsLabel` を付けた `Text` は `Semantics` で包まれるので、テストで段落を取るときは `find.descendant(of: ..., matching: find.byType(RichText))` を使う
 - **`lib/links.dart`**: 外部リンク（プライバシーポリシー、Play ストア、Web アプリなど）の定数。ドロワーとシェア文で共有する
 - **`lib/l10n/`**: Internationalization files for Japanese and English support
 
@@ -196,6 +197,7 @@ The app supports Japanese and English:
 - `test/daily_robustness_test.dart`: load/save failures, share fallback rules, stale reloads, double submit, Enter key, share errors, banner at JST midnight, short screen with keyboard
 - `test/number_style_test.dart`: 各形式の整形、指数の除外、英語での単位つき無効化、設定の保存
 - `test/number_format_ui_test.dart`: ドロワーからの形式選択（カンマ・アポストロフィ・単位つき）、結果・共有・履歴への反映、英語で単位つきが出ないこと、クリアボタン（有効条件: 入力/結果/エラーのいずれか、入力と結果の消去、日本語ラベル）
+- `test/spoken_test.dart`: 読み上げ文（ja/en、べき乗、30 桁、想定外の形式はそのまま）、結果の読み上げラベルと liveRegion、整形形式に依存しないこと、計算中ラベル、履歴の行
 - `test/settings_test.dart`: daily banner toggle in the drawer and its persistence
 - `test/widget_test.dart`: calculator UI, input validation errors, localized results, history save races (injected `HistoryRepository`), failed and cancelled calculation (injected `Calculator`), drawer links (injected `UrlOpener`), wrapped result (line breaks only before `x`), copy/share buttons, fixed input position
 - Add tests alongside any change to `judge.dart` or the history format

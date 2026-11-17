@@ -130,5 +130,24 @@
   "dailyRecordsEmpty": "No records yet",
   "dailyRecordsLoadFailed": "Couldn't load your records",
   "dailyRecordInProgress": "In progress",
-  "dailyRecordUnfinished": "Not cleared"
+  "dailyRecordUnfinished": "Not cleared",
+  "calculating": "Calculating",
+  "spokenTimes": " times ",
+  "spokenPower": "{base} to the power of {exponent}",
+  "@spokenPower": {
+    "description": "Screen reader text for base^exponent",
+    "placeholders": {
+      "base": {"type": "String"},
+      "exponent": {"type": "String"}
+    }
+  },
+  "spokenFactorization": "{number} equals {factors}",
+  "@spokenFactorization": {
+    "description": "Screen reader text for the factorization line, e.g. 60 equals 2 squared times 3 times 5",
+    "placeholders": {
+      "number": {"type": "String"},
+      "factors": {"type": "String"}
+    }
+  },
+  "spokenLineSeparator": ". "
 }
