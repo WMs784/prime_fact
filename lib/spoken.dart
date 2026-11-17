@@ -43,7 +43,7 @@ String spokenResult(
   }
   final factorization = loc.spokenFactorization(
     digits(lines[1].substring(0, eq)),
-    parts.join(loc.spokenTimes),
+    parts.reduce(loc.spokenTimes),
   );
   return '${text(lines[0])}${loc.spokenLineSeparator}$factorization';
 }

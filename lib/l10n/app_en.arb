@@ -132,7 +132,14 @@
   "dailyRecordInProgress": "In progress",
   "dailyRecordUnfinished": "Not cleared",
   "calculating": "Calculating",
-  "spokenTimes": " times ",
+  "spokenTimes": "{left} times {right}",
+  "@spokenTimes": {
+    "description": "Screen reader text for a product of two factors",
+    "placeholders": {
+      "left": {"type": "String"},
+      "right": {"type": "String"}
+    }
+  },
   "spokenPower": "{base} to the power of {exponent}",
   "@spokenPower": {
     "description": "Screen reader text for base^exponent",

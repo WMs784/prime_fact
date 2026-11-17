@@ -71,7 +71,7 @@
   "dailyRecordInProgress": "挑戦中",
   "dailyRecordUnfinished": "未クリア",
   "calculating": "計算中",
-  "spokenTimes": "かける",
+  "spokenTimes": "{left}かける{right}",
   "spokenPower": "{base}の{exponent}乗",
   "spokenFactorization": "{number}は{factors}",
   "spokenLineSeparator": "。"
