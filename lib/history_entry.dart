@@ -14,6 +14,9 @@ class HistoryEntry {
   );
 
   /// 旧形式（`result` に表示文字列を保存）も読み込める。
+  ///
+  /// 旧形式は、保存し直すたびに新形式（`factors`）へ置き換わる。履歴がすべて新形式になる
+  /// 見込みが立ったら、この分岐と `test/history_test.dart` の旧形式のテストごと消してよい。
   factory fromJson(Map<String, dynamic> json) => HistoryEntry(
     input: json['input'].toString(),
     factors: json.containsKey('result')

@@ -310,6 +310,7 @@ class _DailyPageState extends State<DailyPage> {
   }
 
   Widget _result(AppLocalizations loc, DailyProgress progress) {
+    final streak = _streak;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -336,11 +337,11 @@ class _DailyPageState extends State<DailyPage> {
         AnimatedSize(
           duration: const Duration(milliseconds: 200),
           alignment: Alignment.topCenter,
-          child: (_streak ?? 0) >= 2
+          child: streak != null && streak >= 2
               ? Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                    loc.dailyStreak(_streak!),
+                    loc.dailyStreak(streak),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
