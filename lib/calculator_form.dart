@@ -40,12 +40,30 @@ class CalculatorForm extends StatefulWidget {
   State<CalculatorForm> createState() => _CalculatorFormState();
 }
 
+/// 結果欄の内容。
+sealed class _Output {
+  const new(this.text);
+
+  /// 整形前の文字列。
+  final String text;
+}
+
+/// 計算に成功した結果。コピー・共有の対象になる。
+class _Calculated extends _Output {
+  const new(super.text);
+}
+
+/// 計算に失敗したときの文言。コピー・共有の対象にしない。
+class _CalcFailed extends _Output {
+  const new(super.text);
+}
+
 class _CalculatorFormState extends State<CalculatorForm> {
   final _controller = TextEditingController();
   bool _isLoading = false;
-  String _result = '';
-  // 計算に成功した結果だけコピー・共有の対象にする（エラー文言は対象外）
-  bool _resultShareable = false;
+
+  /// 結果欄の内容。null は何も表示しない。
+  _Output? _output;
   String? _errorText;
   CancelToken? _cancel;
 
@@ -61,8 +79,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
     _controller.clear();
     setState(() {
       _errorText = null;
-      _result = '';
-      _resultShareable = false;
+      _output = null;
     });
   }
 
@@ -80,8 +97,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
     final inputNumber = _validate(loc);
     if (inputNumber == null) {
       setState(() {
-        _result = '';
-        _resultShareable = false;
+        _output = null;
       });
       return;
     }
@@ -114,8 +130,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
       return;
     }
     setState(() {
-      _result = result ?? failedText;
-      _resultShareable = result != null;
+      _output = result == null ? _CalcFailed(failedText) : _Calculated(result);
       _isLoading = false;
     });
     if (result == null) return;
@@ -151,11 +166,12 @@ class _CalculatorFormState extends State<CalculatorForm> {
 
   /// 表示・コピー・共有に使う、形式を適用した結果。
   String _displayed(AppLocalizations loc) =>
-      formatForLocale(loc, _result, widget.numberStyle);
+      formatForLocale(loc, _output?.text ?? '', widget.numberStyle);
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final output = _output;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
@@ -198,7 +214,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
                   onPressed:
                       !_isLoading &&
                           (value.text.isNotEmpty ||
-                              _result.isNotEmpty ||
+                              _output != null ||
                               _errorText != null)
                       ? _clear
                       : null,
@@ -247,11 +263,11 @@ class _CalculatorFormState extends State<CalculatorForm> {
                           liveRegion: true,
                           child: Text(
                             wrapAtTimes(_displayed(loc)),
-                            semanticsLabel: _result.isEmpty
+                            semanticsLabel: output == null
                                 ? null
                                 : spokenResult(
                                     loc,
-                                    _result,
+                                    output.text,
                                     numberStyle: widget.numberStyle,
                                   ),
                             key: const ValueKey('result'),
@@ -259,7 +275,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
                           ),
                         ),
                       ),
-                      if (_resultShareable)
+                      if (output is _Calculated)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
