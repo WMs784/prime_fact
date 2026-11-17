@@ -210,13 +210,10 @@ class _DailyPageState extends State<DailyPage> {
           IconButton(
             icon: const Icon(Icons.bar_chart),
             tooltip: loc.dailyRecords,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => DailyRecordsPage(
-                  repository: widget.repository,
-                  now: widget.now,
-                ),
-              ),
+            onPressed: () => DailyRecordsPage.open(
+              context,
+              repository: widget.repository,
+              now: widget.now,
             ),
           ),
         ],

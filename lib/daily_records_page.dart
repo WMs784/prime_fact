@@ -11,6 +11,17 @@ class DailyRecordsPage extends StatefulWidget {
   final DailyRepository repository;
   final DateTime Function() now;
 
+  /// 記録画面を開く。バナーと挑戦画面の記録ボタンが同じ開き方をするための入口。
+  static Future<void> open(
+    BuildContext context, {
+    required DailyRepository repository,
+    required DateTime Function() now,
+  }) => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => DailyRecordsPage(repository: repository, now: now),
+    ),
+  );
+
   @override
   State<DailyRecordsPage> createState() => _DailyRecordsPageState();
 }
