@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mutations version="1.2">
+  <files>
+    <file>lib/daily_puzzle.dart</file>
+  </files>
+  <commands>
+    <!-- 通常は数秒で終わる。変異で無限ループになった場合はタイムアウト=検出扱い -->
+    <command group="test" expected-return="0" timeout="30">flutter test test/daily_puzzle_test.dart</command>
+  </commands>
+  <exclude>
+    <token begin="//" end="\n"/>
+    <regex pattern="/[*].*?[*]/" dotAll="true"/>
+    <regex pattern="[\s]while[\s]*\(.*?\)[\s]*{" dotAll="true"/>
+    <regex pattern="[\s]for[\s]*\(.*?\)[\s]*{" dotAll="true"/>
+    <!-- 等価変異: roll < 100 で重みの合計は 100 なので到達しないフォールバック -->
+    <regex pattern="var tier = _tiers\.length - 1;"/>
+  </exclude>
+  <!-- 合否は run.sh が生き残り数で決める（ここでは判定しない） -->
+  <threshold failure="0"/>
+</mutations>

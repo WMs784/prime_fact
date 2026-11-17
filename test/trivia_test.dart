@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prime_fact/l10n/app_localizations_ja.dart';
 import 'package:prime_fact/trivia.dart';
 
 Trivia? t(String n) => triviaFor(BigInt.parse(n));
@@ -62,5 +63,19 @@ void main() {
     for (final n in ['0', '1', '4', '9', '100', '37']) {
       expect(t(n), isNull, reason: n);
     }
+  });
+
+  test('headerFor falls back to the plain primality header', () {
+    final loc = AppLocalizationsJa();
+    String h(String n) => headerFor(loc, BigInt.parse(n));
+    // トリビアのない素数・合成数・0/1
+    expect(h('79'), loc.isPrime);
+    expect(h('15'), loc.isNotPrime);
+    expect(h('21'), loc.isNotPrime);
+    expect(h('1'), loc.isNotPrime);
+    expect(h('0'), loc.isNotPrime);
+    // トリビアがあるときはそちらが優先される
+    expect(h('6'), isNot(loc.isNotPrime));
+    expect(h('6'), isNot(loc.isPrime));
   });
 }

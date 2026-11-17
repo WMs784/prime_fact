@@ -158,6 +158,20 @@ void main() {
       }
     });
 
+    test('isProbablePrime agrees with trial division below 3000', () {
+      bool naive(int n) {
+        if (n < 2) return false;
+        for (var d = 2; d * d <= n; d++) {
+          if (n % d == 0) return false;
+        }
+        return true;
+      }
+
+      for (var n = 0; n < 3000; n++) {
+        expect(isProbablePrime(BigInt.from(n)), naive(n), reason: 'n=$n');
+      }
+    });
+
     test('large primes', () {
       for (final p in [
         '1000000007',

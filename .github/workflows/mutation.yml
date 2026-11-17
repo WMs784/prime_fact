@@ -1,0 +1,55 @@
+name: Mutation Test
+
+# 時間がかかる（約 20 分、judge.dart が大半）ので、PR ごとには回さない。
+#   - master への push: マージ直後に、テストが弱くなったことに気づく（ゲートではなく事後検知）。
+#     ロジックとテストに関係する変更だけを対象にする
+#   - 手動実行
+# Flutter と mutation_test のバージョンは固定（pubspec.lock）で、更新は pubspec の変更として
+# push で検知できるので、定期実行はしない。
+on:
+  push:
+    branches: [master]
+    paths:
+      - "lib/**"
+      - "test/**"
+      - "mutation_test/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/mutation.yml"
+  workflow_dispatch:
+
+# 連続でマージしたとき、古い実行を止めて最新だけ回す
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: Mutation test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: "3.50.0"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 生き残った変異が mutation_test/run.sh の基準値を超えると失敗する
+      - name: Run mutation tests
+        run: mutation_test/run.sh
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-test-report
+          path: mutation-test-report/
