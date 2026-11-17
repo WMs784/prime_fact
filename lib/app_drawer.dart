@@ -11,7 +11,7 @@ import 'package:styled_text/styled_text.dart';
 final Color _drawerHeaderColor = Colors.teal.shade700;
 
 /// ホームのドロワー（履歴・設定・アプリ情報）。状態は持たず、設定の変更は呼び出し側に任せる。
-class MyDrawer extends StatelessWidget {
+class AppDrawer extends StatelessWidget {
   const new({
     required this.history,
     required this.showDaily,

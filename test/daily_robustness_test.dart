@@ -273,7 +273,7 @@ void main() {
 
   group('banner', () {
     testWidgets('does not flash the start label while loading', (tester) async {
-      await tester.pumpWidget(_app(const Scaffold(body: MyLayout())));
+      await tester.pumpWidget(_app(const Scaffold(body: HomePage())));
       // 読み込み完了前
       expect(find.text('今日の素因数分解に挑戦する'), findsNothing);
       await tester.pumpAndSettle();
@@ -292,7 +292,7 @@ void main() {
       );
       var now = _day;
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.text('今日の挑戦はクリア済み'), findsOneWidget);
@@ -318,7 +318,7 @@ void main() {
     );
     var now = _day;
     await tester.pumpWidget(
-      MyApp(dependencies: AppDependencies(now: () => now)),
+      PrimeFactApp(dependencies: AppDependencies(now: () => now)),
     );
     await tester.pumpAndSettle();
     expect(find.text('今日の挑戦はクリア済み'), findsOneWidget);
@@ -344,7 +344,7 @@ void main() {
     );
     var now = _day;
     await tester.pumpWidget(
-      MyApp(dependencies: AppDependencies(now: () => now)),
+      PrimeFactApp(dependencies: AppDependencies(now: () => now)),
     );
     await tester.pumpAndSettle();
 
@@ -361,7 +361,7 @@ void main() {
   ) async {
     final repo = _NeverLoadRepo();
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(now: () => _day, dailyRepository: repo),
       ),
     );
@@ -376,7 +376,7 @@ void main() {
     addTearDown(tester.platformDispatcher.clearLocalesTestValue);
     final repo = _SlowFirstLoadRepo();
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(now: () => _day, dailyRepository: repo),
       ),
     );
@@ -422,7 +422,7 @@ void main() {
     tester.view.viewInsets = const FakeViewPadding(bottom: 220);
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const PrimeFactApp());
     await tester.pumpAndSettle();
     // レイアウトのオーバーフローは例外としてテストを失敗させる
     expect(tester.takeException(), isNull);

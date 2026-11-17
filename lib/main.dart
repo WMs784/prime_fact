@@ -7,7 +7,7 @@ import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/home_page.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
-void main() => runApp(const MyApp());
+void main() => runApp(const PrimeFactApp());
 
 ThemeData _buildTheme(Brightness brightness) {
   final dark = brightness == Brightness.dark;
@@ -37,7 +37,7 @@ const appLocalizationsDelegates = <LocalizationsDelegate<dynamic>>[
   GlobalCupertinoLocalizations.delegate,
 ];
 
-class MyApp extends StatelessWidget {
+class PrimeFactApp extends StatelessWidget {
   const new({super.key, this.dependencies});
 
   /// 時計・保存先・計算・共有・URL の差し替え口。テストで差し替える。省くと本番の実装を使う。
@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: const [Locale('ja'), Locale('en')],
-      home: const MyLayout(),
+      home: const HomePage(),
     );
     final dependencies = this.dependencies;
     return dependencies == null

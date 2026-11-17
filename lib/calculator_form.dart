@@ -27,7 +27,7 @@ String wrapAtTimes(String result) {
           );
 }
 
-class MyWidget extends StatefulWidget {
+class CalculatorForm extends StatefulWidget {
   const new({
     super.key,
     this.numberStyle = NumberStyle.plain,
@@ -37,10 +37,10 @@ class MyWidget extends StatefulWidget {
   final NumberStyle numberStyle;
 
   @override
-  State<MyWidget> createState() => _MyWidgetState();
+  State<CalculatorForm> createState() => _CalculatorFormState();
 }
 
-class _MyWidgetState extends State<MyWidget> {
+class _CalculatorFormState extends State<CalculatorForm> {
   final _controller = TextEditingController();
   bool _isLoading = false;
   String _result = '';
