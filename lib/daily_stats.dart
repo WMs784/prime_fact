@@ -1,5 +1,6 @@
 import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/daily_repository.dart';
+import 'package:prime_fact/date_key.dart';
 
 /// 「今日の素因数分解」の累計成績。出題日（JST の `yyyyMMdd`）ごとの記録から求める。
 class DailyStats {
@@ -43,7 +44,7 @@ class DailyStats {
     int? previous;
     final runEndingAt = <int, int>{};
     for (final key in clearedKeys) {
-      run = previous != null && _dayIndex(key) - _dayIndex(previous) == 1
+      run = previous != null && dayIndexOf(key) - dayIndexOf(previous) == 1
           ? run + 1
           : 1;
       runEndingAt[key] = run;
@@ -54,7 +55,7 @@ class DailyStats {
     // 今日がクリア済みなら今日まで、そうでなければ昨日までの連続を数える
     final lastDay = records[todayKey]?.isCleared == true
         ? todayKey
-        : _keyOf(_dayIndex(todayKey) - 1);
+        : dateKeyOfDayIndex(dayIndexOf(todayKey) - 1);
     return DailyStats(
       cleared: clearedKeys.length,
       noMiss: noMiss,
@@ -78,18 +79,6 @@ class DailyStats {
 
   /// 最速のクリアタイム。クリア記録がない、または時計の変更で 0 になった記録しかなければ null。
   final Duration? bestTime;
-}
-
-/// `yyyyMMdd` を、連続判定用の通し日数（UTC の 1970-01-01 からの日数）にする。
-int _dayIndex(int dateKey) => DateTime.utc(
-  dateKey ~/ 10000,
-  dateKey ~/ 100 % 100,
-  dateKey % 100,
-).difference(DateTime.utc(1970)).inDays;
-
-int _keyOf(int dayIndex) {
-  final d = DateTime.utc(1970).add(Duration(days: dayIndex));
-  return d.year * 10000 + d.month * 100 + d.day;
 }
 
 /// バナーと挑戦画面が付加情報として出す累計を読む。読めなければ null（表示を省くだけにする）。

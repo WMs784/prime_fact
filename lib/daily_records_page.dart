@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/daily_progress.dart';
-import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/daily_stats.dart';
+import 'package:prime_fact/date_key.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
 /// 「今日の素因数分解」の記録画面。連続日数などの累計と、日ごとの結果を出す。
