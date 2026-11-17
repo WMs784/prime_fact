@@ -3,8 +3,9 @@ name: Mutation Test
 # 時間がかかる（約 20 分、judge.dart が大半）ので、PR ごとには回さない。
 #   - master への push: マージ直後に、テストが弱くなったことに気づく（ゲートではなく事後検知）。
 #     ロジックとテストに関係する変更だけを対象にする
-#   - 毎週月曜 03:00 JST: Flutter や mutation_test のバージョン更新で壊れたことの検知
 #   - 手動実行
+# Flutter と mutation_test のバージョンは固定（pubspec.lock）で、更新は pubspec の変更として
+# push で検知できるので、定期実行はしない。
 on:
   push:
     branches: [master]
@@ -15,8 +16,6 @@ on:
       - "pubspec.yaml"
       - "pubspec.lock"
       - ".github/workflows/mutation.yml"
-  schedule:
-    - cron: "0 18 * * 0" # 日曜 18:00 UTC = 月曜 03:00 JST
   workflow_dispatch:
 
 # 連続でマージしたとき、古い実行を止めて最新だけ回す
