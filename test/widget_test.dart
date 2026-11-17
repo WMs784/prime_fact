@@ -374,8 +374,12 @@ void main() {
         await tester.pump();
         await tester.pump();
 
+        // semanticsLabel を付けた Text は Semantics で包まれるので、中の段落を探す
         final p = tester.renderObject<RenderParagraph>(
-          find.byKey(const ValueKey('result')),
+          find.descendant(
+            of: find.byKey(const ValueKey('result')),
+            matching: find.byType(RichText),
+          ),
         );
         final text = p.text.toPlainText();
         final factorLine = text.indexOf('\n') + 1;

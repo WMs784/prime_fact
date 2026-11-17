@@ -17,6 +17,7 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/links.dart';
 import 'package:prime_fact/number_style.dart';
 import 'package:prime_fact/settings_repository.dart';
+import 'package:prime_fact/spoken.dart';
 import 'package:prime_fact/trivia.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -609,7 +610,9 @@ class _MyWidgetState extends State<MyWidget> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const CircularProgressIndicator(),
+                        CircularProgressIndicator(
+                          semanticsLabel: loc.calculating,
+                        ),
                         TextButton(
                           onPressed: () => _cancel?.cancel(),
                           child: Text(loc.cancelCalculation),
@@ -622,10 +625,22 @@ class _MyWidgetState extends State<MyWidget> {
                       SizedBox(
                         width: double.infinity,
                         // 長い因数分解は折り返して表示する。コピーはボタンから（選択コピーだと折り返し用の不可視文字が混ざるため）
-                        child: Text(
-                          wrapAtTimes(_displayed(loc)),
-                          key: const ValueKey('result'),
-                          style: const TextStyle(fontSize: 20),
+                        // 結果が出たらスクリーンリーダーが読み上げる。読み上げ用の文は
+                        // 記号（^ x）や折り返し用の不可視文字を含まない形にする
+                        child: Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            wrapAtTimes(_displayed(loc)),
+                            semanticsLabel: _result.isEmpty
+                                ? null
+                                : spokenResult(
+                                    loc,
+                                    _result,
+                                    numberStyle: widget.numberStyle,
+                                  ),
+                            key: const ValueKey('result'),
+                            style: const TextStyle(fontSize: 20),
+                          ),
                         ),
                       ),
                       if (_resultShareable)

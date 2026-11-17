@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/number_style.dart';
+import 'package:prime_fact/spoken.dart';
 import 'package:prime_fact/trivia.dart';
 
 /// 保存データから、現在の言語で結果の表示行を組み立てる。
@@ -37,29 +38,38 @@ class HistoryPage extends StatelessWidget {
               itemCount: reversed.length,
               itemBuilder: (context, index) {
                 final entry = reversed[index];
-                final lines = _describe(
-                  loc,
-                  entry,
-                ).map((l) => formatForLocale(loc, l, numberStyle)).toList();
+                final raw = _describe(loc, entry);
+                final lines = raw
+                    .map((l) => formatForLocale(loc, l, numberStyle))
+                    .toList();
                 final dateStr = dateFormat.format(entry.timestamp);
+                final spoken = spokenResult(
+                  loc,
+                  raw.join('\n'),
+                  numberStyle: numberStyle,
+                );
 
-                return ListTile(
-                  title: Text(lines[0]),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (lines.length > 1) Text(lines[1]),
-                      Text(
-                        dateStr,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Theme.of(context).colorScheme.onSurface
-                              .withValues(alpha: 0.5),
+                return Semantics(
+                  label: '$spoken${loc.spokenLineSeparator}$dateStr',
+                  excludeSemantics: true,
+                  child: ListTile(
+                    title: Text(lines[0]),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (lines.length > 1) Text(lines[1]),
+                        Text(
+                          dateStr,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurface
+                                .withValues(alpha: 0.5),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    isThreeLine: lines.length > 1,
                   ),
-                  isThreeLine: lines.length > 1,
                 );
               },
             ),
