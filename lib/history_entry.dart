@@ -2,7 +2,7 @@
 class HistoryEntry {
   new({required this.input, required this.timestamp, this.factors});
 
-  /// `pri_fact_isolate` の結果文字列（`"12 is not prime\n12=2^2x3"`）から作る。
+  /// `factorizeSync` の結果文字列（`"12 is not prime\n12=2^2x3"`）から作る。
   factory fromResult({
     required String input,
     required String result,
