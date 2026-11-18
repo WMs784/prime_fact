@@ -112,15 +112,6 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
     await _reload();
   }
 
-  Future<void> _openRecords() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) =>
-            DailyRecordsPage(repository: widget.repository, now: widget.now),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -181,7 +172,13 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
             IconButton(
               icon: Icon(Icons.bar_chart, color: colors.onPrimaryContainer),
               tooltip: loc.dailyRecords,
-              onPressed: loaded ? _openRecords : null,
+              onPressed: loaded
+                  ? () => DailyRecordsPage.open(
+                      context,
+                      repository: widget.repository,
+                      now: widget.now,
+                    )
+                  : null,
             ),
             Icon(Icons.chevron_right, color: colors.onPrimaryContainer),
           ],
