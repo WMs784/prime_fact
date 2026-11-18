@@ -24,6 +24,7 @@ class DailyProgress {
     return d.isNegative ? Duration.zero : d;
   }
 
+  /// 引数を省いた項目は元の値のまま。`clearedAt` を null に戻すことはできない（クリアは取り消さない）。
   DailyProgress copyWith({int? wrong, DateTime? clearedAt}) => DailyProgress(
     startedAt: startedAt,
     wrong: wrong ?? this.wrong,
