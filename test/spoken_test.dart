@@ -10,6 +10,7 @@ import 'package:prime_fact/l10n/app_localizations_en.dart';
 import 'package:prime_fact/l10n/app_localizations_ja.dart';
 import 'package:prime_fact/main.dart';
 import 'package:prime_fact/number_style.dart';
+import 'package:prime_fact/share.dart';
 import 'package:prime_fact/spoken.dart';
 
 import 'helpers/localized_app.dart';
@@ -153,11 +154,10 @@ void main() {
       await tester.pumpWidget(
         localizedApp(
           Scaffold(
-            body: AppScope(
-              dependencies: AppDependencies(
-                calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
-              ),
-              child: const CalculatorForm(numberStyle: NumberStyle.apostrophe),
+            body: CalculatorForm(
+              calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
+              share: (_, _) async => ShareOutcome.sheet,
+              numberStyle: NumberStyle.apostrophe,
             ),
           ),
         ),
@@ -188,11 +188,10 @@ void main() {
       await tester.pumpWidget(
         localizedApp(
           Scaffold(
-            body: AppScope(
-              dependencies: AppDependencies(
-                calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
-              ),
-              child: const CalculatorForm(numberStyle: NumberStyle.units),
+            body: CalculatorForm(
+              calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
+              share: (_, _) async => ShareOutcome.sheet,
+              numberStyle: NumberStyle.units,
             ),
           ),
         ),

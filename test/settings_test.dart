@@ -55,12 +55,11 @@ void main() {
   });
 
   Widget layout(SettingsRepository repo) => localizedApp(
-    AppScope(
+    HomePage(
       dependencies: AppDependencies(
         now: () => DateTime.utc(2026, 5, 1, 3),
         settingsRepository: repo,
       ),
-      child: const HomePage(),
     ),
     locale: const Locale('ja'),
   );

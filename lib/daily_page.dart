@@ -32,13 +32,13 @@ class DailyPage extends StatefulWidget {
     required this.puzzle,
     required this.repository,
     required this.now,
+    required this.onShare,
     super.key,
-    this.onShare = shareText,
   });
   final DailyPuzzle puzzle;
   final DailyRepository repository;
   final DateTime Function() now;
-  final Future<ShareOutcome> Function(String text, Rect? origin) onShare;
+  final ResultSharer onShare;
 
   @override
   State<DailyPage> createState() => _DailyPageState();
