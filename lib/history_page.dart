@@ -14,7 +14,7 @@ List<String> _describe(AppLocalizations loc, HistoryEntry entry) {
   return factors == null ? [header] : [header, '${entry.input}=$factors'];
 }
 
-class HistoryPage extends StatelessWidget {
+class HistoryPage extends StatefulWidget {
   const new({
     required this.history,
     super.key,
@@ -25,9 +25,28 @@ class HistoryPage extends StatelessWidget {
   final NumberStyle numberStyle;
 
   @override
+  State<HistoryPage> createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  /// 新しい順。
+  late final List<HistoryEntry> _reversed = widget.history.reversed.toList();
+
+  /// 行ごとの表示文（整形前）。見出しの導出は素数判定を伴い、30 桁では重いので、
+  /// スクロールで再び表示されるたびに計算し直さないよう、初めて表示したときに覚える。
+  final _described = <int, List<String>>{};
+  String? _describedLocale;
+
+  @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final reversed = history.reversed.toList();
+    final numberStyle = widget.numberStyle;
+    final reversed = _reversed;
+    // 言語が変わったら文言が変わるので、覚えた表示文は捨てる
+    if (_describedLocale != loc.localeName) {
+      _described.clear();
+      _describedLocale = loc.localeName;
+    }
     final dateFormat = DateFormat.yMd(loc.localeName).add_Hm();
 
     return Scaffold(
@@ -38,7 +57,7 @@ class HistoryPage extends StatelessWidget {
               itemCount: reversed.length,
               itemBuilder: (context, index) {
                 final entry = reversed[index];
-                final raw = _describe(loc, entry);
+                final raw = _described[index] ??= _describe(loc, entry);
                 final lines = raw
                     .map((l) => formatForLocale(loc, l, numberStyle))
                     .toList();

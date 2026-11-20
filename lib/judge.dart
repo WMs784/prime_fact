@@ -33,7 +33,8 @@ const _witnesses = [
   71,
 ];
 
-bool _isPrime(BigInt n) {
+/// 素数判定（Miller-Rabin）。
+bool isProbablePrime(BigInt n) {
   if (n < BigInt.two) return false;
   if (n == BigInt.two) return true;
   if (n.isEven) return false;
@@ -63,17 +64,21 @@ bool _isPrime(BigInt n) {
   return true;
 }
 
-/// 素数判定（`_isPrime` の公開版）。
-bool isProbablePrime(BigInt n) => _isPrime(n);
-
-/// `sync*` の途中経過から値を受け取るための入れ物。
+/// `sync*` は値を返せない（`yield` は制御を返すためのもの）ので、結果の受け渡しに使う入れ物。
+/// 呼び出し側が `_Box` を渡し、`sync*` 関数が `value` に結果を書き込む。
 class _Box<T> {
   new(this.value);
   T value;
 }
 
+/// 小さい素因数は、まず試し割りで取り除く（この値以下の素数）。
+const _trialDivisionLimit = 1000;
+
+/// `_pollardBrent` の内側のループが `yield` する間隔（`i & mask == mask`）。
+const _yieldMask = 1023;
+
 // 以下の因数分解は、一定の計算ごとに `yield` して呼び出し側へ制御を返せる形（Iterable）で書く。
-// 同期で最後まで回せば `pri_fact_isolate`、時間で区切って UI に制御を返しながら回せば
+// 同期で最後まで回せば `factorizeSync`、時間で区切って UI に制御を返しながら回せば
 // `factorizeAsync`（Web には Isolate がないので、重い計算で画面が固まらないようにするため）。
 
 // Brent's improvement of Pollard's rho with batch GCD (m=128)
@@ -90,7 +95,7 @@ Iterable<void> _pollardBrent(BigInt n, BigInt c, _Box<BigInt> out) sync* {
     x = y;
     for (var i = 0; i < r; i++) {
       y = (y * y + c) % n;
-      if (i & 1023 == 1023) yield null;
+      if (i & _yieldMask == _yieldMask) yield null;
     }
     var k = 0;
     while (k < r && d == BigInt.one) {
@@ -137,7 +142,7 @@ Iterable<void> _factorHelper(BigInt n, Map<BigInt, int> factors) sync* {
   if (n == BigInt.one) return;
 
   // Trial division up to 1000 for small prime factors
-  for (var p = 2; p <= 1000; p += p == 2 ? 1 : 2) {
+  for (var p = 2; p <= _trialDivisionLimit; p += p == 2 ? 1 : 2) {
     final pBig = BigInt.from(p);
     while (n % pBig == BigInt.zero) {
       factors.update(pBig, (v) => v + 1, ifAbsent: () => 1);
@@ -146,7 +151,7 @@ Iterable<void> _factorHelper(BigInt n, Map<BigInt, int> factors) sync* {
     if (n == BigInt.one) return;
   }
 
-  if (_isPrime(n)) {
+  if (isProbablePrime(n)) {
     factors.update(n, (v) => v + 1, ifAbsent: () => 1);
     return;
   }
@@ -157,7 +162,7 @@ Iterable<void> _factorHelper(BigInt n, Map<BigInt, int> factors) sync* {
   yield* _factorHelper(n ~/ f.value, factors);
 }
 
-/// `pri_fact_isolate` への入力（isolate に渡せるよう record にしている）。
+/// `factorizeSync` への入力（isolate に渡せるよう record にしている）。
 ///
 /// [special] は、素数/合成数の見出しを差し替える（完全数や 57 など）。因数分解の結果はそのまま出す。
 typedef FactorRequest = ({
@@ -178,7 +183,7 @@ Iterable<void> _factorize(FactorRequest request, _Box<String> out) sync* {
     out.value = nStr + isNotPrime;
     return;
   }
-  if (_isPrime(n)) {
+  if (isProbablePrime(n)) {
     out.value = nStr + (special ?? isPrime);
     return;
   }
@@ -199,8 +204,7 @@ Iterable<void> _factorize(FactorRequest request, _Box<String> out) sync* {
 }
 
 /// 最後まで同期で計算する。isolate（`compute`）に渡せるトップレベル関数。
-// ignore: non_constant_identifier_names
-String pri_fact_isolate(FactorRequest request) {
+String factorizeSync(FactorRequest request) {
   final out = _Box('');
   for (final _ in _factorize(request, out)) {}
   return out.value;
@@ -226,7 +230,7 @@ class CancelledException implements Exception {
   String toString() => 'CancelledException';
 }
 
-/// `pri_fact_isolate` と同じ結果を、[slice] ごとに UI へ制御を返しながら計算する。
+/// `factorizeSync` と同じ結果を、[slice] ごとに UI へ制御を返しながら計算する。
 ///
 /// Web には Isolate がなく `compute` がメインスレッドで動くので、重い数で画面が固まる。
 /// こちらは区切りのたびにイベントループへ戻るので、描画も入力も止まらず、

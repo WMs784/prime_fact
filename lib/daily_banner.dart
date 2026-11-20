@@ -7,6 +7,7 @@ import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_records_page.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/daily_stats.dart';
+import 'package:prime_fact/date_key.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
 /// ホーム画面の「今日の素因数分解に挑戦する」バナー。
@@ -112,15 +113,6 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
     await _reload();
   }
 
-  Future<void> _openRecords() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) =>
-            DailyRecordsPage(repository: widget.repository, now: widget.now),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -181,7 +173,13 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
             IconButton(
               icon: Icon(Icons.bar_chart, color: colors.onPrimaryContainer),
               tooltip: loc.dailyRecords,
-              onPressed: loaded ? _openRecords : null,
+              onPressed: loaded
+                  ? () => DailyRecordsPage.open(
+                      context,
+                      repository: widget.repository,
+                      now: widget.now,
+                    )
+                  : null,
             ),
             Icon(Icons.chevron_right, color: colors.onPrimaryContainer),
           ],

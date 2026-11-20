@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/daily_progress.dart';
-import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/daily_stats.dart';
+import 'package:prime_fact/date_key.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
 /// 「今日の素因数分解」の記録画面。連続日数などの累計と、日ごとの結果を出す。
@@ -10,6 +10,17 @@ class DailyRecordsPage extends StatefulWidget {
   const new({required this.repository, required this.now, super.key});
   final DailyRepository repository;
   final DateTime Function() now;
+
+  /// 記録画面を開く。バナーと挑戦画面の記録ボタンが同じ開き方をするための入口。
+  static Future<void> open(
+    BuildContext context, {
+    required DailyRepository repository,
+    required DateTime Function() now,
+  }) => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => DailyRecordsPage(repository: repository, now: now),
+    ),
+  );
 
   @override
   State<DailyRecordsPage> createState() => _DailyRecordsPageState();

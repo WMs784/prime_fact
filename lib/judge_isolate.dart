@@ -6,9 +6,9 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:prime_fact/judge.dart';
 
 void _entry((SendPort, FactorRequest) args) =>
-    args.$1.send(pri_fact_isolate(args.$2));
+    args.$1.send(factorizeSync(args.$2));
 
-/// `pri_fact_isolate` を別 Isolate で実行する。[token] が中止されたら Isolate を止めて
+/// `factorizeSync` を別 Isolate で実行する。[token] が中止されたら Isolate を止めて
 /// [CancelledException] を投げる。Web では Isolate が使えないので `factorizeAsync` を使うこと。
 ///
 /// Isolate が結果もエラーも送らずに終了したとき（メモリ不足など）は [StateError] を投げる。

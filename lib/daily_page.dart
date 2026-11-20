@@ -7,6 +7,7 @@ import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_records_page.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/daily_stats.dart';
+import 'package:prime_fact/date_key.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/links.dart';
 import 'package:prime_fact/share.dart';
@@ -175,13 +176,10 @@ class _DailyPageState extends State<DailyPage> {
           IconButton(
             icon: const Icon(Icons.bar_chart),
             tooltip: loc.dailyRecords,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => DailyRecordsPage(
-                  repository: widget.repository,
-                  now: widget.now,
-                ),
-              ),
+            onPressed: () => DailyRecordsPage.open(
+              context,
+              repository: widget.repository,
+              now: widget.now,
             ),
           ),
         ],
@@ -275,6 +273,7 @@ class _DailyPageState extends State<DailyPage> {
   }
 
   Widget _result(AppLocalizations loc, DailyProgress progress) {
+    final streak = _streak;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -301,11 +300,11 @@ class _DailyPageState extends State<DailyPage> {
         AnimatedSize(
           duration: const Duration(milliseconds: 200),
           alignment: Alignment.topCenter,
-          child: (_streak ?? 0) >= 2
+          child: streak != null && streak >= 2
               ? Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                    loc.dailyStreak(_streak!),
+                    loc.dailyStreak(streak),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
