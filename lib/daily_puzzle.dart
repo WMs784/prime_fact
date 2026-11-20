@@ -4,6 +4,8 @@
 /// 変えるときは日付で分岐し、`test/daily_puzzle_test.dart` の固定値も更新すること。
 library;
 
+import 'package:prime_fact/date_key.dart';
+
 /// 最小の素因数 [p] の範囲と、出題の割合（合計 100）。
 const _tiers = <({int minP, int maxP, int weight})>[
   (minP: 7, maxP: 13, weight: 50), // 易
@@ -54,20 +56,6 @@ int _mix32(int x) {
 
 /// [seed] から i 番目の擬似乱数（32bit）を取り出す。
 int _rand(int seed, int i) => _mix32(_mix32(seed) + i * 0x9E3779B9);
-
-/// 出題日（JST）を `yyyyMMdd` の整数にする。端末のタイムゾーンに依存しない。
-int jstDateKey(DateTime now) {
-  final jst = now.toUtc().add(const Duration(hours: 9));
-  return jst.year * 10000 + jst.month * 100 + jst.day;
-}
-
-/// `20261031` を `2026-10-31` にする。
-String formatDateKey(int dateKey) {
-  final y = dateKey ~/ 10000;
-  final m = dateKey ~/ 100 % 100;
-  final d = dateKey % 100;
-  return '$y-${m.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}';
-}
 
 class DailyPuzzle {
   const new _(this.dateKey, this.p, this.q);

@@ -83,11 +83,11 @@ git config core.hooksPath .githooks
 行カバレッジでは見えない「テストが挙動の変化を検出できるか」を `mutation_test`（dev 依存）で測る。ソースを 1 箇所ずつ書き換え（`==`→`!=`、`+`→`-` など）、対応するテストが落ちれば検出とみなす。
 
 ```bash
-mutation_test/run.sh              # judge / trivia / number_style / daily_puzzle / daily_stats / spoken を順に実行
+mutation_test/run.sh              # judge / trivia / number_style / daily_puzzle / date_key / daily_stats / spoken を順に実行
 mutation_test/run.sh trivia       # 1 ファイルだけ
 ```
 
-- 対象は UI に依存しない純粋ロジックの 6 ファイルだけ（`mutation_test/<name>.xml`。変異ごとに `flutter test test/<name>_test.dart` を走らせる）。UI を含めると 1 変異ごとの時間が桁違いに増える
+- 対象は UI に依存しない純粋ロジックの 7 ファイルだけ（`mutation_test/<name>.xml`。変異ごとに `flutter test test/<name>_test.dart` を走らせる）。UI を含めると 1 変異ごとの時間が桁違いに増える
 - 全体で約 20 分（`judge.dart` が大半）。PR ごとには回さず、`.github/workflows/mutation.yml`（master への push（`lib/` `test/` `mutation_test/` `pubspec.*` の変更時だけ）、手動）で実行する。マージのゲートではなく、マージ後の事後検知。レポートは `mutation-test-report/`（HTML）と CI のアーティファクト
 - ルールは組み込みから「数の負数化」を除いた `mutation_test/rules.xml`（Dart の `%` は常に非負なので素数リスト等で等価変異になるため）
 - 無限ループになる変異は 30 秒でタイムアウトする（テストが止めたので検出済み）。ループ条件は変異対象から外している
@@ -120,6 +120,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/trivia.dart`**: Replaces the primality header for special numbers (perfect / Mersenne / Fermat / palindromic / Sophie Germain / twin primes, 1729, 57 Grothendieck), e.g. "6は素数、ではなく完全数です！". The result is passed to the calculator (`factorizeAsync` / `factorizeInIsolate`) as `FactorRequest.special`; `HistoryPage` re-derives it via `headerFor`. To extend: add a `Trivia` value, its `isXxx` ARB strings (suffix after the number), a `triviaHeader` case and a test
 - **`lib/history_*.dart`**: Calculation history (`HistoryEntry`, `HistoryRepository` persisting via `shared_preferences`, `HistoryPage`)
 - **`lib/daily_*.dart`**: 「今日の素因数分解」。`DailyPuzzle` が JST の日付だけから決定的に `n = p×q`（`p` は 7〜53 の最小の素因数、`q` は `p`〜293）を生成する（`p` の範囲は易/中/難 = 50/35/15% の 3 段階。難度は画面にもシェア文にも出さない）。`DailyProgress`/`DailyRepository` が開始時刻・ミス回数・クリア時刻を `shared_preferences` に保存し（離脱中も時間は進む）、`DailyBanner`（ホーム）→`DailyPage`（出題・結果・シェア）と遷移する。生成手順を変えると同じ日の問題が変わるので、変更時は日付で分岐し `test/daily_puzzle_test.dart` の固定値も更新する
+- **`lib/date_key.dart`**: 出題日 `yyyyMMdd`（int）の変換（`jstDateKey` / `formatDateKey` / 連続判定用の通し日数 `dayIndexOf`・`dateKeyOfDayIndex`）。出題・保存・累計が共有する
 - **`lib/daily_stats.dart` / `lib/daily_records_page.dart`**: 「今日の素因数分解」の累計成績と記録画面。`DailyRepository.loadAll()` が `daily_<yyyyMMdd>` を全部読み（破損した日は除く）、`DailyStats.compute` が連続日数（今日が未クリアなら昨日までの連続を続行中として数える）・最長連続・クリア日数・ノーミス数・ベストタイム（時計変更で 0 になった記録は除く）を求める。バナー（記録ボタンと連続日数）、挑戦画面（AppBar の記録ボタン、クリア後の連続日数）から使う
 - **`lib/settings_repository.dart`**: 表示設定（ドロワーのスイッチで「今日の素因数分解」バナーの表示/非表示を切り替え、`shared_preferences` に保存。既定は表示）
 - **`lib/number_style.dart`**: 数の表示形式（そのまま/カンマ区切り/アポストロフィ区切り/単位つき）。結果・履歴・コピー・共有の表示時に整形する（保存値は素の数字）。単位つき（万・億…）は日本語のみで、英語では選択肢を出さず `effectiveStyle` で plain 扱いにする。指数（`^` の直後）は整形しない。設定は `SettingsRepository` に保存。コピー・共有は画面に出ている形式のまま出す（入力欄は `digitsOnly` なのでカンマ付きは貼っても数字に戻るが、単位つきの「万」「億」は消えて別の数になる）。「今日の素因数分解」の画面・シェア文は対象外（n が小さく効果が薄いため）
@@ -193,6 +194,7 @@ The app supports Japanese and English:
 - `test/judge_test.dart`: primality (Carmichael numbers, strong pseudoprimes), factorization (prime powers, trial-division boundary, ~30-digit semiprime), trivial inputs, `FactorRequest` round trip through the real `compute` isolate, `factorizeAsync` / `factorizeInIsolate`（同期版と同じ結果・制御を返すこと・中止）
 - `test/trivia_test.dart`: each special-number category and near-miss numbers (e.g. 121, 120, 15)
 - `test/history_test.dart`: `HistoryEntry` JSON round trip and legacy-format migration, `HistoryRepository` load/save/corrupted data
+- `test/date_key_test.dart`: JST の日付切り替え、タイムゾーン非依存、通し日数（月/年/うるう日またぎ）
 - `test/daily_puzzle_test.dart`: determinism, JST date rollover, p/q ranges, tier ratios, fixed-date regression values
 - `test/daily_progress_test.dart`, `test/daily_challenge_test.dart`: progress/repository, banner → challenge → result flow, share text
 - `test/daily_stats_test.dart`: 連続日数（途切れ・月/年/うるう年またぎ・未クリア日）、ノーミス数、ベストタイム、`loadAll`、バナーの連続表示と記録画面

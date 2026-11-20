@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mutations version="1.2">
+  <files>
+    <file>lib/date_key.dart</file>
+  </files>
+  <commands>
+    <!-- 通常は数秒で終わる。変異で無限ループになった場合はタイムアウト=検出扱い -->
+    <command group="test" expected-return="0" timeout="30">flutter test test/date_key_test.dart</command>
+  </commands>
+  <exclude>
+    <token begin="//" end="\n"/>
+    <regex pattern="/[*].*?[*]/" dotAll="true"/>
+    <regex pattern="[\s]while[\s]*\(.*?\)[\s]*{" dotAll="true"/>
+    <regex pattern="[\s]for[\s]*\(.*?\)[\s]*{" dotAll="true"/>
+  </exclude>
+  <!-- 合否は run.sh が生き残り数で決める（ここでは判定しない） -->
+  <threshold failure="0"/>
+</mutations>

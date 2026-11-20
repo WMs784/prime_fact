@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ミューテーションテストを実行する。引数なしで全ファイル、引数があればそのファイルだけ。
-#   mutation_test/run.sh              # trivia number_style daily_puzzle daily_stats judge spoken
+#   mutation_test/run.sh              # trivia number_style daily_puzzle date_key daily_stats judge spoken
 #   mutation_test/run.sh trivia       # 1 ファイルだけ
 # レポートは mutation-test-report/<name>/ に出る（.gitignore 済み）。
 #
@@ -23,7 +23,7 @@ max_survivors() {
 }
 
 targets=("$@")
-[ ${#targets[@]} -eq 0 ] && targets=(trivia number_style daily_puzzle daily_stats judge spoken)
+[ ${#targets[@]} -eq 0 ] && targets=(trivia number_style daily_puzzle date_key daily_stats judge spoken)
 log=$(mktemp)
 trap 'rm -f "$log"' EXIT
 status=0
