@@ -49,6 +49,7 @@ LAYERS = [
             "settings_repository",
             "daily_repository",
             "daily_controller",
+            "home_controller",
             "daily_banner_controller",
             "calculator_controller",
             "daily_progress",

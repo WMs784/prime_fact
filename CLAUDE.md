@@ -123,7 +123,8 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/app/app_dependencies.dart`**: 時計・保存先（Repository）・計算・共有・URL の差し替え口を `AppDependencies` にまとめる（Widget に依存しない純粋な Dart）。`PrimeFactApp(dependencies: ...)` が組み立てて（省くと本番の実装。本番の実装を選ぶのはここだけ）`HomePage(dependencies:)` に渡し、`HomePage` が必要なものを子の Widget に引数で渡す（`AppDrawer(openUrl)`、`DailyBanner(repository, now, share)` → `DailyPage(onShare)`、`CalculatorForm(calculator, share, now)`）。依存を読んでよいのは入口の層（`main` と `HomePage`）だけで、画面や部品は `AppScope` のようなものから自分で取らず、引数で受け取る。テストで差し替える入口はここだけ（`DailyPage` を含め、`shareText` などの本番の実装に直結する既定値は持たない）
 - **`lib/calculator/calculator.dart`**: `Calculator` 型と `defaultCalculator`（Web は `factorizeAsync`、それ以外は別 Isolate の `factorizeInIsolate`）
 - **`lib/calculator/calculator_controller.dart`**: 計算機の状態（`CalculatorController`、`ChangeNotifier`）。計算中か・結果欄の内容（`CalculatedOutput` / `FailedOutput`）を持ち、計算の実行・中止・結果欄の消去をする。`calculate` は成功したときだけ履歴用の `HistoryEntry`（時刻は渡された `now` から取る）を返す（失敗・中止・破棄後は null、中止では直前の結果を残す）。Widget に依存しない
-- **`lib/app/home_page.dart`**: ホーム画面（`HomePage`）。履歴・設定の読み込みと保存、バナー、計算機を並べる
+- **`lib/app/home_page.dart`**: ホーム画面（`HomePage`）。`AppDependencies` から依存を読み、ドロワー・バナー・計算機を並べる
+- **`lib/app/home_controller.dart`**: ホーム画面の状態（`HomeController`、`ChangeNotifier`）。履歴と表示設定の読み込み・追加・保存を持ち、Widget に依存しない。読み込み前に追加した履歴は読み込んだ履歴の後ろに続け、読み込み前に変えた設定はその操作を優先する。履歴を読めなかったら保存しない（保存済みの履歴を空で上書きしないため）。保存の失敗は `bestEffort` で握りつぶす
 - **`lib/app/app_drawer.dart`**: ドロワー（`AppDrawer`、状態を持たない）。履歴・バナーの表示切替・数の表示形式・アプリ情報のリンク
 - **`lib/calculator/calculator_form.dart`**: 計算機の入力・結果表示（`CalculatorForm`）、結果の折り返し `wrapAtTimes`
 - **`lib/calculator/judge.dart`**: Core business logic (Miller-Rabin primality test, Pollard-Brent factorization on `BigInt`; アルゴリズム本体は `yield` で区切れる `sync*`。`factorizeSync(FactorRequest)` は最後まで同期で回す版（テスト・isolate 用）、`factorizeAsync(request, CancelToken)` は約 50ms ごとにイベントループへ制御を返す版で、Web ではこれをメインスレッドで使う（Web には Isolate がなく `compute` だと画面が固まるため。速度は同期版と同程度）。Web 以外は `lib/calculator/judge_isolate.dart` の `factorizeInIsolate` で別 Isolate に出す（メインスレッドで区切ると 1 フレーム 16.7ms を超えて描画が落ちるため）。どちらも `CancelToken.cancel()` で `CancelledException` を投げて止まる。the request is a record `(n, isNotPrime, isPrime, special)`)
@@ -218,6 +219,7 @@ The app supports Japanese and English:
 - `test/number_style_test.dart`: 各形式の整形、指数の除外、英語での単位つき無効化、設定の保存
 - `test/number_format_ui_test.dart`: ドロワーからの形式選択（カンマ・アポストロフィ・単位つき）、結果・共有・履歴への反映、英語で単位つきが出ないこと、クリアボタン（有効条件: 入力/結果/エラーのいずれか、入力と結果の消去、日本語ラベル）
 - `test/spoken_test.dart`: 読み上げ文（ja/en、べき乗、30 桁、想定外の形式はそのまま）、結果の読み上げラベルと liveRegion、整形形式に依存しないこと、計算中ラベル、履歴の行
+- `test/home_controller_test.dart`: `HomeController` の履歴（読み込み前の追加の連結、読み込み失敗で保存しない、保存失敗でも残す、外から変えられない）、設定（読み込み中の値、読み込み前の操作の優先、保存失敗でも残す）、破棄後に通知しないこと
 - `test/best_effort_test.dart`: 保存の失敗を握りつぶして続けること
 - `test/settings_test.dart`: daily banner toggle in the drawer and its persistence
 - `test/widget_test.dart`: calculator UI, input validation errors, localized results, history save races (injected `HistoryRepository`), failed and cancelled calculation (injected `Calculator`), drawer links (injected `UrlOpener`), wrapped result (line breaks only before `x`), copy/share buttons, fixed input position
