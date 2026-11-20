@@ -48,6 +48,7 @@ LAYERS = [
             "daily_repository",
             "daily_progress",
             "daily_stats",
+            "app_dependencies",
         ],
     ),
     (
@@ -60,11 +61,12 @@ LAYERS = [
             "number_style",
             "spoken",
             "daily_puzzle",
+            "calculator",
         ],
     ),
 ]
 # どの層からも使ってよい。図には描かず、ここから他のファイルへの import だけを違反として見る。
-SHARED = ["language", "date_key", "share", "links"]
+SHARED = ["language", "date_key", "share", "links", "best_effort"]
 UNASSIGNED = -2  # 割り当てのないファイル（新しく足したものなど）
 
 
@@ -259,6 +261,7 @@ def main():
         .replace("@@LIB_SVG@@", lib_svg)
         .replace("@@TABLE@@", metrics_table(lib_m, all_m))
         .replace("@@DELTA@@", html.escape(delta))
+        .replace("@@SHARED@@", " / ".join(SHARED))
         .replace("@@VIOLATIONS@@", str(n_viol))
         .replace("@@NODES@@", str(lib_m["numNodes"]))
     )
@@ -326,7 +329,7 @@ td:nth-child(n+2),th:nth-child(n+2){text-align:right}
 <button id="b-lib" aria-pressed="false">lib のみ（@@NODES@@ ファイル）</button>
 <button id="b-met" aria-pressed="false">指標の比較</button>
 </div>
-<p id="legend" class="legend"><span style="color:#8a93a6">━</span> 上の層から下の層へ（正しい向き。層を飛ばしてもよい） <span style="color:#e0a100">━</span> 同じ層の中 <span style="color:#e03131">━</span> 下の層から上の層へ（違反。現在 @@VIOLATIONS@@ 本）<br>層の分け方は仮です（<code>tool/deps/build.py</code>）。上から、入口 → 画面・部品 → 状態・保存・集計 → 純粋ロジック。共通部品（language / date_key / share / links）は、どの層からも使えるので図から省いています。</p>
+<p id="legend" class="legend"><span style="color:#8a93a6">━</span> 上の層から下の層へ（正しい向き。層を飛ばしてもよい） <span style="color:#e0a100">━</span> 同じ層の中 <span style="color:#e03131">━</span> 下の層から上の層へ（違反。現在 @@VIOLATIONS@@ 本）<br>層の分け方は仮です（<code>tool/deps/build.py</code>）。上から、入口 → 画面・部品 → 状態・保存・集計 → 純粋ロジック。共通部品（@@SHARED@@）は、どの層からも使えるので図から省いています。</p>
 <div class="view" id="v-lay">@@LAYER_SVG@@</div>
 <div class="view" id="v-lib" hidden>@@LIB_SVG@@</div>
 <div class="view" id="v-met" hidden>
