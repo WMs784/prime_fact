@@ -13,6 +13,7 @@ import 'package:prime_fact/history_repository.dart';
 import 'package:prime_fact/judge.dart';
 import 'package:prime_fact/judge_isolate.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
+import 'package:prime_fact/language.dart';
 import 'package:prime_fact/links.dart';
 import 'package:prime_fact/number_style.dart';
 import 'package:prime_fact/settings_repository.dart';

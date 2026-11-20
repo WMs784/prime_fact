@@ -125,6 +125,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/number_style.dart`**: 数の表示形式（そのまま/カンマ区切り/アポストロフィ区切り/単位つき）。結果・履歴・コピー・共有の表示時に整形する（保存値は素の数字）。単位つき（万・億…）は日本語のみで、英語では選択肢を出さず `effectiveStyle` で plain 扱いにする。指数（`^` の直後）は整形しない。設定は `SettingsRepository` に保存。コピー・共有は画面に出ている形式のまま出す（入力欄は `digitsOnly` なのでカンマ付きは貼っても数字に戻るが、単位つきの「万」「億」は消えて別の数になる）。「今日の素因数分解」の画面・シェア文は対象外（n が小さく効果が薄いため）
 - **`lib/spoken.dart`**: スクリーンリーダー向けの読み上げ文。結果の `^` `x` `=` を「60は2の2乗かける3かける5」のように言葉にする（ARB の `spoken*`）。結果の `Text.semanticsLabel`（`liveRegion` で計算完了も読み上げる）、計算中のインジケーター、履歴の各行に使う。数の整形は、日本語の単位つき（「1万2345」）のときだけ読み上げにも反映し、カンマ・アポストロフィ区切りは素の数字のまま読ませる（指数は整形しない）。表示用の文字列（折り返し用の不可視文字を含む）は変えない。`semanticsLabel` を付けた `Text` は `Semantics` で包まれるので、テストで段落を取るときは `find.descendant(of: ..., matching: find.byType(RichText))` を使う
 - **`lib/share.dart`**: 共有（`shareText`: 共有シート、なければクリップボードにコピーして `ShareOutcome.copied`。`originOf`: iPad のポップオーバーの基準位置）。結果の共有と「今日の素因数分解」のシェアが共有する
+- **`lib/language.dart`**: `isJapanese(loc)`。言語による分岐（単位つきの可否、読み上げなど）はこれで判定する
 - **`lib/links.dart`**: 外部リンク（プライバシーポリシー、Play ストア、Web アプリなど）の定数。ドロワーとシェア文で共有する
 - **`lib/l10n/`**: Internationalization files for Japanese and English support
 
