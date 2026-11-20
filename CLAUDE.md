@@ -145,9 +145,10 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/l10n/`**: Internationalization files for Japanese and English support
 
 ### Key Components
-1. **PrimeFactApp**: Root widget with theme and localization configuration
-2. **HomePage**: Main layout with drawer navigation
-3. **CalculatorForm**: Primary calculator interface with input field and result display
+1. **PrimeFactApp**: Root widget with theme and localization configuration（`AppDependencies` を組み立てる）
+2. **HomePage** / `HomeController`: Main layout with drawer navigation、履歴と表示設定
+3. **CalculatorForm** / `CalculatorController`: Primary calculator interface with input field and result display
+4. **DailyBanner** / `DailyBannerController` → **DailyPage** / `DailyController`: 「今日の素因数分解」
 
 ### Algorithm Implementation
 - Primality: Miller-Rabin with fixed witnesses (deterministic below 3.3×10^24, error < 4^-20 for 30 digits)
@@ -156,9 +157,10 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - Returns formatted results with Japanese/English localization
 
 ### State Management
-- Uses simple StatefulWidget approach with `setState()`
-- No complex state management library (Provider, Bloc, etc.)
-- Local state management for calculator operations
+- 画面ごとの状態は Flutter 標準の `ChangeNotifier` のコントローラーに置く（`HomeController` / `CalculatorController` / `DailyBannerController` / `DailyController`）。コントローラーは Widget・`BuildContext` に依存せず、依存（Repository・時計・計算）は引数で受け取るので、Widget なしで単体テストできる
+- Widget は自分の `State` でコントローラーを作って `dispose` し、`ListenableBuilder` で購読する。`State` に残すのは入力欄（`TextEditingController`）・エラー文・`SnackBar` など表示と Flutter 固有のもの（タイマー、アプリの前面復帰の購読、画面遷移）だけ
+- コントローラーは破棄後に通知しない（`_disposed` を見る）。非同期の結果は「保存に成功してから状態に反映する」「古い読み込みの結果は捨てる」など、それぞれのクラスのコメントに方針を書く
+- 状態管理ライブラリ（Provider, Riverpod, Bloc など）は使わない。コントローラーは画面の中で作るので、共有のための仕組みが要らない。依存は `AppDependencies` から引数で渡す
 
 ## Internationalization
 
