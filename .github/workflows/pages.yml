@@ -46,6 +46,16 @@ jobs:
           sudo chown -R "$USER" _site
           cp -r build/web _site/app
 
+      # ファイル間の import 依存図と指標を /<repo>/deps/ に置く（tool/deps/build.py）。
+      # 層の違反や未割り当てのファイルは警告として出すだけで、デプロイは止めない
+      - name: Build dependency graph
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+          dart pub global activate lakos 2.0.7
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          python3 tool/deps/build.py . _site/deps
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
