@@ -211,6 +211,7 @@ The app supports Japanese and English:
 - `test/best_effort_test.dart`: 保存の失敗を握りつぶして続けること
 - `test/settings_test.dart`: daily banner toggle in the drawer and its persistence
 - `test/widget_test.dart`: calculator UI, input validation errors, localized results, history save races (injected `HistoryRepository`), failed and cancelled calculation (injected `Calculator`), drawer links (injected `UrlOpener`), wrapped result (line breaks only before `x`), copy/share buttons, fixed input position
+- `test/helpers/localized_app.dart`: 画面単体のテスト用の `localizedApp(home, {locale})`（ローカライズ付きの `MaterialApp`）
 - Add tests alongside any change to `judge.dart` or the history format
 
 ### Known Limitations
