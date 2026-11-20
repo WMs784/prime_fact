@@ -72,6 +72,32 @@ void main() {
     expect(c.output?.text, '6=2x3');
   });
 
+  test(
+    'a call while calculating is ignored and keeps cancel working',
+    () async {
+      final gate = Completer<String>();
+      var calls = 0;
+      CancelToken? token;
+      final c = CalculatorController((request, cancel) {
+        calls++;
+        token = cancel;
+        return gate.future;
+      });
+      addTearDown(c.dispose);
+
+      final first = c.calculate(BigInt.from(10), loc);
+      expect(await c.calculate(BigInt.from(12), loc), isNull);
+      expect(calls, 1);
+      expect(c.isLoading, isTrue);
+
+      c.cancel();
+      expect(token?.isCancelled, isTrue);
+      gate.complete('10=2x5');
+      expect(await first, isNull);
+      expect(c.isLoading, isFalse);
+    },
+  );
+
   test('clearOutput empties the output', () async {
     final c = CalculatorController((request, cancel) async => '7');
     addTearDown(c.dispose);

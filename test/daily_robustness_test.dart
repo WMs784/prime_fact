@@ -23,11 +23,15 @@ class _FakeRepo extends DailyRepository {
   bool failLoad = false;
   bool failSave = false;
   Completer<void>? saveGate;
+  Completer<void>? loadGate;
+  int loads = 0;
   int saves = 0;
   DailyProgress? stored;
 
   @override
   Future<DailyProgress?> load(int dateKey) async {
+    loads++;
+    await loadGate?.future;
     if (failLoad) throw Exception('load');
     return stored;
   }
@@ -109,6 +113,30 @@ void main() {
 
     repo.failLoad = false;
     await tester.tap(find.text('再試行'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('${_puzzle.n}'), findsOneWidget);
+  });
+
+  testWidgets('retry switches to the spinner at once and ignores re-taps', (
+    tester,
+  ) async {
+    final repo = _FakeRepo()..failLoad = true;
+    await _pumpPage(tester, _page(repo));
+    expect(find.text('再試行'), findsOneWidget);
+
+    repo
+      ..failLoad = false
+      ..loadGate = Completer<void>();
+    final before = repo.loads;
+    await tester.tap(find.text('再試行'));
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('再試行'), findsNothing);
+    expect(repo.loads, before + 1);
+
+    repo.loadGate!.complete();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('${_puzzle.n}'), findsOneWidget);
