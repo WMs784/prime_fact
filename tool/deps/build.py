@@ -48,6 +48,7 @@ LAYERS = [
             "history_entry",
             "settings_repository",
             "daily_repository",
+            "daily_controller",
             "daily_progress",
             "daily_stats",
         ],

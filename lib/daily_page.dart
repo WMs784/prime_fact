@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/daily_controller.dart';
 import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_records_page.dart';
 import 'package:prime_fact/daily_repository.dart';
-import 'package:prime_fact/daily_stats.dart';
 import 'package:prime_fact/date_key.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/links.dart';
@@ -46,88 +46,51 @@ class DailyPage extends StatefulWidget {
 }
 
 class _DailyPageState extends State<DailyPage> {
-  final _controller = TextEditingController();
-  DailyProgress? _progress;
-  bool _loadFailed = false;
-
-  /// クリア後に出す連続日数。記録を読めなければ null（表示を省く）。
-  int? _streak;
-
-  /// 保存中は回答を受け付けない（連打で保存の順序が入れ替わるのを防ぐ）。
-  bool _busy = false;
+  final _text = TextEditingController();
+  late final DailyController _controller;
   String? _errorText;
 
   @override
   void initState() {
     super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    try {
-      final key = widget.puzzle.dateKey;
-      final saved = await widget.repository.load(key);
-      final progress = saved ?? DailyProgress(startedAt: widget.now());
-      if (saved == null) await widget.repository.save(key, progress);
-      if (!mounted) return;
-      setState(() => _progress = progress);
-      if (progress.isCleared) _loadStreak(progress);
-    } catch (_) {
-      if (mounted) setState(() => _loadFailed = true);
-    }
-  }
-
-  Future<void> _loadStreak(DailyProgress cleared) async {
-    final stats = await loadDailyStats(
-      widget.repository,
-      widget.puzzle.dateKey,
-      today: cleared,
+    _controller = DailyController(
+      puzzle: widget.puzzle,
+      repository: widget.repository,
+      now: widget.now,
     );
-    // 連続日数は付加情報なので、読めなければ出さない
-    if (mounted && stats != null) {
-      setState(() => _streak = stats.currentStreak);
-    }
+    unawaited(_controller.load());
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _text.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    final progress = _progress;
-    if (progress == null || progress.isCleared || _busy) return;
+    if (!_controller.canSubmit) return;
     final loc = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
-    final answer = int.tryParse(_controller.text.trim());
+    final answer = int.tryParse(_text.text.trim());
     if (answer == null) {
       setState(() => _errorText = loc.errorEmpty);
       return;
     }
-    final correct = widget.puzzle.isCorrect(answer);
-    final next = correct
-        ? progress.copyWith(clearedAt: widget.now())
-        : progress.copyWith(wrong: progress.wrong + 1);
-
-    // 保存に成功してから画面に反映する（保存できなかったクリアやミスを見せない）
-    setState(() => _busy = true);
-    try {
-      await widget.repository.save(widget.puzzle.dateKey, next);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _busy = false);
-      messenger.showSnackBar(SnackBar(content: Text(loc.dailySaveFailed)));
-      return;
-    }
+    final outcome = await _controller.submit(answer);
     if (!mounted) return;
-    _controller.clear();
-    setState(() {
-      _progress = next;
-      _busy = false;
-      _errorText = correct ? null : loc.dailyWrong;
-    });
-    if (correct) _loadStreak(next);
+    switch (outcome) {
+      case DailySubmitOutcome.ignored:
+        break;
+      case DailySubmitOutcome.saveFailed:
+        messenger.showSnackBar(SnackBar(content: Text(loc.dailySaveFailed)));
+      case DailySubmitOutcome.correct:
+        _text.clear();
+        setState(() => _errorText = null);
+      case DailySubmitOutcome.wrong:
+        _text.clear();
+        setState(() => _errorText = loc.dailyWrong);
+    }
   }
 
   Future<void> _share(
@@ -148,11 +111,16 @@ class _DailyPageState extends State<DailyPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: _controller,
+    builder: (context, _) => _scaffold(context),
+  );
+
+  Widget _scaffold(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final progress = _progress;
+    final progress = _controller.progress;
     final Widget body;
-    if (_loadFailed) {
+    if (_controller.loadFailed) {
       body = _loadError(loc);
     } else if (progress == null) {
       body = const Center(child: CircularProgressIndicator());
@@ -213,8 +181,7 @@ class _DailyPageState extends State<DailyPage> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              setState(() => _loadFailed = false);
-              _init();
+              unawaited(_controller.load());
             },
             child: Text(loc.dailyRetry),
           ),
@@ -244,7 +211,7 @@ class _DailyPageState extends State<DailyPage> {
         _number(context),
         const SizedBox(height: 16),
         TextField(
-          controller: _controller,
+          controller: _text,
           keyboardType: TextInputType.number,
           textInputAction: TextInputAction.done,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -263,7 +230,7 @@ class _DailyPageState extends State<DailyPage> {
         ),
         const SizedBox(height: 8),
         ElevatedButton(
-          onPressed: _busy ? null : _submit,
+          onPressed: _controller.busy ? null : _submit,
           child: Text(loc.dailySubmit, style: const TextStyle(fontSize: 20)),
         ),
         const SizedBox(height: 32),
@@ -273,7 +240,7 @@ class _DailyPageState extends State<DailyPage> {
   }
 
   Widget _result(AppLocalizations loc, DailyProgress progress) {
-    final streak = _streak;
+    final streak = _controller.streak;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
