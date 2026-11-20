@@ -1,21 +1,13 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/daily/daily_banner_controller.dart';
 import 'package:prime_fact/daily/daily_page.dart';
 import 'package:prime_fact/daily/daily_progress.dart';
-import 'package:prime_fact/daily/daily_puzzle.dart';
 import 'package:prime_fact/daily/daily_records_page.dart';
 import 'package:prime_fact/daily/daily_repository.dart';
-import 'package:prime_fact/daily/daily_stats.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/shared/date_key.dart';
 import 'package:prime_fact/shared/share.dart';
-
-/// バナーが読み込んだ、ある日の状態。表示と、タップ先の問題はこの [key] の日に揃える。
-///
-/// [progress] が null なら未開始（または読めなかった）。[stats]（連続日数などの累計）が
-/// null なら、記録を読めなかったので連続の表示を省く。
-typedef _Snapshot = ({int key, DailyProgress? progress, DailyStats? stats});
 
 /// ホーム画面の「今日の素因数分解に挑戦する」バナー。
 class DailyBanner extends StatefulWidget {
@@ -36,76 +28,40 @@ class DailyBanner extends StatefulWidget {
 }
 
 class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
-  /// 最後に読み込めた、ある日の状態。null は読み込み中（まだ一度も読めていない）。
-  _Snapshot? _snapshot;
+  late final DailyBannerController _controller;
   Timer? _dateCheck;
-
-  /// 読み込み中の日。null は読み込み中ではない。
-  int? _loadingKey;
-
-  /// 読み込みの世代。後から始めた読み込みより先に始めた読み込みが遅れて終わっても、捨てる。
-  int _generation = 0;
 
   @override
   void initState() {
     super.initState();
+    _controller = DailyBannerController(
+      repository: widget.repository,
+      now: widget.now,
+    );
     WidgetsBinding.instance.addObserver(this);
     _dateCheck = Timer.periodic(
       const Duration(seconds: 30),
-      (_) => _checkDate(),
+      (_) => _controller.checkDate(),
     );
-    _reload();
+    unawaited(_controller.reload());
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _dateCheck?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _reload();
-  }
-
-  Future<void> _reload() async {
-    if (!mounted) return;
-    final generation = ++_generation;
-    final key = jstDateKey(widget.now());
-    _loadingKey = key;
-    DailyProgress? progress;
-    try {
-      progress = await widget.repository.load(key);
-    } catch (_) {
-      // 読めなければ未開始として扱う。挑戦画面側でエラーを表示する
-    }
-    // 累計は付加情報なので、読めなくてもバナー自体は出す
-    final stats = await loadDailyStats(widget.repository, key, today: progress);
-    if (!mounted || generation != _generation) return;
-    _loadingKey = null;
-    setState(() => _snapshot = (key: key, progress: progress, stats: stats));
-  }
-
-  /// 前面に出したまま JST 0 時をまたいだり、端末の時計・タイムゾーンを変えたりしても、
-  /// 表示が古い日のままにならないよう、定期的に日付を確かめる。
-  void _checkDate() {
-    final today = jstDateKey(widget.now());
-    // 同じ日の読み込みが進行中なら待つ（世代で破棄して読み込みを永久に延期しない）
-    if (_snapshot?.key != today && _loadingKey != today) _reload();
+    if (state == AppLifecycleState.resumed) unawaited(_controller.reload());
   }
 
   Future<void> _open() async {
-    final key = _snapshot?.key;
-    if (key == null) return;
-    // 日付が変わっていたら、古い日の問題を開かずに表示を更新するだけにする
-    // （「クリア済み」を見てタップしたら新しい日の計時が始まる、を避ける）
-    if (key != jstDateKey(widget.now())) {
-      await _reload();
-      return;
-    }
-    // 表示している日の問題を開く（now() を取り直すと、表示と遷移先が食い違い得る）
-    final puzzle = DailyPuzzle.forDateKey(key);
+    final puzzle = await _controller.puzzleToOpen();
+    if (puzzle == null || !mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => DailyPage(
@@ -117,14 +73,19 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
       ),
     );
     if (!mounted) return;
-    await _reload();
+    await _controller.reload();
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: _controller,
+    builder: (context, _) => _banner(context),
+  );
+
+  Widget _banner(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final snapshot = _snapshot;
+    final snapshot = _controller.snapshot;
     final loaded = snapshot != null;
     final progress = snapshot?.progress;
 
@@ -147,10 +108,7 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
       title = loc.dailyBannerContinue;
       subtitle = loc.dailyBannerStartSub;
     }
-    // 連続日数。今日クリア済みなら 2 日以上のとき、未クリアなら昨日までの連続があるときに出す
-    final streak = snapshot?.stats?.currentStreak ?? 0;
-    final showStreak =
-        loaded && streak >= (progress?.isCleared == true ? 2 : 1);
+    final streak = _controller.streakToShow;
     final subtitleStyle = TextStyle(color: colors.onPrimaryContainer);
     return Card(
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
@@ -172,7 +130,8 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(subtitle, style: subtitleStyle),
-            if (showStreak) Text(loc.dailyStreak(streak), style: subtitleStyle),
+            if (streak != null)
+              Text(loc.dailyStreak(streak), style: subtitleStyle),
           ],
         ),
         trailing: Row(
