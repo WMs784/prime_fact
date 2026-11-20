@@ -58,6 +58,7 @@ class DailyController extends ChangeNotifier {
   /// 保存した記録を読む。なければ今を開始時刻として保存する。
   Future<void> load() async {
     _loadFailed = false;
+    notifyListeners();
     try {
       final key = puzzle.dateKey;
       final saved = await repository.load(key);
