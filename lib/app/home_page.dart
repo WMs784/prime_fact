@@ -1,15 +1,15 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/app_dependencies.dart';
-import 'package:prime_fact/app_drawer.dart';
-import 'package:prime_fact/best_effort.dart';
-import 'package:prime_fact/calculator_form.dart';
-import 'package:prime_fact/daily_banner.dart';
-import 'package:prime_fact/daily_repository.dart';
-import 'package:prime_fact/history_entry.dart';
-import 'package:prime_fact/history_repository.dart';
+import 'package:prime_fact/app/app_dependencies.dart';
+import 'package:prime_fact/app/app_drawer.dart';
+import 'package:prime_fact/app/settings_repository.dart';
+import 'package:prime_fact/calculator/calculator_form.dart';
+import 'package:prime_fact/daily/daily_banner.dart';
+import 'package:prime_fact/daily/daily_repository.dart';
+import 'package:prime_fact/format/number_style.dart';
+import 'package:prime_fact/history/history_entry.dart';
+import 'package:prime_fact/history/history_repository.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/number_style.dart';
-import 'package:prime_fact/settings_repository.dart';
+import 'package:prime_fact/shared/best_effort.dart';
 
 /// 保存された設定値。読み込みが終わる前に利用者が変えたら、その操作を優先する。
 class _Setting<T> {

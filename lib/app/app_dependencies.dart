@@ -1,9 +1,9 @@
-import 'package:prime_fact/calculator.dart';
-import 'package:prime_fact/daily_repository.dart';
-import 'package:prime_fact/history_repository.dart';
-import 'package:prime_fact/links.dart';
-import 'package:prime_fact/settings_repository.dart';
-import 'package:prime_fact/share.dart';
+import 'package:prime_fact/app/settings_repository.dart';
+import 'package:prime_fact/calculator/calculator.dart';
+import 'package:prime_fact/daily/daily_repository.dart';
+import 'package:prime_fact/history/history_repository.dart';
+import 'package:prime_fact/shared/links.dart';
+import 'package:prime_fact/shared/share.dart';
 
 /// アプリが外の世界（時計・保存先・計算・共有・URL）に触れる口をまとめたもの。
 ///

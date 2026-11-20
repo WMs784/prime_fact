@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prime_fact/number_style.dart';
-import 'package:prime_fact/settings_repository.dart';
+import 'package:prime_fact/app/settings_repository.dart';
+import 'package:prime_fact/format/number_style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

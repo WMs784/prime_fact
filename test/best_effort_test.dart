@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prime_fact/best_effort.dart';
+import 'package:prime_fact/shared/best_effort.dart';
 
 void main() {
   test('runs the action', () async {

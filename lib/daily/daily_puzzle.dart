@@ -4,7 +4,7 @@
 /// 変えるときは日付で分岐し、`test/daily_puzzle_test.dart` の固定値も更新すること。
 library;
 
-import 'package:prime_fact/date_key.dart';
+import 'package:prime_fact/shared/date_key.dart';
 
 /// 最小の素因数 [p] の範囲と、出題の割合（合計 100）。
 const _tiers = <({int minP, int maxP, int weight})>[

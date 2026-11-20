@@ -1,6 +1,6 @@
-import 'package:prime_fact/daily_progress.dart';
-import 'package:prime_fact/daily_repository.dart';
-import 'package:prime_fact/date_key.dart';
+import 'package:prime_fact/daily/daily_progress.dart';
+import 'package:prime_fact/daily/daily_repository.dart';
+import 'package:prime_fact/shared/date_key.dart';
 
 /// 「今日の素因数分解」の累計成績。出題日（JST の `yyyyMMdd`）ごとの記録から求める。
 class DailyStats {

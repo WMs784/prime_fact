@@ -1,5 +1,5 @@
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/language.dart';
+import 'package:prime_fact/shared/language.dart';
 
 /// 結果に出てくる数の表示形式。
 enum NumberStyle {

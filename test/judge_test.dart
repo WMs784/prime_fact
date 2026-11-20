@@ -3,8 +3,8 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prime_fact/judge.dart';
-import 'package:prime_fact/judge_isolate.dart';
+import 'package:prime_fact/calculator/judge.dart';
+import 'package:prime_fact/calculator/judge_isolate.dart';
 
 const _notPrime = ' NP';
 const _prime = ' P';

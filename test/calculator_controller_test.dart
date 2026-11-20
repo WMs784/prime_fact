@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart' show Locale;
-import 'package:prime_fact/calculator_controller.dart';
-import 'package:prime_fact/judge.dart';
+import 'package:prime_fact/calculator/calculator_controller.dart';
+import 'package:prime_fact/calculator/judge.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
 void main() {

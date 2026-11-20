@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prime_fact/daily_progress.dart';
-import 'package:prime_fact/daily_repository.dart';
+import 'package:prime_fact/daily/daily_progress.dart';
+import 'package:prime_fact/daily/daily_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

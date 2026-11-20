@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prime_fact/calculator/trivia.dart';
 import 'package:prime_fact/l10n/app_localizations_ja.dart';
-import 'package:prime_fact/trivia.dart';
 
 Trivia? t(String n) => triviaFor(BigInt.parse(n));
 
