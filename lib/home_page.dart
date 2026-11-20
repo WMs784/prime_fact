@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/app_drawer.dart';
 import 'package:prime_fact/best_effort.dart';
 import 'package:prime_fact/calculator_widget.dart';
@@ -7,29 +8,11 @@ import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_repository.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/links.dart';
 import 'package:prime_fact/number_style.dart';
 import 'package:prime_fact/settings_repository.dart';
-import 'package:prime_fact/share.dart';
 
 class MyLayout extends StatefulWidget {
-  const new({
-    super.key,
-    this.now = DateTime.now,
-    this.dailyRepository,
-    this.settingsRepository,
-    this.historyRepository,
-    this.calculator = defaultCalculator,
-    this.openUrl = defaultUrlOpener,
-    this.share = shareText,
-  });
-  final DateTime Function() now;
-  final DailyRepository? dailyRepository;
-  final SettingsRepository? settingsRepository;
-  final HistoryRepository? historyRepository;
-  final Calculator calculator;
-  final UrlOpener openUrl;
-  final ResultSharer share;
+  const new({super.key});
 
   @override
   State<MyLayout> createState() => _MyLayoutState();
@@ -38,15 +21,13 @@ class MyLayout extends StatefulWidget {
 class _MyLayoutState extends State<MyLayout> {
   List<HistoryEntry> _history = [];
   late final Future<void> _historyLoaded;
-  late final HistoryRepository _repo =
-      widget.historyRepository ?? HistoryRepository();
+  late final AppDependencies _deps = AppScope.of(context);
+  late final HistoryRepository _repo = _deps.historyRepository;
 
   /// 履歴を読めなかったとき true。保存済みの履歴を空で上書きしないよう、保存を控える。
   bool _historyLoadFailed = false;
-  late final DailyRepository _dailyRepo =
-      widget.dailyRepository ?? DailyRepository();
-  late final SettingsRepository _settings =
-      widget.settingsRepository ?? SettingsRepository();
+  late final DailyRepository _dailyRepo = _deps.dailyRepository;
+  late final SettingsRepository _settings = _deps.settingsRepository;
 
   /// null は読み込み中。読み込み前に一瞬バナーが出ないよう、そのあいだは隠す。
   bool? _showDaily;
@@ -105,7 +86,7 @@ class _MyLayoutState extends State<MyLayout> {
         onShowDailyChanged: _setShowDaily,
         numberStyle: _numberStyle,
         onNumberStyleChanged: _setNumberStyle,
-        openUrl: widget.openUrl,
+        openUrl: _deps.openUrl,
       ),
       // AppBar がステータスバー側のインセットを処理するため、本文は上以外を保護する
       body: SafeArea(
@@ -113,7 +94,7 @@ class _MyLayoutState extends State<MyLayout> {
         child: Column(
           children: [
             if (_showDaily ?? false)
-              DailyBanner(repository: _dailyRepo, now: widget.now),
+              DailyBanner(repository: _dailyRepo, now: _deps.now),
             Expanded(
               // 結果の高さに関係なく入力欄の位置が変わらないよう、上からの余白を画面の高さの割合で固定する
               child: LayoutBuilder(
@@ -121,8 +102,6 @@ class _MyLayoutState extends State<MyLayout> {
                   padding: EdgeInsets.only(top: constraints.maxHeight * 0.25),
                   child: MyWidget(
                     onCalculated: _addHistory,
-                    calculator: widget.calculator,
-                    share: widget.share,
                     numberStyle: _numberStyle,
                   ),
                 ),

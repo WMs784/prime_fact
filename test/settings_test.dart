@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart'
     show GlobalWidgetsLocalizations;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/home_page.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/main.dart';
@@ -29,7 +30,11 @@ void main() {
 
   testWidgets('drawer switch hides and shows the daily banner', (tester) async {
     ja(tester);
-    await tester.pumpWidget(MyApp(now: () => DateTime.utc(2026, 5, 1, 3)));
+    await tester.pumpWidget(
+      MyApp(
+        dependencies: AppDependencies(now: () => DateTime.utc(2026, 5, 1, 3)),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('今日の素因数分解に挑戦する'), findsOneWidget);
 
@@ -60,9 +65,12 @@ void main() {
       GlobalCupertinoLocalizations.delegate,
     ],
     supportedLocales: const [Locale('ja')],
-    home: MyLayout(
-      now: () => DateTime.utc(2026, 5, 1, 3),
-      settingsRepository: repo,
+    home: AppScope(
+      dependencies: AppDependencies(
+        now: () => DateTime.utc(2026, 5, 1, 3),
+        settingsRepository: repo,
+      ),
+      child: const MyLayout(),
     ),
   );
 
@@ -76,7 +84,11 @@ void main() {
   ) async {
     ja(tester);
     SharedPreferences.setMockInitialValues({'show_daily_challenge': false});
-    await tester.pumpWidget(MyApp(now: () => DateTime.utc(2026, 5, 1, 3)));
+    await tester.pumpWidget(
+      MyApp(
+        dependencies: AppDependencies(now: () => DateTime.utc(2026, 5, 1, 3)),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('今日の素因数分解に挑戦する'), findsNothing);
 

@@ -1,28 +1,13 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/judge.dart';
-import 'package:prime_fact/judge_isolate.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/number_style.dart';
 import 'package:prime_fact/share.dart';
 import 'package:prime_fact/spoken.dart';
 import 'package:prime_fact/trivia.dart';
-
-/// 計算の依頼から結果の文字列を作る関数。[cancel] されたら [CancelledException] を投げる。
-typedef Calculator = Future<String> Function(
-  FactorRequest request,
-  CancelToken cancel,
-);
-
-/// Web には Isolate がないので、メインスレッドで区切りながら計算する（画面が固まらない）。
-/// それ以外は別 Isolate で計算する（メインスレッドを塞がず、描画も落ちない）。
-/// どちらも [CancelToken] で中止できる。
-Future<String> defaultCalculator(FactorRequest request, CancelToken cancel) =>
-    kIsWeb
-    ? factorizeAsync(request, cancel)
-    : factorizeInIsolate(request, cancel);
 
 /// 因数分解の行（2 行目以降）で、「=」の直後と「x」の直前だけ折り返せるようにする。
 /// 数字や「^」の途中では折り返さない。
@@ -47,13 +32,8 @@ class MyWidget extends StatefulWidget {
     super.key,
     this.numberStyle = NumberStyle.plain,
     this.onCalculated,
-    this.calculator = defaultCalculator,
-    this.share = shareText,
   });
   final void Function(HistoryEntry)? onCalculated;
-
-  final Calculator calculator;
-  final ResultSharer share;
   final NumberStyle numberStyle;
 
   @override
@@ -116,7 +96,7 @@ class _MyWidgetState extends State<MyWidget> {
 
     String? result;
     try {
-      result = await widget.calculator((
+      result = await AppScope.of(context).calculator((
         n: inputNumber,
         isNotPrime: isNotPrime,
         isPrime: isPrime,
@@ -158,10 +138,8 @@ class _MyWidgetState extends State<MyWidget> {
   Future<void> _share(BuildContext buttonContext, AppLocalizations loc) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final outcome = await widget.share(
-        _displayed(loc),
-        originOf(buttonContext),
-      );
+      final outcome = await AppScope.of(context)
+          .share(_displayed(loc), originOf(buttonContext));
       // 共有シートがない環境ではコピーになるので、そのことを知らせる
       if (outcome == ShareOutcome.copied) {
         messenger.showSnackBar(SnackBar(content: Text(loc.copied)));

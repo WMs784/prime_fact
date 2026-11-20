@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/daily_page.dart';
 import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/daily_puzzle.dart';
@@ -290,7 +291,9 @@ void main() {
         ),
       );
       var now = _day;
-      await tester.pumpWidget(MyApp(now: () => now));
+      await tester.pumpWidget(
+        MyApp(dependencies: AppDependencies(now: () => now)),
+      );
       await tester.pumpAndSettle();
       expect(find.text('今日の挑戦はクリア済み'), findsOneWidget);
 
@@ -314,7 +317,9 @@ void main() {
       ),
     );
     var now = _day;
-    await tester.pumpWidget(MyApp(now: () => now));
+    await tester.pumpWidget(
+      MyApp(dependencies: AppDependencies(now: () => now)),
+    );
     await tester.pumpAndSettle();
     expect(find.text('今日の挑戦はクリア済み'), findsOneWidget);
 
@@ -338,7 +343,9 @@ void main() {
       ),
     );
     var now = _day;
-    await tester.pumpWidget(MyApp(now: () => now));
+    await tester.pumpWidget(
+      MyApp(dependencies: AppDependencies(now: () => now)),
+    );
     await tester.pumpAndSettle();
 
     now = DateTime.utc(2026, 10, 31, 15, 0, 1);
@@ -353,7 +360,11 @@ void main() {
     tester,
   ) async {
     final repo = _NeverLoadRepo();
-    await tester.pumpWidget(MyApp(now: () => _day, dailyRepository: repo));
+    await tester.pumpWidget(
+      MyApp(
+        dependencies: AppDependencies(now: () => _day, dailyRepository: repo),
+      ),
+    );
     await tester.pump(const Duration(seconds: 95));
     expect(repo.loads, 1);
   });
@@ -364,7 +375,11 @@ void main() {
     tester.platformDispatcher.localesTestValue = [const Locale('ja')];
     addTearDown(tester.platformDispatcher.clearLocalesTestValue);
     final repo = _SlowFirstLoadRepo();
-    await tester.pumpWidget(MyApp(now: () => _day, dailyRepository: repo));
+    await tester.pumpWidget(
+      MyApp(
+        dependencies: AppDependencies(now: () => _day, dailyRepository: repo),
+      ),
+    );
     await tester.pump();
     // 1 回目の読み込み（未開始）が止まっている間に、2 回目（クリア済み）を始める
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
