@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/app_dependencies.dart';
+import 'package:prime_fact/calculator.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/judge.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
@@ -27,25 +27,51 @@ String wrapAtTimes(String result) {
           );
 }
 
-class MyWidget extends StatefulWidget {
+class CalculatorForm extends StatefulWidget {
   const new({
+    required this.calculator,
+    required this.share,
     super.key,
     this.numberStyle = NumberStyle.plain,
     this.onCalculated,
   });
+
+  /// 計算の実行。
+  final Calculator calculator;
+
+  /// 結果の共有の仕方。
+  final ResultSharer share;
   final void Function(HistoryEntry)? onCalculated;
   final NumberStyle numberStyle;
 
   @override
-  State<MyWidget> createState() => _MyWidgetState();
+  State<CalculatorForm> createState() => _CalculatorFormState();
 }
 
-class _MyWidgetState extends State<MyWidget> {
+/// 結果欄の内容。
+sealed class _Output {
+  const new(this.text);
+
+  /// 整形前の文字列。
+  final String text;
+}
+
+/// 計算に成功した結果。コピー・共有の対象になる。
+class _Calculated extends _Output {
+  const new(super.text);
+}
+
+/// 計算に失敗したときの文言。コピー・共有の対象にしない。
+class _CalcFailed extends _Output {
+  const new(super.text);
+}
+
+class _CalculatorFormState extends State<CalculatorForm> {
   final _controller = TextEditingController();
   bool _isLoading = false;
-  String _result = '';
-  // 計算に成功した結果だけコピー・共有の対象にする（エラー文言は対象外）
-  bool _resultShareable = false;
+
+  /// 結果欄の内容。null は何も表示しない。
+  _Output? _output;
   String? _errorText;
   CancelToken? _cancel;
 
@@ -61,8 +87,7 @@ class _MyWidgetState extends State<MyWidget> {
     _controller.clear();
     setState(() {
       _errorText = null;
-      _result = '';
-      _resultShareable = false;
+      _output = null;
     });
   }
 
@@ -80,8 +105,7 @@ class _MyWidgetState extends State<MyWidget> {
     final inputNumber = _validate(loc);
     if (inputNumber == null) {
       setState(() {
-        _result = '';
-        _resultShareable = false;
+        _output = null;
       });
       return;
     }
@@ -96,7 +120,7 @@ class _MyWidgetState extends State<MyWidget> {
 
     String? result;
     try {
-      result = await AppScope.of(context).calculator((
+      result = await widget.calculator((
         n: inputNumber,
         isNotPrime: isNotPrime,
         isPrime: isPrime,
@@ -114,8 +138,7 @@ class _MyWidgetState extends State<MyWidget> {
       return;
     }
     setState(() {
-      _result = result ?? failedText;
-      _resultShareable = result != null;
+      _output = result == null ? _CalcFailed(failedText) : _Calculated(result);
       _isLoading = false;
     });
     if (result == null) return;
@@ -138,8 +161,10 @@ class _MyWidgetState extends State<MyWidget> {
   Future<void> _share(BuildContext buttonContext, AppLocalizations loc) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final outcome = await AppScope.of(context)
-          .share(_displayed(loc), originOf(buttonContext));
+      final outcome = await widget.share(
+        _displayed(loc),
+        originOf(buttonContext),
+      );
       // 共有シートがない環境ではコピーになるので、そのことを知らせる
       if (outcome == ShareOutcome.copied) {
         messenger.showSnackBar(SnackBar(content: Text(loc.copied)));
@@ -151,11 +176,12 @@ class _MyWidgetState extends State<MyWidget> {
 
   /// 表示・コピー・共有に使う、形式を適用した結果。
   String _displayed(AppLocalizations loc) =>
-      formatForLocale(loc, _result, widget.numberStyle);
+      formatForLocale(loc, _output?.text ?? '', widget.numberStyle);
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final output = _output;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
@@ -198,7 +224,7 @@ class _MyWidgetState extends State<MyWidget> {
                   onPressed:
                       !_isLoading &&
                           (value.text.isNotEmpty ||
-                              _result.isNotEmpty ||
+                              _output != null ||
                               _errorText != null)
                       ? _clear
                       : null,
@@ -247,11 +273,11 @@ class _MyWidgetState extends State<MyWidget> {
                           liveRegion: true,
                           child: Text(
                             wrapAtTimes(_displayed(loc)),
-                            semanticsLabel: _result.isEmpty
+                            semanticsLabel: output == null
                                 ? null
                                 : spokenResult(
                                     loc,
-                                    _result,
+                                    output.text,
                                     numberStyle: widget.numberStyle,
                                   ),
                             key: const ValueKey('result'),
@@ -259,7 +285,7 @@ class _MyWidgetState extends State<MyWidget> {
                           ),
                         ),
                       ),
-                      if (_resultShareable)
+                      if (output is _Calculated)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [

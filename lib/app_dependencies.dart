@@ -1,4 +1,3 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/calculator.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/history_repository.dart';
@@ -7,6 +6,10 @@ import 'package:prime_fact/settings_repository.dart';
 import 'package:prime_fact/share.dart';
 
 /// アプリが外の世界（時計・保存先・計算・共有・URL）に触れる口をまとめたもの。
+///
+/// 具体的な実装を選んで組み立てる、コンポジションルート（`PrimeFactApp`）のためのもの。
+/// 読んでよいのは入口の層（`main` と `HomePage`）だけで、`HomePage` が必要なものを子の
+/// Widget に引数で渡す（`tool/deps/build.py` の層のルールで検査している）。
 ///
 /// 既定は本番の実装。テストでは必要なものだけ差し替える。
 class AppDependencies {
@@ -40,24 +43,4 @@ class AppDependencies {
   final DailyRepository dailyRepository;
   final HistoryRepository historyRepository;
   final SettingsRepository settingsRepository;
-}
-
-/// 下の Widget に [AppDependencies] を渡す。
-///
-/// 依存は起動中に変わらないので、読んでも再構築の購読はしない（`initState` からも読める）。
-/// [AppScope] がない場所（Widget 単体のテストなど）では、本番の実装を使う。
-class AppScope extends InheritedWidget {
-  const new({required this.dependencies, required super.child, super.key});
-
-  final AppDependencies dependencies;
-
-  static final AppDependencies _fallback = AppDependencies();
-
-  static AppDependencies of(BuildContext context) =>
-      context.getInheritedWidgetOfExactType<AppScope>()?.dependencies ??
-      _fallback;
-
-  @override
-  bool updateShouldNotify(AppScope oldWidget) =>
-      dependencies != oldWidget.dependencies;
 }

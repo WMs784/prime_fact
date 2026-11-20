@@ -21,7 +21,7 @@ void main() {
 
   Future<void> pump(WidgetTester tester, {List<String>? shared}) async {
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(
           calculator: fakeCalc,
           share: (text, _) async {
@@ -38,7 +38,7 @@ void main() {
     tester
         .state<ScaffoldState>(
           find.descendant(
-            of: find.byType(MyLayout),
+            of: find.byType(HomePage),
             matching: find.byType(Scaffold),
           ),
         )
@@ -57,7 +57,7 @@ void main() {
     tester
         .state<ScaffoldState>(
           find.descendant(
-            of: find.byType(MyLayout),
+            of: find.byType(HomePage),
             matching: find.byType(Scaffold),
           ),
         )

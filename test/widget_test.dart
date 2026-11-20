@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/app_dependencies.dart';
-import 'package:prime_fact/calculator_widget.dart';
+import 'package:prime_fact/calculator_form.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_repository.dart';
 import 'package:prime_fact/home_page.dart';
@@ -15,7 +15,7 @@ import 'package:prime_fact/share.dart' show ShareOutcome;
 
 void main() {
   testWidgets('App renders calculator UI', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pump();
 
     expect(find.byType(TextField), findsOneWidget);
@@ -23,7 +23,7 @@ void main() {
   });
 
   testWidgets('Input field rejects non-numeric input', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pump();
 
     final field = find.byType(TextField);
@@ -36,7 +36,7 @@ void main() {
 
   testWidgets('Empty input shows a localized error (ja)', (tester) async {
     _setLocale(tester, const Locale('ja'));
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await tester.tap(find.byType(ElevatedButton));
@@ -51,7 +51,7 @@ void main() {
 
   testWidgets('Zero is judged as not prime (en)', (tester) async {
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '0');
@@ -68,7 +68,7 @@ void main() {
     tester,
   ) async {
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '0');
@@ -87,7 +87,7 @@ void main() {
     final repo = _FakeHistoryRepository(() => loading.future);
     _setLocale(tester, const Locale('en'));
     await tester.pumpWidget(
-      MyApp(dependencies: AppDependencies(historyRepository: repo)),
+      PrimeFactApp(dependencies: AppDependencies(historyRepository: repo)),
     );
     await tester.pump();
 
@@ -115,7 +115,7 @@ void main() {
     );
     _setLocale(tester, const Locale('en'));
     await tester.pumpWidget(
-      MyApp(dependencies: AppDependencies(historyRepository: repo)),
+      PrimeFactApp(dependencies: AppDependencies(historyRepository: repo)),
     );
     await tester.pump();
 
@@ -141,7 +141,7 @@ void main() {
         CancelToken? token;
         var calls = 0;
         await tester.pumpWidget(
-          MyApp(
+          PrimeFactApp(
             dependencies: AppDependencies(
               historyRepository: repo,
               calculator: (_, cancel) {
@@ -206,7 +206,7 @@ void main() {
     final repo = _FakeHistoryRepository(() async => []);
     _setLocale(tester, const Locale('en'));
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(
           historyRepository: repo,
           calculator: (_, _) => Future.error(StateError('boom')),
@@ -236,7 +236,7 @@ void main() {
       final opened = <String>[];
       _setLocale(tester, const Locale('en'));
       await tester.pumpWidget(
-        MyApp(
+        PrimeFactApp(
           dependencies: AppDependencies(
             openUrl: (url) {
               opened.add(url);
@@ -249,7 +249,7 @@ void main() {
       tester
           .state<ScaffoldState>(
             find.descendant(
-              of: find.byType(MyLayout),
+              of: find.byType(HomePage),
               matching: find.byType(Scaffold),
             ),
           )
@@ -284,7 +284,7 @@ void main() {
   testWidgets('A long result wraps at full size', (tester) async {
     _setLocale(tester, const Locale('en'));
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(
           calculator: (_, _) async => '${'2x' * 60}2',
         ),
@@ -324,7 +324,7 @@ void main() {
       ),
     );
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(
           calculator: (_, _) async => 'RESULT\n${'2x' * 60}2',
         ),
@@ -353,7 +353,7 @@ void main() {
     (tester) async {
       _setLocale(tester, const Locale('en'));
       await tester.pumpWidget(
-        MyApp(
+        PrimeFactApp(
           dependencies: AppDependencies(
             calculator: (_, _) async => '60 NP\n60=2^2x3x5',
           ),
@@ -384,7 +384,7 @@ void main() {
       (tester) async {
         _setLocale(tester, const Locale('en'));
         const charWidth = 20.0;
-        // 結果欄の左右の余白(MyWidget の horizontal: 12 × 2)。余白を変えたらここも直す
+        // 結果欄の左右の余白(CalculatorForm の horizontal: 12 × 2)。余白を変えたらここも直す
         const sidePadding = 24.0;
         tester.view.devicePixelRatio = 1;
         tester.view.physicalSize = const Size(
@@ -395,7 +395,7 @@ void main() {
 
         final result = 'x NP\n$n=99999999999971x99999999999973';
         await tester.pumpWidget(
-          MyApp(
+          PrimeFactApp(
             dependencies: AppDependencies(calculator: (_, _) async => result),
           ),
         );
@@ -445,7 +445,7 @@ void main() {
     testWidgets('Share outcome ${c.$1} -> snackbar ${c.$2}', (tester) async {
       _setLocale(tester, const Locale('en'));
       await tester.pumpWidget(
-        MyApp(
+        PrimeFactApp(
           dependencies: AppDependencies(
             calculator: (_, _) async => 'R',
             share: (_, _) async => c.$1,
@@ -468,7 +468,7 @@ void main() {
   ) async {
     _setLocale(tester, const Locale('ja'));
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(
           calculator: (_, _) async => 'R',
           share: (_, _) async => throw 'x',
@@ -492,7 +492,7 @@ void main() {
   ) async {
     _setLocale(tester, const Locale('en'));
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(
           calculator: (_, _) async => throw Exception('boom'),
         ),
@@ -509,7 +509,7 @@ void main() {
 
   testWidgets('57 is shown as the Grothendieck prime (ja)', (tester) async {
     _setLocale(tester, const Locale('ja'));
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '57');
@@ -533,7 +533,7 @@ void main() {
     }
 
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await calc('28');
@@ -550,7 +550,7 @@ void main() {
 
   testWidgets('Special header in Japanese', (tester) async {
     _setLocale(tester, const Locale('ja'));
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '6');

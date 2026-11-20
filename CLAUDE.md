@@ -118,12 +118,12 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 ## Architecture
 
 ### Core Structure
-- **`lib/main.dart`**: Main app entry point with MaterialApp setup, theme configuration, and localization delegates (`MyApp`)
-- **`lib/app_dependencies.dart`**: 時計・保存先（Repository）・計算・共有・URL の差し替え口を `AppDependencies` にまとめ、`AppScope`（`InheritedWidget`）で下へ渡す。`MyApp(dependencies: ...)` で渡し、省くと本番の実装。テストで差し替える入口はここだけ
+- **`lib/main.dart`**: Main app entry point with MaterialApp setup, theme configuration, and localization delegates (`PrimeFactApp`)
+- **`lib/app_dependencies.dart`**: 時計・保存先（Repository）・計算・共有・URL の差し替え口を `AppDependencies` にまとめる（Widget に依存しない純粋な Dart）。`PrimeFactApp(dependencies: ...)` が組み立てて（省くと本番の実装。本番の実装を選ぶのはここだけ）`HomePage(dependencies:)` に渡し、`HomePage` が必要なものを子の Widget に引数で渡す（`AppDrawer(openUrl)`、`DailyBanner(repository, now, share)` → `DailyPage(onShare)`、`CalculatorForm(calculator, share)`）。依存を読んでよいのは入口の層（`main` と `HomePage`）だけで、画面や部品は `AppScope` のようなものから自分で取らず、引数で受け取る。テストで差し替える入口はここだけ（`DailyPage` を含め、`shareText` などの本番の実装に直結する既定値は持たない）
 - **`lib/calculator.dart`**: `Calculator` 型と `defaultCalculator`（Web は `factorizeAsync`、それ以外は別 Isolate の `factorizeInIsolate`）
-- **`lib/home_page.dart`**: ホーム画面（`MyLayout`）。履歴・設定の読み込みと保存、バナー、計算機を並べる
-- **`lib/app_drawer.dart`**: ドロワー（`MyDrawer`、状態を持たない）。履歴・バナーの表示切替・数の表示形式・アプリ情報のリンク
-- **`lib/calculator_widget.dart`**: 計算機の入力・結果表示（`MyWidget`）、結果の折り返し `wrapAtTimes`
+- **`lib/home_page.dart`**: ホーム画面（`HomePage`）。履歴・設定の読み込みと保存、バナー、計算機を並べる
+- **`lib/app_drawer.dart`**: ドロワー（`AppDrawer`、状態を持たない）。履歴・バナーの表示切替・数の表示形式・アプリ情報のリンク
+- **`lib/calculator_form.dart`**: 計算機の入力・結果表示（`CalculatorForm`）、結果の折り返し `wrapAtTimes`
 - **`lib/judge.dart`**: Core business logic (Miller-Rabin primality test, Pollard-Brent factorization on `BigInt`; アルゴリズム本体は `yield` で区切れる `sync*`。`factorizeSync(FactorRequest)` は最後まで同期で回す版（テスト・isolate 用）、`factorizeAsync(request, CancelToken)` は約 50ms ごとにイベントループへ制御を返す版で、Web ではこれをメインスレッドで使う（Web には Isolate がなく `compute` だと画面が固まるため。速度は同期版と同程度）。Web 以外は `lib/judge_isolate.dart` の `factorizeInIsolate` で別 Isolate に出す（メインスレッドで区切ると 1 フレーム 16.7ms を超えて描画が落ちるため）。どちらも `CancelToken.cancel()` で `CancelledException` を投げて止まる。the request is a record `(n, isNotPrime, isPrime, special)`)
 - **`lib/trivia.dart`**: Replaces the primality header for special numbers (perfect / Mersenne / Fermat / palindromic / Sophie Germain / twin primes, 1729, 57 Grothendieck), e.g. "6は素数、ではなく完全数です！". The result is passed to the calculator (`factorizeAsync` / `factorizeInIsolate`) as `FactorRequest.special`; `HistoryPage` re-derives it via `headerFor`. To extend: add a `Trivia` value, its `isXxx` ARB strings (suffix after the number), a `triviaHeader` case and a test
 - **`lib/history_*.dart`**: Calculation history (`HistoryEntry`, `HistoryRepository` persisting via `shared_preferences`, `HistoryPage`)
@@ -140,9 +140,9 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/l10n/`**: Internationalization files for Japanese and English support
 
 ### Key Components
-1. **MyApp**: Root widget with theme and localization configuration
-2. **MyLayout**: Main layout with drawer navigation
-3. **MyWidget**: Primary calculator interface with input field and result display
+1. **PrimeFactApp**: Root widget with theme and localization configuration
+2. **HomePage**: Main layout with drawer navigation
+3. **CalculatorForm**: Primary calculator interface with input field and result display
 
 ### Algorithm Implementation
 - Primality: Miller-Rabin with fixed witnesses (deterministic below 3.3×10^24, error < 4^-20 for 30 digits)
@@ -214,6 +214,7 @@ The app supports Japanese and English:
 - `test/best_effort_test.dart`: 保存の失敗を握りつぶして続けること
 - `test/settings_test.dart`: daily banner toggle in the drawer and its persistence
 - `test/widget_test.dart`: calculator UI, input validation errors, localized results, history save races (injected `HistoryRepository`), failed and cancelled calculation (injected `Calculator`), drawer links (injected `UrlOpener`), wrapped result (line breaks only before `x`), copy/share buttons, fixed input position
+- `test/helpers/localized_app.dart`: 画面単体のテスト用の `localizedApp(home, {locale})`（ローカライズ付きの `MaterialApp`）
 - Add tests alongside any change to `judge.dart` or the history format
 
 ### Known Limitations

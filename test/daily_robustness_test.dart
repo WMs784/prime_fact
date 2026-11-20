@@ -9,11 +9,12 @@ import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/home_page.dart';
-import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/main.dart';
 import 'package:prime_fact/share.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers/localized_app.dart';
 
 final _day = DateTime.utc(2026, 10, 31, 3); // 12:00 JST
 final _puzzle = DailyPuzzle.forDate(_day);
@@ -76,12 +77,7 @@ Future<ShareResult> Function(ShareParams) _fakeShare(
   return result ?? (throw UnimplementedError());
 };
 
-Widget _app(Widget home) => MaterialApp(
-  locale: const Locale('ja'),
-  localizationsDelegates: appLocalizationsDelegates,
-  supportedLocales: AppLocalizations.supportedLocales,
-  home: home,
-);
+Widget _app(Widget home) => localizedApp(home, locale: const Locale('ja'));
 
 DailyPage _page(
   _FakeRepo repo, {
@@ -273,7 +269,9 @@ void main() {
 
   group('banner', () {
     testWidgets('does not flash the start label while loading', (tester) async {
-      await tester.pumpWidget(_app(const Scaffold(body: MyLayout())));
+      await tester.pumpWidget(
+        _app(Scaffold(body: HomePage(dependencies: AppDependencies()))),
+      );
       // 読み込み完了前
       expect(find.text('今日の素因数分解に挑戦する'), findsNothing);
       await tester.pumpAndSettle();
@@ -292,7 +290,7 @@ void main() {
       );
       var now = _day;
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.text('今日の挑戦はクリア済み'), findsOneWidget);
@@ -318,7 +316,7 @@ void main() {
     );
     var now = _day;
     await tester.pumpWidget(
-      MyApp(dependencies: AppDependencies(now: () => now)),
+      PrimeFactApp(dependencies: AppDependencies(now: () => now)),
     );
     await tester.pumpAndSettle();
     expect(find.text('今日の挑戦はクリア済み'), findsOneWidget);
@@ -344,7 +342,7 @@ void main() {
     );
     var now = _day;
     await tester.pumpWidget(
-      MyApp(dependencies: AppDependencies(now: () => now)),
+      PrimeFactApp(dependencies: AppDependencies(now: () => now)),
     );
     await tester.pumpAndSettle();
 
@@ -361,7 +359,7 @@ void main() {
   ) async {
     final repo = _NeverLoadRepo();
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(now: () => _day, dailyRepository: repo),
       ),
     );
@@ -376,7 +374,7 @@ void main() {
     addTearDown(tester.platformDispatcher.clearLocalesTestValue);
     final repo = _SlowFirstLoadRepo();
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(now: () => _day, dailyRepository: repo),
       ),
     );
@@ -422,7 +420,7 @@ void main() {
     tester.view.viewInsets = const FakeViewPadding(bottom: 220);
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
     // レイアウトのオーバーフローは例外としてテストを失敗させる
     expect(tester.takeException(), isNull);

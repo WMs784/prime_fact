@@ -9,6 +9,7 @@ import 'package:prime_fact/l10n/app_localizations_en.dart';
 import 'package:prime_fact/l10n/app_localizations_ja.dart';
 import 'package:prime_fact/links.dart';
 import 'package:prime_fact/main.dart';
+import 'package:prime_fact/share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final _day = DateTime.utc(2026, 10, 31, 3); // 12:00 JST
@@ -23,7 +24,9 @@ Future<void> _openChallenge(
   WidgetTester tester,
   DateTime Function() now,
 ) async {
-  await tester.pumpWidget(MyApp(dependencies: AppDependencies(now: now)));
+  await tester.pumpWidget(
+    PrimeFactApp(dependencies: AppDependencies(now: now)),
+  );
   await tester.pumpAndSettle();
   await tester.tap(find.text('今日の素因数分解に挑戦する'));
   await tester.pumpAndSettle();
@@ -38,7 +41,7 @@ void main() {
     _setLocale(tester, const Locale('ja'));
     var now = _day;
     await tester.pumpWidget(
-      MyApp(dependencies: AppDependencies(now: () => now)),
+      PrimeFactApp(dependencies: AppDependencies(now: () => now)),
     );
     await tester.pumpAndSettle();
     expect(find.text('今日の素因数分解に挑戦する'), findsOneWidget);
@@ -130,7 +133,7 @@ void main() {
       ),
     );
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(
           now: () => _day.add(const Duration(hours: 1)),
         ),
@@ -144,6 +147,39 @@ void main() {
     expect(find.text('タイム 0:12.3 / ミス 2回'), findsOneWidget);
     expect(find.text('結果をシェア'), findsOneWidget);
     expect(find.text('回答する'), findsNothing);
+  });
+
+  testWidgets('sharing the daily result goes through AppDependencies.share', (
+    tester,
+  ) async {
+    _setLocale(tester, const Locale('ja'));
+    final progress = DailyProgress(
+      startedAt: _day,
+      wrong: 2,
+      clearedAt: _day.add(const Duration(seconds: 12, milliseconds: 300)),
+    );
+    await DailyRepository().save(20261031, progress);
+    final shared = <String>[];
+    await tester.pumpWidget(
+      PrimeFactApp(
+        dependencies: AppDependencies(
+          now: () => _day.add(const Duration(hours: 1)),
+          share: (text, _) async {
+            shared.add(text);
+            return ShareOutcome.sheet;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('今日の挑戦はクリア済み'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('結果をシェア'));
+    await tester.pumpAndSettle();
+
+    // 差し替えた share に届く（実際の共有シートは開かない）
+    expect(shared, [dailyShareText(AppLocalizationsJa(), progress)]);
   });
 
   test(

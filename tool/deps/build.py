@@ -25,7 +25,9 @@ from pathlib import Path
 
 # 上の層ほど大きい。上の層は下の層を（飛ばしても）使ってよく、逆は違反。
 LAYERS = [
-    (3, "入口", ["main", "home_page"]),
+    # app_dependencies は、本番の実装を選んで組み立てる側（コンポジションルート）なので入口に置く。
+    # 読んでよいのは入口だけで、画面・部品の層が import したら違反になる（引数で受け取る）
+    (3, "入口", ["main", "home_page", "app_dependencies"]),
     (
         2,
         "画面・部品",
@@ -35,7 +37,7 @@ LAYERS = [
             "daily_page",
             "daily_records_page",
             "history_page",
-            "calculator_widget",
+            "calculator_form",
         ],
     ),
     (
@@ -48,11 +50,6 @@ LAYERS = [
             "daily_repository",
             "daily_progress",
             "daily_stats",
-            # 暫定。AppDependencies は本来、組み立てる側なので入口（main / home_page）の層に置く
-            # （画面・部品が読んだら違反にする）。いまは calculator_widget が AppScope.of で
-            # 読んでいるので、検査を通すためにここへ置いている。#88（AppScope をやめる）が
-            # 入ったら入口へ移し、#83 の改名に合わせて calculator_widget を calculator_form にする。
-            "app_dependencies",
         ],
     ),
     (

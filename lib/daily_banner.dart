@@ -9,6 +9,7 @@ import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/daily_stats.dart';
 import 'package:prime_fact/date_key.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
+import 'package:prime_fact/share.dart';
 
 /// バナーが読み込んだ、ある日の状態。表示と、タップ先の問題はこの [key] の日に揃える。
 ///
@@ -18,9 +19,17 @@ typedef _Snapshot = ({int key, DailyProgress? progress, DailyStats? stats});
 
 /// ホーム画面の「今日の素因数分解に挑戦する」バナー。
 class DailyBanner extends StatefulWidget {
-  const new({required this.repository, required this.now, super.key});
+  const new({
+    required this.repository,
+    required this.now,
+    required this.share,
+    super.key,
+  });
   final DailyRepository repository;
   final DateTime Function() now;
+
+  /// 「今日の素因数分解」の結果の共有の仕方。
+  final ResultSharer share;
 
   @override
   State<DailyBanner> createState() => _DailyBannerState();
@@ -103,6 +112,7 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
           puzzle: puzzle,
           repository: widget.repository,
           now: widget.now,
+          onShare: widget.share,
         ),
       ),
     );

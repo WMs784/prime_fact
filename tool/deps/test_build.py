@@ -74,6 +74,26 @@ class ClassifyTest(unittest.TestCase):
         self.assertEqual(violations, [])
         self.assertEqual(edges, {})  # 共通部品への依存は図にも出さない
 
+    def test_only_the_entry_layer_may_read_app_dependencies(self):
+        # AppDependencies は組み立てる側。入口（main / home_page）だけが読み、画面・部品は引数で受け取る
+        _, violations, _ = kinds(
+            graph(("main", "app_dependencies"), ("home_page", "app_dependencies"))
+        )
+        self.assertEqual(violations, [])
+        for screen in ("calculator_form", "daily_page", "daily_banner", "app_drawer"):
+            _, violations, _ = kinds(graph((screen, "app_dependencies")))
+            self.assertEqual(violations, [(screen, "app_dependencies")], screen)
+
+    def test_app_dependencies_may_use_the_lower_layers(self):
+        _, violations, _ = kinds(
+            graph(
+                ("app_dependencies", "daily_repository"),
+                ("app_dependencies", "calculator"),
+                ("app_dependencies", "share"),
+            )
+        )
+        self.assertEqual(violations, [])
+
     def test_shared_part_importing_another_file_is_a_violation(self):
         _, violations, _ = kinds(graph(("share", "judge")))
         self.assertEqual(violations, [("share", "judge")])

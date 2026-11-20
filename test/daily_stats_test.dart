@@ -6,9 +6,10 @@ import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_records_page.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/daily_stats.dart';
-import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers/localized_app.dart';
 
 final _t0 = DateTime.utc(2026);
 
@@ -171,7 +172,7 @@ void main() {
         20261031: _cleared(),
       });
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.text('🔥 3日連続'), findsOneWidget);
@@ -191,7 +192,7 @@ void main() {
       setLocale(tester, const Locale('en'));
       await seed({20261030: _cleared()});
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.text('🔥 1-day streak'), findsOneWidget);
@@ -203,7 +204,7 @@ void main() {
       setLocale(tester, const Locale('ja'));
       await seed({20261029: _cleared(), 20261030: _cleared()});
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text('今日の素因数分解に挑戦する'));
@@ -223,7 +224,7 @@ void main() {
       setLocale(tester, const Locale('ja'));
       await seed({20261031: _cleared()});
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.textContaining('日連続'), findsNothing);
@@ -234,10 +235,8 @@ void main() {
     ) async {
       setLocale(tester, const Locale('ja'));
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: appLocalizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: DailyRecordsPage(repository: DailyRepository(), now: () => now),
+        localizedApp(
+          DailyRecordsPage(repository: DailyRepository(), now: () => now),
         ),
       );
       await tester.pumpAndSettle();
@@ -245,11 +244,9 @@ void main() {
 
       await seed({20261030: _open(), 20261031: _open()});
       await tester.pumpWidget(
-        MaterialApp(
+        localizedApp(
+          DailyRecordsPage(repository: DailyRepository(), now: () => now),
           key: UniqueKey(),
-          localizationsDelegates: appLocalizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: DailyRecordsPage(repository: DailyRepository(), now: () => now),
         ),
       );
       await tester.pumpAndSettle();
@@ -261,10 +258,8 @@ void main() {
       setLocale(tester, const Locale('ja'));
       await seed({20261031: _cleared(), 20991231: _cleared()});
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: appLocalizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: DailyRecordsPage(repository: DailyRepository(), now: () => now),
+        localizedApp(
+          DailyRecordsPage(repository: DailyRepository(), now: () => now),
         ),
       );
       await tester.pumpAndSettle();
@@ -288,7 +283,7 @@ void main() {
         20261031: _cleared(),
       });
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.text('🔥 3-day streak'), findsOneWidget);
@@ -306,11 +301,7 @@ void main() {
       setLocale(tester, const Locale('ja'));
       final repo = _FailOnceRepo();
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: appLocalizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: DailyRecordsPage(repository: repo, now: () => now),
-        ),
+        localizedApp(DailyRecordsPage(repository: repo, now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.text('記録を読み込めませんでした'), findsOneWidget);
