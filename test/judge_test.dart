@@ -12,7 +12,7 @@ const _prime = ' P';
 FactorRequest _req(BigInt n, [String? special]) =>
     (n: n, isNotPrime: _notPrime, isPrime: _prime, special: special);
 
-String run(String n) => pri_fact_isolate(_req(BigInt.parse(n)));
+String run(String n) => factorizeSync(_req(BigInt.parse(n)));
 
 /// "n NP\nn=factors" 形式の結果から因数分解部分だけを取り出す。
 String factorsOf(String n) {
@@ -27,7 +27,7 @@ void _silentEntry((SendPort, FactorRequest) args) {}
 void main() {
   test('FactorRequest survives the real compute isolate round trip', () async {
     final result = await compute(
-      pri_fact_isolate,
+      factorizeSync,
       _req(BigInt.from(12), ' special'),
     );
     expect(result, '12 special\n12=2^2x3');
@@ -38,12 +38,12 @@ void main() {
     final heavy =
         BigInt.parse('99999999999971') * BigInt.parse('99999999999973');
 
-    test('gives the same result as pri_fact_isolate', () async {
+    test('gives the same result as factorizeSync', () async {
       for (final n in ['0', '1', '97', '360', '1000000007000000063']) {
         final req = _req(BigInt.parse(n));
         expect(
           await factorizeAsync(req, CancelToken()),
-          pri_fact_isolate(req),
+          factorizeSync(req),
           reason: n,
         );
       }
@@ -82,12 +82,9 @@ void main() {
   });
 
   group('factorizeInIsolate', () {
-    test('gives the same result as pri_fact_isolate', () async {
+    test('gives the same result as factorizeSync', () async {
       final req = _req(BigInt.parse('1000000007000000063'));
-      expect(
-        await factorizeInIsolate(req, CancelToken()),
-        pri_fact_isolate(req),
-      );
+      expect(await factorizeInIsolate(req, CancelToken()), factorizeSync(req));
     });
 
     test('kills the isolate and throws when cancelled', () async {
@@ -121,7 +118,7 @@ void main() {
     });
   });
 
-  group('pri_fact_isolate: trivial inputs', () {
+  group('factorizeSync: trivial inputs', () {
     test('0 and 1 are neither prime nor factorable', () {
       expect(run('0'), '0$_notPrime');
       expect(run('1'), '1$_notPrime');
@@ -132,9 +129,9 @@ void main() {
     });
   });
 
-  group('pri_fact_isolate: special header', () {
+  group('factorizeSync: special header', () {
     const s = ' S';
-    String runS(String n) => pri_fact_isolate(_req(BigInt.parse(n), s));
+    String runS(String n) => factorizeSync(_req(BigInt.parse(n), s));
 
     test('replaces the header of a composite but keeps its factorization', () {
       expect(runS('57'), '57$s\n57=3x19');
@@ -146,12 +143,12 @@ void main() {
     });
 
     test('is ignored when null or omitted', () {
-      expect(pri_fact_isolate(_req(BigInt.from(57))), '57$_notPrime\n57=3x19');
+      expect(factorizeSync(_req(BigInt.from(57))), '57$_notPrime\n57=3x19');
       expect(run('57'), '57$_notPrime\n57=3x19');
     });
   });
 
-  group('pri_fact_isolate: primality', () {
+  group('factorizeSync: primality', () {
     test('small primes', () {
       for (final p in [2, 3, 5, 7, 11, 13, 97, 997, 1009, 7919]) {
         expect(run('$p'), '$p$_prime', reason: 'p=$p');
@@ -200,7 +197,7 @@ void main() {
     });
   });
 
-  group('pri_fact_isolate: factorization', () {
+  group('factorizeSync: factorization', () {
     test('small composites', () {
       expect(factorsOf('4'), '2^2');
       expect(factorsOf('6'), '2x3');
