@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart'
     show GlobalWidgetsLocalizations;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/home_page.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/main.dart';
 import 'package:prime_fact/settings_repository.dart';

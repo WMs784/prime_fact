@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/calculator_widget.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_page.dart';
 import 'package:prime_fact/l10n/app_localizations_en.dart';

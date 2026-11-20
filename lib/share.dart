@@ -2,6 +2,9 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
+/// 結果の共有。テストで差し替える。
+typedef ResultSharer = Future<ShareOutcome> Function(String text, Rect? origin);
+
 /// 共有の結果。
 enum ShareOutcome {
   /// 共有シートを開いた（共有したか閉じたかは判別しない）。

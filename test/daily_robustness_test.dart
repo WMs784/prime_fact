@@ -7,6 +7,7 @@ import 'package:prime_fact/daily_page.dart';
 import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/daily_puzzle.dart';
 import 'package:prime_fact/daily_repository.dart';
+import 'package:prime_fact/home_page.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/main.dart';
 import 'package:prime_fact/share.dart';
