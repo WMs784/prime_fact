@@ -25,9 +25,12 @@ class FailedOutput extends CalculatorOutput {
 
 /// 計算機の状態（計算中か・結果欄の内容）と、計算の実行・中止。Widget には依存しない。
 class CalculatorController extends ChangeNotifier {
-  new(this._calculator);
+  new(this._calculator, {required this.now});
 
   final Calculator _calculator;
+
+  /// 履歴に残す計算時刻の取り方。
+  final DateTime Function() now;
 
   bool _isLoading = false;
   CalculatorOutput? _output;
@@ -91,7 +94,7 @@ class CalculatorController extends ChangeNotifier {
     return HistoryEntry.fromResult(
       input: n.toString(),
       result: result,
-      timestamp: DateTime.now(),
+      timestamp: now(),
     );
   }
 

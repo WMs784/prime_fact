@@ -2,16 +2,22 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart' show Locale;
+import 'package:prime_fact/calculator/calculator.dart';
 import 'package:prime_fact/calculator/calculator_controller.dart';
 import 'package:prime_fact/calculator/judge.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
+
+final _t0 = DateTime(2026, 11, 21, 9, 30);
+
+CalculatorController _make(Calculator calculator) =>
+    CalculatorController(calculator, now: () => _t0);
 
 void main() {
   final loc = lookupAppLocalizations(const Locale('ja'));
 
   test('a result is shown and returned as a history entry', () async {
     FactorRequest? seen;
-    final c = CalculatorController((request, cancel) async {
+    final c = _make((request, cancel) async {
       seen = request;
       return '60=2^2x3x5';
     });
@@ -23,13 +29,14 @@ void main() {
     expect(c.output, isA<CalculatedOutput>());
     expect(c.output?.text, '60=2^2x3x5');
     expect(entry?.input, '60');
+    expect(entry?.timestamp, _t0);
     expect(seen?.n, BigInt.from(60));
     expect(seen?.isPrime, loc.isPrime);
   });
 
   test('a special number passes its header to the calculator', () async {
     String? special;
-    final c = CalculatorController((request, cancel) async {
+    final c = _make((request, cancel) async {
       special = request.special;
       return 'x';
     });
@@ -39,9 +46,7 @@ void main() {
   });
 
   test('a failure shows the failed text and leaves no history', () async {
-    final c = CalculatorController(
-      (request, cancel) async => throw Exception(),
-    );
+    final c = _make((request, cancel) async => throw Exception());
     addTearDown(c.dispose);
 
     final entry = await c.calculate(BigInt.from(7), loc);
@@ -55,7 +60,7 @@ void main() {
   test('cancel keeps the previous output and leaves no history', () async {
     final gate = Completer<String>();
     var calls = 0;
-    final c = CalculatorController((request, cancel) {
+    final c = _make((request, cancel) {
       if (calls++ == 0) return Future.value('6=2x3');
       return gate.future;
     });
@@ -78,7 +83,7 @@ void main() {
       final gate = Completer<String>();
       var calls = 0;
       CancelToken? token;
-      final c = CalculatorController((request, cancel) {
+      final c = _make((request, cancel) {
         calls++;
         token = cancel;
         return gate.future;
@@ -99,7 +104,7 @@ void main() {
   );
 
   test('clearOutput empties the output', () async {
-    final c = CalculatorController((request, cancel) async => '7');
+    final c = _make((request, cancel) async => '7');
     addTearDown(c.dispose);
     await c.calculate(BigInt.from(7), loc);
     c.clearOutput();
@@ -109,7 +114,7 @@ void main() {
   test('dispose cancels a running calculation and stays silent', () async {
     final gate = Completer<String>();
     CancelToken? token;
-    final c = CalculatorController((request, cancel) {
+    final c = _make((request, cancel) {
       token = cancel;
       return gate.future;
     });

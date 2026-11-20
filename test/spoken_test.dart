@@ -157,6 +157,7 @@ void main() {
             body: CalculatorForm(
               calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
               share: (_, _) async => ShareOutcome.sheet,
+              now: DateTime.now,
               numberStyle: NumberStyle.apostrophe,
             ),
           ),
@@ -191,6 +192,7 @@ void main() {
             body: CalculatorForm(
               calculator: (_, _) async => '12345は素数ではありません\n12345=3x5x823',
               share: (_, _) async => ShareOutcome.sheet,
+              now: DateTime.now,
               numberStyle: NumberStyle.units,
             ),
           ),

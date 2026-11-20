@@ -125,6 +125,7 @@ class _HomePageState extends State<HomePage> {
                   child: CalculatorForm(
                     calculator: _deps.calculator,
                     share: _deps.share,
+                    now: _deps.now,
                     onCalculated: _addHistory,
                     numberStyle: _numberStyle.orFallback,
                   ),
