@@ -121,6 +121,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/main.dart`**: Main app entry point with MaterialApp setup, theme configuration, and localization delegates (`PrimeFactApp`)
 - **`lib/app_dependencies.dart`**: 時計・保存先（Repository）・計算・共有・URL の差し替え口を `AppDependencies` にまとめる（Widget に依存しない純粋な Dart）。`PrimeFactApp(dependencies: ...)` が組み立てて（省くと本番の実装。本番の実装を選ぶのはここだけ）`HomePage(dependencies:)` に渡し、`HomePage` が必要なものを子の Widget に引数で渡す（`AppDrawer(openUrl)`、`DailyBanner(repository, now, share)` → `DailyPage(onShare)`、`CalculatorForm(calculator, share)`）。依存を読んでよいのは入口の層（`main` と `HomePage`）だけで、画面や部品は `AppScope` のようなものから自分で取らず、引数で受け取る。テストで差し替える入口はここだけ（`DailyPage` を含め、`shareText` などの本番の実装に直結する既定値は持たない）
 - **`lib/calculator.dart`**: `Calculator` 型と `defaultCalculator`（Web は `factorizeAsync`、それ以外は別 Isolate の `factorizeInIsolate`）
+- **`lib/calculator_controller.dart`**: 計算機の状態（`CalculatorController`、`ChangeNotifier`）。計算中か・結果欄の内容（`CalculatedOutput` / `FailedOutput`）を持ち、計算の実行・中止・結果欄の消去をする。`calculate` は成功したときだけ履歴用の `HistoryEntry` を返す（失敗・中止・破棄後は null、中止では直前の結果を残す）。Widget に依存しない
 - **`lib/home_page.dart`**: ホーム画面（`HomePage`）。履歴・設定の読み込みと保存、バナー、計算機を並べる
 - **`lib/app_drawer.dart`**: ドロワー（`AppDrawer`、状態を持たない）。履歴・バナーの表示切替・数の表示形式・アプリ情報のリンク
 - **`lib/calculator_form.dart`**: 計算機の入力・結果表示（`CalculatorForm`）、結果の折り返し `wrapAtTimes`
@@ -206,6 +207,7 @@ The app supports Japanese and English:
 - `test/history_test.dart`: `HistoryEntry` JSON round trip and legacy-format migration, `HistoryRepository` load/save/corrupted data
 - `test/date_key_test.dart`: JST の日付切り替え、タイムゾーン非依存、通し日数（月/年/うるう日またぎ）
 - `test/daily_puzzle_test.dart`: determinism, JST date rollover, p/q ranges, tier ratios, fixed-date regression values
+- `test/calculator_controller_test.dart`: `CalculatorController` の成功・失敗・中止（直前の結果を残す）、特別な数の見出し、結果欄の消去、破棄後に通知しないこと
 - `test/daily_controller_test.dart`: `DailyController` の読み込み（開始時刻の保持・失敗と再試行）、採点と保存、保存失敗で状態が変わらないこと、二重送信の無視、連続日数、破棄後に通知しないこと
 - `test/daily_progress_test.dart`, `test/daily_challenge_test.dart`: progress/repository, banner → challenge → result flow, share text
 - `test/daily_stats_test.dart`: 連続日数（途切れ・月/年/うるう年またぎ・未クリア日）、ノーミス数、ベストタイム、`loadAll`、バナーの連続表示と記録画面

@@ -1,13 +1,12 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/calculator.dart';
+import 'package:prime_fact/calculator_controller.dart';
 import 'package:prime_fact/history_entry.dart';
-import 'package:prime_fact/judge.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/number_style.dart';
 import 'package:prime_fact/share.dart';
 import 'package:prime_fact/spoken.dart';
-import 'package:prime_fact/trivia.dart';
 
 /// 因数分解の行（2 行目以降）で、「=」の直後と「x」の直前だけ折り返せるようにする。
 /// 数字や「^」の途中では折り返さない。
@@ -48,52 +47,34 @@ class CalculatorForm extends StatefulWidget {
   State<CalculatorForm> createState() => _CalculatorFormState();
 }
 
-/// 結果欄の内容。
-sealed class _Output {
-  const new(this.text);
-
-  /// 整形前の文字列。
-  final String text;
-}
-
-/// 計算に成功した結果。コピー・共有の対象になる。
-class _Calculated extends _Output {
-  const new(super.text);
-}
-
-/// 計算に失敗したときの文言。コピー・共有の対象にしない。
-class _CalcFailed extends _Output {
-  const new(super.text);
-}
-
 class _CalculatorFormState extends State<CalculatorForm> {
-  final _controller = TextEditingController();
-  bool _isLoading = false;
-
-  /// 結果欄の内容。null は何も表示しない。
-  _Output? _output;
+  final _text = TextEditingController();
+  late final CalculatorController _calc;
   String? _errorText;
-  CancelToken? _cancel;
+
+  @override
+  void initState() {
+    super.initState();
+    _calc = CalculatorController(widget.calculator);
+  }
 
   @override
   void dispose() {
-    _cancel?.cancel();
-    _controller.dispose();
+    _calc.dispose();
+    _text.dispose();
     super.dispose();
   }
 
   /// 入力・エラー・結果をすべて消して初期状態に戻す。
   void _clear() {
-    _controller.clear();
-    setState(() {
-      _errorText = null;
-      _output = null;
-    });
+    _text.clear();
+    setState(() => _errorText = null);
+    _calc.clearOutput();
   }
 
   /// 入力を検証して BigInt を返す。不正な場合は _errorText を設定して null を返す。
   BigInt? _validate(AppLocalizations loc) {
-    final text = _controller.text.trim();
+    final text = _text.text.trim();
     final value = BigInt.tryParse(text);
     final error = (text.isEmpty || value == null) ? loc.errorEmpty : null;
     setState(() => _errorText = error);
@@ -104,52 +85,12 @@ class _CalculatorFormState extends State<CalculatorForm> {
     final loc = AppLocalizations.of(context)!;
     final inputNumber = _validate(loc);
     if (inputNumber == null) {
-      setState(() {
-        _output = null;
-      });
+      _calc.clearOutput();
       return;
     }
-    final isNotPrime = loc.isNotPrime;
-    final isPrime = loc.isPrime;
-    final failedText = loc.calcFailed;
-    final trivia = triviaFor(inputNumber);
-
-    final cancel = CancelToken();
-    _cancel = cancel;
-    setState(() => _isLoading = true);
-
-    String? result;
-    try {
-      result = await widget.calculator((
-        n: inputNumber,
-        isNotPrime: isNotPrime,
-        isPrime: isPrime,
-        special: trivia == null ? null : triviaHeader(loc, trivia),
-      ), cancel);
-    } catch (_) {
-      // 失敗してもボタンが無効のまま残らないよう、下で必ず読み込み状態を戻す
-    }
-
-    if (!mounted) return;
-    _cancel = null;
-    if (cancel.isCancelled) {
-      // 中止: 履歴は残さず、直前の結果（あれば）をそのまま表示に戻す
-      setState(() => _isLoading = false);
-      return;
-    }
-    setState(() {
-      _output = result == null ? _CalcFailed(failedText) : _Calculated(result);
-      _isLoading = false;
-    });
-    if (result == null) return;
-
-    widget.onCalculated?.call(
-      HistoryEntry.fromResult(
-        input: inputNumber.toString(),
-        result: result,
-        timestamp: DateTime.now(),
-      ),
-    );
+    final entry = await _calc.calculate(inputNumber, loc);
+    if (!mounted || entry == null) return;
+    widget.onCalculated?.call(entry);
   }
 
   Future<void> _copy(AppLocalizations loc) async {
@@ -176,19 +117,25 @@ class _CalculatorFormState extends State<CalculatorForm> {
 
   /// 表示・コピー・共有に使う、形式を適用した結果。
   String _displayed(AppLocalizations loc) =>
-      formatForLocale(loc, _output?.text ?? '', widget.numberStyle);
+      formatForLocale(loc, _calc.output?.text ?? '', widget.numberStyle);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: _calc,
+    builder: (context, _) => _form(context),
+  );
+
+  Widget _form(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final output = _output;
+    final output = _calc.output;
+    final isLoading = _calc.isLoading;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           TextField(
-            controller: _controller,
+            controller: _text,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             style: const TextStyle(fontSize: 18),
@@ -208,7 +155,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
               if (_errorText != null) setState(() => _errorText = null);
             },
             onSubmitted: (_) {
-              if (!_isLoading) _calculate();
+              if (!isLoading) _calculate();
             },
           ),
           // クリアは消すものがないときも置いておく（隠すと判定ボタンの位置が動くため）
@@ -219,12 +166,12 @@ class _CalculatorFormState extends State<CalculatorForm> {
             spacing: 12,
             children: [
               ValueListenableBuilder<TextEditingValue>(
-                valueListenable: _controller,
+                valueListenable: _text,
                 builder: (context, value, _) => OutlinedButton(
                   onPressed:
-                      !_isLoading &&
+                      !isLoading &&
                           (value.text.isNotEmpty ||
-                              _output != null ||
+                              output != null ||
                               _errorText != null)
                       ? _clear
                       : null,
@@ -235,7 +182,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
                 ),
               ),
               ElevatedButton(
-                onPressed: _isLoading ? null : _calculate,
+                onPressed: isLoading ? null : _calculate,
                 child: Text(
                   AppLocalizations.of(context)!.button,
                   style: const TextStyle(fontSize: 20),
@@ -247,7 +194,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
           // 読み込み中と結果表示で高さが変わると入力欄が動くので、最低の高さを確保する
           ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 120),
-            child: _isLoading
+            child: isLoading
                 ? Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -256,7 +203,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
                           semanticsLabel: loc.calculating,
                         ),
                         TextButton(
-                          onPressed: () => _cancel?.cancel(),
+                          onPressed: () => _calc.cancel(),
                           child: Text(loc.cancelCalculation),
                         ),
                       ],
@@ -285,7 +232,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
                           ),
                         ),
                       ),
-                      if (output is _Calculated)
+                      if (output is CalculatedOutput)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
