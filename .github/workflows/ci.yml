@@ -76,6 +76,10 @@ jobs:
           export PATH="$PATH:$HOME/.pub-cache/bin"
           python3 tool/deps/build.py --check .
 
+      # 検査ロジック自体のテスト（lakos は呼ばない）
+      - name: Test the checker
+        run: python3 -m unittest discover -s tool/deps
+
   build-android:
     name: Build Android (debug)
     runs-on: ubuntu-24.04

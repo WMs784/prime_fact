@@ -129,10 +129,8 @@ def classify(data):
             continue
         if level[b] == UNASSIGNED:
             continue
-        if level[a] == -1:
-            violations.append((a, b))
-            edges.append((a, b, "violation"))
-        elif level[a] < level[b]:
+        # 共通部品（-1）は他のどの層より低いので、他のファイルへの import はここで違反になる
+        if level[a] < level[b]:
             violations.append((a, b))
             edges.append((a, b, "violation"))
         elif level[a] == level[b]:
