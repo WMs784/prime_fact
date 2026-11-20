@@ -1,5 +1,6 @@
 import 'package:prime_fact/daily_progress.dart';
 import 'package:prime_fact/daily_repository.dart';
+import 'package:prime_fact/date_key.dart';
 
 /// 「今日の素因数分解」の累計成績。出題日（JST の `yyyyMMdd`）ごとの記録から求める。
 class DailyStats {
@@ -19,13 +20,39 @@ class DailyStats {
   /// 今日がまだ未クリアでも、昨日までの連続は「続行中」として [currentStreak] に数える
   /// （今日のうちにクリアすれば続く）。
   factory compute(Map<int, DailyProgress> records, int todayKey) {
-    final clearedKeys =
-        records.entries
-            .where((e) => e.key <= todayKey && e.value.isCleared)
-            .map((e) => e.key)
-            .toList()
-          ..sort();
+    final clearedKeys = _clearedKeysUpTo(records, todayKey);
+    final (:noMiss, :bestTime) = _tally(records, clearedKeys);
+    final runEndingAt = _runLengths(clearedKeys);
 
+    // 今日がクリア済みなら今日まで、そうでなければ昨日までの連続を数える
+    final lastDay = records[todayKey]?.isCleared == true
+        ? todayKey
+        : dateKeyOfDayIndex(dayIndexOf(todayKey) - 1);
+    return DailyStats(
+      cleared: clearedKeys.length,
+      noMiss: noMiss,
+      currentStreak: runEndingAt[lastDay] ?? 0,
+      bestStreak: runEndingAt.values.fold(0, (a, b) => a > b ? a : b),
+      bestTime: bestTime,
+    );
+  }
+
+  /// [todayKey] 以前にクリアした日（昇順）。未来の日付の記録は含めない。
+  static List<int> _clearedKeysUpTo(
+    Map<int, DailyProgress> records,
+    int todayKey,
+  ) =>
+      records.entries
+          .where((e) => e.key <= todayKey && e.value.isCleared)
+          .map((e) => e.key)
+          .toList()
+        ..sort();
+
+  /// クリアした日のうち、ノーミスの日数と最速のクリアタイム。
+  static ({int noMiss, Duration? bestTime}) _tally(
+    Map<int, DailyProgress> records,
+    List<int> clearedKeys,
+  ) {
     var noMiss = 0;
     Duration? bestTime;
     for (final key in clearedKeys) {
@@ -37,31 +64,22 @@ class DailyStats {
         bestTime = t;
       }
     }
+    return (noMiss: noMiss, bestTime: bestTime);
+  }
 
-    var best = 0;
+  /// 昇順の [clearedKeys] について、各日で終わる連続クリア日数（出題日 → 日数）。
+  static Map<int, int> _runLengths(List<int> clearedKeys) {
+    final runEndingAt = <int, int>{};
     var run = 0;
     int? previous;
-    final runEndingAt = <int, int>{};
     for (final key in clearedKeys) {
-      run = previous != null && _dayIndex(key) - _dayIndex(previous) == 1
+      run = previous != null && dayIndexOf(key) - dayIndexOf(previous) == 1
           ? run + 1
           : 1;
       runEndingAt[key] = run;
-      if (run > best) best = run;
       previous = key;
     }
-
-    // 今日がクリア済みなら今日まで、そうでなければ昨日までの連続を数える
-    final lastDay = records[todayKey]?.isCleared == true
-        ? todayKey
-        : _keyOf(_dayIndex(todayKey) - 1);
-    return DailyStats(
-      cleared: clearedKeys.length,
-      noMiss: noMiss,
-      currentStreak: runEndingAt[lastDay] ?? 0,
-      bestStreak: best,
-      bestTime: bestTime,
-    );
+    return runEndingAt;
   }
 
   /// クリアした日数。
@@ -78,18 +96,6 @@ class DailyStats {
 
   /// 最速のクリアタイム。クリア記録がない、または時計の変更で 0 になった記録しかなければ null。
   final Duration? bestTime;
-}
-
-/// `yyyyMMdd` を、連続判定用の通し日数（UTC の 1970-01-01 からの日数）にする。
-int _dayIndex(int dateKey) => DateTime.utc(
-  dateKey ~/ 10000,
-  dateKey ~/ 100 % 100,
-  dateKey % 100,
-).difference(DateTime.utc(1970)).inDays;
-
-int _keyOf(int dayIndex) {
-  final d = DateTime.utc(1970).add(Duration(days: dayIndex));
-  return d.year * 10000 + d.month * 100 + d.day;
 }
 
 /// バナーと挑戦画面が付加情報として出す累計を読む。読めなければ null（表示を省くだけにする）。

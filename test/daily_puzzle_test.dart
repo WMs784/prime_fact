@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime_fact/daily_puzzle.dart';
+import 'package:prime_fact/date_key.dart';
 
 bool _isPrime(int n) {
   if (n < 2) return false;
@@ -26,24 +27,6 @@ Iterable<int> _dateKeys() sync* {
 }
 
 void main() {
-  group('jstDateKey', () {
-    test('rolls over at 00:00 JST (15:00 UTC)', () {
-      expect(jstDateKey(DateTime.utc(2026, 10, 31, 14, 59, 59)), 20261031);
-      expect(jstDateKey(DateTime.utc(2026, 10, 31, 15)), 20261101);
-    });
-
-    test('does not depend on the device time zone', () {
-      final utc = DateTime.utc(2026, 12, 31, 16);
-      expect(jstDateKey(utc), 20270101);
-      expect(jstDateKey(utc.toLocal()), 20270101);
-    });
-
-    test('formatDateKey', () {
-      expect(formatDateKey(20261031), '2026-10-31');
-      expect(formatDateKey(20270105), '2027-01-05');
-    });
-  });
-
   group('DailyPuzzle', () {
     test('is deterministic', () {
       for (final key in _dateKeys().take(50)) {
