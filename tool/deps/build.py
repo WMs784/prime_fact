@@ -48,6 +48,10 @@ LAYERS = [
             "daily_repository",
             "daily_progress",
             "daily_stats",
+            # 暫定。AppDependencies は本来、組み立てる側なので入口（main / home_page）の層に置く
+            # （画面・部品が読んだら違反にする）。いまは calculator_widget が AppScope.of で
+            # 読んでいるので、検査を通すためにここへ置いている。#88（AppScope をやめる）が
+            # 入ったら入口へ移し、#83 の改名に合わせて calculator_widget を calculator_form にする。
             "app_dependencies",
         ],
     ),
