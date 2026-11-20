@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:prime_fact/daily_progress.dart';
-import 'package:prime_fact/daily_puzzle.dart';
-import 'package:prime_fact/daily_repository.dart';
-import 'package:prime_fact/daily_stats.dart';
+import 'package:prime_fact/daily/daily_progress.dart';
+import 'package:prime_fact/daily/daily_puzzle.dart';
+import 'package:prime_fact/daily/daily_repository.dart';
+import 'package:prime_fact/daily/daily_stats.dart';
 
 /// [DailyController.submit] の結果。
 enum DailySubmitOutcome {

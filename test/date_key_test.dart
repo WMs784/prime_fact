@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prime_fact/date_key.dart';
+import 'package:prime_fact/shared/date_key.dart';
 
 void main() {
   group('jstDateKey', () {

@@ -1,10 +1,10 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/history_entry.dart';
-import 'package:prime_fact/history_page.dart';
+import 'package:prime_fact/format/number_style.dart';
+import 'package:prime_fact/history/history_entry.dart';
+import 'package:prime_fact/history/history_page.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/language.dart';
-import 'package:prime_fact/links.dart';
-import 'package:prime_fact/number_style.dart';
+import 'package:prime_fact/shared/language.dart';
+import 'package:prime_fact/shared/links.dart';
 import 'package:styled_text/styled_text.dart';
 
 /// ドロワーのヘッダーの色。白い文字が読めるよう、明暗どちらのテーマでも濃い青緑にする。

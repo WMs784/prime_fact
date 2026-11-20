@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/daily_controller.dart';
-import 'package:prime_fact/daily_progress.dart';
-import 'package:prime_fact/daily_puzzle.dart';
-import 'package:prime_fact/daily_records_page.dart';
-import 'package:prime_fact/daily_repository.dart';
-import 'package:prime_fact/date_key.dart';
+import 'package:prime_fact/daily/daily_controller.dart';
+import 'package:prime_fact/daily/daily_progress.dart';
+import 'package:prime_fact/daily/daily_puzzle.dart';
+import 'package:prime_fact/daily/daily_records_page.dart';
+import 'package:prime_fact/daily/daily_repository.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/links.dart';
-import 'package:prime_fact/share.dart';
+import 'package:prime_fact/shared/date_key.dart';
+import 'package:prime_fact/shared/links.dart';
+import 'package:prime_fact/shared/share.dart';
 
 /// クリア済みの結果の共有文。問題の数・正解・難度はヒントになるので含めない。日付は投稿時刻で分かる。
 String dailyShareText(AppLocalizations loc, DailyProgress progress) {

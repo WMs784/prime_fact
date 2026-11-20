@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:prime_fact/history_entry.dart';
+import 'package:prime_fact/history/history_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HistoryRepository {

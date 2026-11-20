@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:prime_fact/daily_progress.dart';
+import 'package:prime_fact/daily/daily_progress.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DailyRepository {

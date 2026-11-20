@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/app_dependencies.dart';
-import 'package:prime_fact/home_page.dart';
+import 'package:prime_fact/app/app_dependencies.dart';
+import 'package:prime_fact/app/home_page.dart';
+import 'package:prime_fact/app/settings_repository.dart';
 import 'package:prime_fact/main.dart';
-import 'package:prime_fact/settings_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'helpers/localized_app.dart';

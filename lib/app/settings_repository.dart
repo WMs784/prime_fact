@@ -1,4 +1,4 @@
-import 'package:prime_fact/number_style.dart';
+import 'package:prime_fact/format/number_style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// アプリの表示設定を `shared_preferences` に保存する。
