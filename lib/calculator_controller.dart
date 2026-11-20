@@ -53,6 +53,8 @@ class CalculatorController extends ChangeNotifier {
   /// [n] を因数分解して結果欄に反映する。成功したときだけ、履歴に残す [HistoryEntry] を返す
   /// （失敗・中止・破棄後は null。中止では直前の結果をそのまま残す）。
   Future<HistoryEntry?> calculate(BigInt n, AppLocalizations loc) async {
+    // 計算中の再呼び出しは受け付けない（先に終わった方が計算中の状態と中止を消してしまうため）
+    if (_isLoading) return null;
     final failedText = loc.calcFailed;
     final trivia = triviaFor(n);
     final request = (
