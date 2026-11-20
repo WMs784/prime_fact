@@ -54,6 +54,32 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
+  # 依存の向きの検査。上の層は下の層を使えるが、逆（下から上、共通部品から他のファイル）、
+  # 循環依存、層に未割り当てのファイルは落とす。層のルールは tool/deps/build.py の LAYERS / SHARED
+  check-dependencies:
+    name: Check dependency direction
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      # lakos を入れるために dart が要る（pub get は不要）
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: "3.50.0"
+          channel: stable
+          cache: true
+
+      - name: Check dependency direction
+        run: |
+          dart pub global activate lakos 2.0.7
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          python3 tool/deps/build.py --check .
+
+      # 検査ロジック自体のテスト（lakos は呼ばない）
+      - name: Test the checker
+        run: python3 -m unittest discover -s tool/deps
+
   build-android:
     name: Build Android (debug)
     runs-on: ubuntu-24.04
