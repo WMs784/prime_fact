@@ -110,6 +110,31 @@ void main() {
     expect(repo.saved.last.map((e) => e.input), ['7', '0']);
   });
 
+  testWidgets('History records the time from the injected clock', (
+    tester,
+  ) async {
+    final repo = _FakeHistoryRepository(() async => []);
+    final t0 = DateTime(2026, 11, 21, 9, 30);
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(
+      PrimeFactApp(
+        dependencies: AppDependencies(
+          historyRepository: repo,
+          now: () => t0,
+          calculator: (_, _) async => '7 is a prime number',
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), '7');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+
+    expect(repo.saved.last.single.timestamp, t0);
+  });
+
   testWidgets('History is not saved when loading it failed', (tester) async {
     final repo = _FakeHistoryRepository(
       () => Future.error(StateError('storage unavailable')),

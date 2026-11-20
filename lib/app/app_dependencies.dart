@@ -29,7 +29,7 @@ class AppDependencies {
        historyRepository = historyRepository ?? HistoryRepository(),
        settingsRepository = settingsRepository ?? SettingsRepository();
 
-  /// 「今日の素因数分解」の現在時刻。
+  /// 現在時刻（「今日の素因数分解」の日付・計時と、履歴の計算時刻）。
   final DateTime Function() now;
 
   /// 計算の実行。

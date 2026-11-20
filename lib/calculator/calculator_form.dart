@@ -30,6 +30,7 @@ class CalculatorForm extends StatefulWidget {
   const new({
     required this.calculator,
     required this.share,
+    required this.now,
     super.key,
     this.numberStyle = NumberStyle.plain,
     this.onCalculated,
@@ -40,6 +41,9 @@ class CalculatorForm extends StatefulWidget {
 
   /// 結果の共有の仕方。
   final ResultSharer share;
+
+  /// 履歴に残す計算時刻の取り方。
+  final DateTime Function() now;
   final void Function(HistoryEntry)? onCalculated;
   final NumberStyle numberStyle;
 
@@ -55,7 +59,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
   @override
   void initState() {
     super.initState();
-    _calc = CalculatorController(widget.calculator);
+    _calc = CalculatorController(widget.calculator, now: widget.now);
   }
 
   @override
