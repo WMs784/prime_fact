@@ -3,7 +3,7 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
-import 'package:prime_fact/judge.dart';
+import 'package:prime_fact/calculator/judge.dart';
 
 void _entry((SendPort, FactorRequest) args) =>
     args.$1.send(factorizeSync(args.$2));

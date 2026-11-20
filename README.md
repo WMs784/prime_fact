@@ -82,8 +82,8 @@ Release ビルドの署名には `android/key.properties` が必要です (リ�
 | パス | 内容 |
 | --- | --- |
 | `lib/main.dart` | アプリのエントリポイントと計算画面 |
-| `lib/judge.dart` | 素数判定 (Miller-Rabin) と素因数分解 (Pollard-Brent) |
-| `lib/history_*.dart` | 計算履歴 (`shared_preferences` で永続化) |
+| `lib/calculator/judge.dart` | 素数判定 (Miller-Rabin) と素因数分解 (Pollard-Brent) |
+| `lib/history/history_*.dart` | 計算履歴 (`shared_preferences` で永続化) |
 | `lib/l10n/` | 日英のローカライズ (ARB) |
 | `test/` | テスト |
 

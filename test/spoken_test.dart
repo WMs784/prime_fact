@@ -2,16 +2,16 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/app_dependencies.dart';
-import 'package:prime_fact/calculator_form.dart';
-import 'package:prime_fact/history_entry.dart';
-import 'package:prime_fact/history_page.dart';
+import 'package:prime_fact/app/app_dependencies.dart';
+import 'package:prime_fact/calculator/calculator_form.dart';
+import 'package:prime_fact/format/number_style.dart';
+import 'package:prime_fact/format/spoken.dart';
+import 'package:prime_fact/history/history_entry.dart';
+import 'package:prime_fact/history/history_page.dart';
 import 'package:prime_fact/l10n/app_localizations_en.dart';
 import 'package:prime_fact/l10n/app_localizations_ja.dart';
 import 'package:prime_fact/main.dart';
-import 'package:prime_fact/number_style.dart';
-import 'package:prime_fact/share.dart';
-import 'package:prime_fact/spoken.dart';
+import 'package:prime_fact/shared/share.dart';
 
 import 'helpers/localized_app.dart';
 

@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:prime_fact/calculator.dart';
-import 'package:prime_fact/history_entry.dart';
-import 'package:prime_fact/judge.dart';
+import 'package:prime_fact/calculator/calculator.dart';
+import 'package:prime_fact/calculator/judge.dart';
+import 'package:prime_fact/calculator/trivia.dart';
+import 'package:prime_fact/history/history_entry.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/trivia.dart';
 
 /// 結果欄の内容。
 sealed class CalculatorOutput {

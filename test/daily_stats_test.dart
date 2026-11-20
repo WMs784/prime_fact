@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/app_dependencies.dart';
-import 'package:prime_fact/daily_progress.dart';
-import 'package:prime_fact/daily_puzzle.dart';
-import 'package:prime_fact/daily_records_page.dart';
-import 'package:prime_fact/daily_repository.dart';
-import 'package:prime_fact/daily_stats.dart';
+import 'package:prime_fact/app/app_dependencies.dart';
+import 'package:prime_fact/daily/daily_progress.dart';
+import 'package:prime_fact/daily/daily_puzzle.dart';
+import 'package:prime_fact/daily/daily_records_page.dart';
+import 'package:prime_fact/daily/daily_repository.dart';
+import 'package:prime_fact/daily/daily_stats.dart';
 import 'package:prime_fact/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

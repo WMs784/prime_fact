@@ -1,4 +1,4 @@
-import 'package:prime_fact/judge.dart';
+import 'package:prime_fact/calculator/judge.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
 /// 素数判定の見出しを差し替える、数の種類。優先度の高い順に並べている。

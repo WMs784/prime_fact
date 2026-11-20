@@ -1,10 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/app_dependencies.dart';
-import 'package:prime_fact/home_page.dart';
-import 'package:prime_fact/judge.dart' show CancelToken, FactorRequest;
+import 'package:prime_fact/app/app_dependencies.dart';
+import 'package:prime_fact/app/home_page.dart';
+import 'package:prime_fact/calculator/judge.dart'
+    show CancelToken, FactorRequest;
 import 'package:prime_fact/main.dart';
-import 'package:prime_fact/share.dart' show ShareOutcome;
+import 'package:prime_fact/shared/share.dart' show ShareOutcome;
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

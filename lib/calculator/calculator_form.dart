@@ -1,12 +1,12 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/calculator.dart';
-import 'package:prime_fact/calculator_controller.dart';
-import 'package:prime_fact/history_entry.dart';
+import 'package:prime_fact/calculator/calculator.dart';
+import 'package:prime_fact/calculator/calculator_controller.dart';
+import 'package:prime_fact/format/number_style.dart';
+import 'package:prime_fact/format/spoken.dart';
+import 'package:prime_fact/history/history_entry.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/number_style.dart';
-import 'package:prime_fact/share.dart';
-import 'package:prime_fact/spoken.dart';
+import 'package:prime_fact/shared/share.dart';
 
 /// 因数分解の行（2 行目以降）で、「=」の直後と「x」の直前だけ折り返せるようにする。
 /// 数字や「^」の途中では折り返さない。

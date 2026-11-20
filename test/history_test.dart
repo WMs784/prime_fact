@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prime_fact/history_entry.dart';
-import 'package:prime_fact/history_repository.dart';
+import 'package:prime_fact/history/history_entry.dart';
+import 'package:prime_fact/history/history_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

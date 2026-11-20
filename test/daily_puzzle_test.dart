@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prime_fact/daily_puzzle.dart';
-import 'package:prime_fact/date_key.dart';
+import 'package:prime_fact/daily/daily_puzzle.dart';
+import 'package:prime_fact/shared/date_key.dart';
 
 bool _isPrime(int n) {
   if (n < 2) return false;

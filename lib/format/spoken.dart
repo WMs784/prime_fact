@@ -1,6 +1,6 @@
+import 'package:prime_fact/format/number_style.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/language.dart';
-import 'package:prime_fact/number_style.dart';
+import 'package:prime_fact/shared/language.dart';
 
 final _factorToken = RegExp(r'^(\d+)(?:\^(\d+))?$');
 

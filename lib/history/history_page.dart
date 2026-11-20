@@ -1,10 +1,10 @@
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/history_entry.dart';
+import 'package:prime_fact/calculator/trivia.dart';
+import 'package:prime_fact/format/number_style.dart';
+import 'package:prime_fact/format/spoken.dart';
+import 'package:prime_fact/history/history_entry.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/number_style.dart';
-import 'package:prime_fact/spoken.dart';
-import 'package:prime_fact/trivia.dart';
 
 /// 保存データから、現在の言語で結果の表示行を組み立てる。
 List<String> _describe(AppLocalizations loc, HistoryEntry entry) {

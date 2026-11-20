@@ -1,15 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/app_dependencies.dart';
-import 'package:prime_fact/daily_page.dart';
-import 'package:prime_fact/daily_progress.dart';
-import 'package:prime_fact/daily_puzzle.dart';
-import 'package:prime_fact/daily_repository.dart';
+import 'package:prime_fact/app/app_dependencies.dart';
+import 'package:prime_fact/daily/daily_page.dart';
+import 'package:prime_fact/daily/daily_progress.dart';
+import 'package:prime_fact/daily/daily_puzzle.dart';
+import 'package:prime_fact/daily/daily_repository.dart';
 import 'package:prime_fact/l10n/app_localizations_en.dart';
 import 'package:prime_fact/l10n/app_localizations_ja.dart';
-import 'package:prime_fact/links.dart';
 import 'package:prime_fact/main.dart';
-import 'package:prime_fact/share.dart';
+import 'package:prime_fact/shared/links.dart';
+import 'package:prime_fact/shared/share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final _day = DateTime.utc(2026, 10, 31, 3); // 12:00 JST

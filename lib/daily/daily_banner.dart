@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/daily_page.dart';
-import 'package:prime_fact/daily_progress.dart';
-import 'package:prime_fact/daily_puzzle.dart';
-import 'package:prime_fact/daily_records_page.dart';
-import 'package:prime_fact/daily_repository.dart';
-import 'package:prime_fact/daily_stats.dart';
-import 'package:prime_fact/date_key.dart';
+import 'package:prime_fact/daily/daily_page.dart';
+import 'package:prime_fact/daily/daily_progress.dart';
+import 'package:prime_fact/daily/daily_puzzle.dart';
+import 'package:prime_fact/daily/daily_records_page.dart';
+import 'package:prime_fact/daily/daily_repository.dart';
+import 'package:prime_fact/daily/daily_stats.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-import 'package:prime_fact/share.dart';
+import 'package:prime_fact/shared/date_key.dart';
+import 'package:prime_fact/shared/share.dart';
 
 /// バナーが読み込んだ、ある日の状態。表示と、タップ先の問題はこの [key] の日に揃える。
 ///
