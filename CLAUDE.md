@@ -131,6 +131,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/history/history_*.dart`**: Calculation history (`HistoryEntry`, `HistoryRepository` persisting via `shared_preferences`, `HistoryPage`)
 - **`lib/daily/daily_*.dart`**: 「今日の素因数分解」。`DailyPuzzle` が JST の日付だけから決定的に `n = p×q`（`p` は 7〜53 の最小の素因数、`q` は `p`〜293）を生成する（`p` の範囲は易/中/難 = 50/35/15% の 3 段階。難度は画面にもシェア文にも出さない）。`DailyProgress`/`DailyRepository` が開始時刻・ミス回数・クリア時刻を `shared_preferences` に保存し（離脱中も時間は進む）、`DailyBanner`（ホーム）→`DailyPage`（出題・結果・シェア）と遷移する。生成手順を変えると同じ日の問題が変わるので、変更時は日付で分岐し `test/daily_puzzle_test.dart` の固定値も更新する
 - **`lib/daily/daily_controller.dart`**: 挑戦画面（`DailyPage`）の状態（`DailyController`、`ChangeNotifier`）。読み込み・回答の採点と保存・保存中の二重送信防止・クリア後の連続日数を持ち、Widget に依存しない。画面は `ListenableBuilder` で購読し、入力欄とエラー文だけを持つ。回答は保存に成功してから状態に反映する
+- **`lib/daily/daily_banner_controller.dart`**: ホームのバナー（`DailyBanner`）の状態（`DailyBannerController`、`ChangeNotifier`）。表示する日の記録と累計の読み込み（世代で古い読み込みの結果を捨てる）、日付が変わったかの確認（`checkDate`。同じ日の読み込み中は待つ）、タップで開く問題（`puzzleToOpen`。日付が変わっていたら開かずに読み直す）、連続日数を出すかを持ち、Widget に依存しない。いつ読み直すか（30 秒ごとの確認・前面に戻ったとき・挑戦画面から戻ったとき）は画面が決める
 - **`lib/shared/date_key.dart`**: 出題日 `yyyyMMdd`（int）の変換（`jstDateKey` / `formatDateKey` / 連続判定用の通し日数 `dayIndexOf`・`dateKeyOfDayIndex`）。出題・保存・累計が共有する
 - **`lib/daily/daily_stats.dart` / `lib/daily/daily_records_page.dart`**: 「今日の素因数分解」の累計成績と記録画面。`DailyRepository.loadAll()` が `daily_<yyyyMMdd>` を全部読み（破損した日は除く）、`DailyStats.compute` が連続日数（今日が未クリアなら昨日までの連続を続行中として数える）・最長連続・クリア日数・ノーミス数・ベストタイム（時計変更で 0 になった記録は除く）を求める。バナー（記録ボタンと連続日数）、挑戦画面（AppBar の記録ボタン、クリア後の連続日数）から使う
 - **`lib/app/settings_repository.dart`**: 表示設定（ドロワーのスイッチで「今日の素因数分解」バナーの表示/非表示を切り替え、`shared_preferences` に保存。既定は表示）
@@ -210,6 +211,7 @@ The app supports Japanese and English:
 - `test/daily_puzzle_test.dart`: determinism, JST date rollover, p/q ranges, tier ratios, fixed-date regression values
 - `test/calculator_controller_test.dart`: `CalculatorController` の成功・失敗・中止（直前の結果を残す）、特別な数の見出し、結果欄の消去、破棄後に通知しないこと
 - `test/daily_controller_test.dart`: `DailyController` の読み込み（開始時刻の保持・失敗と再試行）、採点と保存、保存失敗で状態が変わらないこと、二重送信の無視、連続日数、破棄後に通知しないこと
+- `test/daily_banner_controller_test.dart`: `DailyBannerController` の読み込み（失敗は未開始扱い・累計が読めなければ省く）、連続日数を出す条件、日付の変化での読み直し（同じ日の読み込み中は待つ）、古い読み込みの破棄、開く問題（日付が変わったら開かない）、破棄後に通知しないこと
 - `test/daily_progress_test.dart`, `test/daily_challenge_test.dart`: progress/repository, banner → challenge → result flow, share text
 - `test/daily_stats_test.dart`: 連続日数（途切れ・月/年/うるう年またぎ・未クリア日）、ノーミス数、ベストタイム、`loadAll`、バナーの連続表示と記録画面
 - `test/daily_robustness_test.dart`: load/save failures, share fallback rules, stale reloads, double submit, Enter key, share errors, banner at JST midnight, short screen with keyboard
