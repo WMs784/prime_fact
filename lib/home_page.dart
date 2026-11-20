@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/app_drawer.dart';
 import 'package:prime_fact/best_effort.dart';
-import 'package:prime_fact/calculator_widget.dart';
+import 'package:prime_fact/calculator_form.dart';
 import 'package:prime_fact/daily_banner.dart';
 import 'package:prime_fact/daily_repository.dart';
 import 'package:prime_fact/history_entry.dart';
@@ -11,14 +11,14 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/number_style.dart';
 import 'package:prime_fact/settings_repository.dart';
 
-class MyLayout extends StatefulWidget {
+class HomePage extends StatefulWidget {
   const new({super.key});
 
   @override
-  State<MyLayout> createState() => _MyLayoutState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyLayoutState extends State<MyLayout> {
+class _HomePageState extends State<HomePage> {
   List<HistoryEntry> _history = [];
   late final Future<void> _historyLoaded;
   late final AppDependencies _deps = AppScope.of(context);
@@ -80,7 +80,7 @@ class _MyLayoutState extends State<MyLayout> {
     final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(title: Text(loc.title)),
-      drawer: MyDrawer(
+      drawer: AppDrawer(
         history: _history,
         showDaily: _showDaily ?? true,
         onShowDailyChanged: _setShowDaily,
@@ -100,7 +100,7 @@ class _MyLayoutState extends State<MyLayout> {
               child: LayoutBuilder(
                 builder: (context, constraints) => SingleChildScrollView(
                   padding: EdgeInsets.only(top: constraints.maxHeight * 0.25),
-                  child: MyWidget(
+                  child: CalculatorForm(
                     onCalculated: _addHistory,
                     numberStyle: _numberStyle,
                   ),

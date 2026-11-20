@@ -171,7 +171,7 @@ void main() {
         20261031: _cleared(),
       });
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.text('🔥 3日連続'), findsOneWidget);
@@ -191,7 +191,7 @@ void main() {
       setLocale(tester, const Locale('en'));
       await seed({20261030: _cleared()});
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.text('🔥 1-day streak'), findsOneWidget);
@@ -203,7 +203,7 @@ void main() {
       setLocale(tester, const Locale('ja'));
       await seed({20261029: _cleared(), 20261030: _cleared()});
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text('今日の素因数分解に挑戦する'));
@@ -223,7 +223,7 @@ void main() {
       setLocale(tester, const Locale('ja'));
       await seed({20261031: _cleared()});
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.textContaining('日連続'), findsNothing);
@@ -288,7 +288,7 @@ void main() {
         20261031: _cleared(),
       });
       await tester.pumpWidget(
-        MyApp(dependencies: AppDependencies(now: () => now)),
+        PrimeFactApp(dependencies: AppDependencies(now: () => now)),
       );
       await tester.pumpAndSettle();
       expect(find.text('🔥 3-day streak'), findsOneWidget);

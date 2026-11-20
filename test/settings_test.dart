@@ -31,7 +31,7 @@ void main() {
   testWidgets('drawer switch hides and shows the daily banner', (tester) async {
     ja(tester);
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(now: () => DateTime.utc(2026, 5, 1, 3)),
       ),
     );
@@ -40,7 +40,7 @@ void main() {
 
     final scaffold = tester.state<ScaffoldState>(
       find.descendant(
-        of: find.byType(MyLayout),
+        of: find.byType(HomePage),
         matching: find.byType(Scaffold),
       ),
     );
@@ -70,7 +70,7 @@ void main() {
         now: () => DateTime.utc(2026, 5, 1, 3),
         settingsRepository: repo,
       ),
-      child: const MyLayout(),
+      child: const HomePage(),
     ),
   );
 
@@ -85,7 +85,7 @@ void main() {
     ja(tester);
     SharedPreferences.setMockInitialValues({'show_daily_challenge': false});
     await tester.pumpWidget(
-      MyApp(
+      PrimeFactApp(
         dependencies: AppDependencies(now: () => DateTime.utc(2026, 5, 1, 3)),
       ),
     );
