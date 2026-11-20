@@ -7,7 +7,7 @@ import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/home_page.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
-void main() => runApp(const PrimeFactApp());
+void main() => runApp(PrimeFactApp());
 
 ThemeData _buildTheme(Brightness brightness) {
   final dark = brightness == Brightness.dark;
@@ -38,25 +38,23 @@ const appLocalizationsDelegates = <LocalizationsDelegate<dynamic>>[
 ];
 
 class PrimeFactApp extends StatelessWidget {
-  const new({super.key, this.dependencies});
+  /// [dependencies] は時計・保存先・計算・共有・URL の差し替え口。テストで差し替える。
+  /// 省くと本番の実装を使う（本番の実装を選ぶのは、このコンポジションルートだけ）。
+  new({super.key, AppDependencies? dependencies})
+    : dependencies = dependencies ?? AppDependencies();
 
-  /// 時計・保存先・計算・共有・URL の差し替え口。テストで差し替える。省くと本番の実装を使う。
-  final AppDependencies? dependencies;
+  final AppDependencies dependencies;
 
   @override
   Widget build(BuildContext context) {
-    final app = MaterialApp(
+    return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.title,
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       debugShowCheckedModeBanner: false,
       localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: const [Locale('ja'), Locale('en')],
-      home: const HomePage(),
+      home: HomePage(dependencies: dependencies),
     );
-    final dependencies = this.dependencies;
-    return dependencies == null
-        ? app
-        : AppScope(dependencies: dependencies, child: app);
   }
 }

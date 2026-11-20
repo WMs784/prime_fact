@@ -116,7 +116,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 ### Core Structure
 - **`lib/main.dart`**: Main app entry point with MaterialApp setup, theme configuration, and localization delegates (`PrimeFactApp`)
-- **`lib/app_dependencies.dart`**: 時計・保存先（Repository）・計算・共有・URL の差し替え口を `AppDependencies` にまとめ、`AppScope`（`InheritedWidget`）で下へ渡す。`PrimeFactApp(dependencies: ...)` で渡し、省くと本番の実装。テストで差し替える入口はここだけ
+- **`lib/app_dependencies.dart`**: 時計・保存先（Repository）・計算・共有・URL の差し替え口を `AppDependencies` にまとめる（Widget に依存しない純粋な Dart）。`PrimeFactApp(dependencies: ...)` が組み立てて（省くと本番の実装。本番の実装を選ぶのはここだけ）`HomePage(dependencies:)` に渡し、`HomePage` が必要なものを子の Widget に引数で渡す（`AppDrawer(openUrl)`、`DailyBanner(repository, now, share)` → `DailyPage(onShare)`、`CalculatorForm(calculator, share)`）。依存を読んでよいのは入口の層（`main` と `HomePage`）だけで、画面や部品は `AppScope` のようなものから自分で取らず、引数で受け取る。テストで差し替える入口はここだけ（`DailyPage` を含め、`shareText` などの本番の実装に直結する既定値は持たない）
 - **`lib/calculator.dart`**: `Calculator` 型と `defaultCalculator`（Web は `factorizeAsync`、それ以外は別 Isolate の `factorizeInIsolate`）
 - **`lib/home_page.dart`**: ホーム画面（`HomePage`）。履歴・設定の読み込みと保存、バナー、計算機を並べる
 - **`lib/app_drawer.dart`**: ドロワー（`AppDrawer`、状態を持たない）。履歴・バナーの表示切替・数の表示形式・アプリ情報のリンク

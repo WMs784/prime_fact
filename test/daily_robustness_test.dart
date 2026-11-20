@@ -269,7 +269,9 @@ void main() {
 
   group('banner', () {
     testWidgets('does not flash the start label while loading', (tester) async {
-      await tester.pumpWidget(_app(const Scaffold(body: HomePage())));
+      await tester.pumpWidget(
+        _app(Scaffold(body: HomePage(dependencies: AppDependencies()))),
+      );
       // 読み込み完了前
       expect(find.text('今日の素因数分解に挑戦する'), findsNothing);
       await tester.pumpAndSettle();
@@ -418,7 +420,7 @@ void main() {
     tester.view.viewInsets = const FakeViewPadding(bottom: 220);
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const PrimeFactApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
     // レイアウトのオーバーフローは例外としてテストを失敗させる
     expect(tester.takeException(), isNull);

@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:prime_fact/app_dependencies.dart';
+import 'package:prime_fact/calculator.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/judge.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
@@ -29,10 +29,18 @@ String wrapAtTimes(String result) {
 
 class CalculatorForm extends StatefulWidget {
   const new({
+    required this.calculator,
+    required this.share,
     super.key,
     this.numberStyle = NumberStyle.plain,
     this.onCalculated,
   });
+
+  /// 計算の実行。
+  final Calculator calculator;
+
+  /// 結果の共有の仕方。
+  final ResultSharer share;
   final void Function(HistoryEntry)? onCalculated;
   final NumberStyle numberStyle;
 
@@ -112,7 +120,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
 
     String? result;
     try {
-      result = await AppScope.of(context).calculator((
+      result = await widget.calculator((
         n: inputNumber,
         isNotPrime: isNotPrime,
         isPrime: isPrime,
@@ -153,8 +161,10 @@ class _CalculatorFormState extends State<CalculatorForm> {
   Future<void> _share(BuildContext buttonContext, AppLocalizations loc) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final outcome = await AppScope.of(context)
-          .share(_displayed(loc), originOf(buttonContext));
+      final outcome = await widget.share(
+        _displayed(loc),
+        originOf(buttonContext),
+      );
       // 共有シートがない環境ではコピーになるので、そのことを知らせる
       if (outcome == ShareOutcome.copied) {
         messenger.showSnackBar(SnackBar(content: Text(loc.copied)));

@@ -29,7 +29,10 @@ class _Setting<T> {
 }
 
 class HomePage extends StatefulWidget {
-  const new({super.key});
+  const new({required this.dependencies, super.key});
+
+  /// このアプリで依存を読むのは、ここだけ。必要なものを子の Widget に引数で渡す。
+  final AppDependencies dependencies;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -38,7 +41,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<HistoryEntry> _history = [];
   late final Future<void> _historyLoaded;
-  late final AppDependencies _deps = AppScope.of(context);
+  late final AppDependencies _deps = widget.dependencies;
   late final HistoryRepository _repo = _deps.historyRepository;
 
   /// 履歴を読めなかったとき true。保存済みの履歴を空で上書きしないよう、保存を控える。
@@ -109,13 +112,19 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             if (_showDaily.value ?? false)
-              DailyBanner(repository: _dailyRepo, now: _deps.now),
+              DailyBanner(
+                repository: _dailyRepo,
+                now: _deps.now,
+                share: _deps.share,
+              ),
             Expanded(
               // 結果の高さに関係なく入力欄の位置が変わらないよう、上からの余白を画面の高さの割合で固定する
               child: LayoutBuilder(
                 builder: (context, constraints) => SingleChildScrollView(
                   padding: EdgeInsets.only(top: constraints.maxHeight * 0.25),
                   child: CalculatorForm(
+                    calculator: _deps.calculator,
+                    share: _deps.share,
                     onCalculated: _addHistory,
                     numberStyle: _numberStyle.orFallback,
                   ),

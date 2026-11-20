@@ -15,7 +15,7 @@ import 'package:prime_fact/share.dart' show ShareOutcome;
 
 void main() {
   testWidgets('App renders calculator UI', (tester) async {
-    await tester.pumpWidget(const PrimeFactApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pump();
 
     expect(find.byType(TextField), findsOneWidget);
@@ -23,7 +23,7 @@ void main() {
   });
 
   testWidgets('Input field rejects non-numeric input', (tester) async {
-    await tester.pumpWidget(const PrimeFactApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pump();
 
     final field = find.byType(TextField);
@@ -36,7 +36,7 @@ void main() {
 
   testWidgets('Empty input shows a localized error (ja)', (tester) async {
     _setLocale(tester, const Locale('ja'));
-    await tester.pumpWidget(const PrimeFactApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await tester.tap(find.byType(ElevatedButton));
@@ -51,7 +51,7 @@ void main() {
 
   testWidgets('Zero is judged as not prime (en)', (tester) async {
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(const PrimeFactApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '0');
@@ -68,7 +68,7 @@ void main() {
     tester,
   ) async {
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(const PrimeFactApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '0');
@@ -509,7 +509,7 @@ void main() {
 
   testWidgets('57 is shown as the Grothendieck prime (ja)', (tester) async {
     _setLocale(tester, const Locale('ja'));
-    await tester.pumpWidget(const PrimeFactApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '57');
@@ -533,7 +533,7 @@ void main() {
     }
 
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(const PrimeFactApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await calc('28');
@@ -550,7 +550,7 @@ void main() {
 
   testWidgets('Special header in Japanese', (tester) async {
     _setLocale(tester, const Locale('ja'));
-    await tester.pumpWidget(const PrimeFactApp());
+    await tester.pumpWidget(PrimeFactApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '6');
