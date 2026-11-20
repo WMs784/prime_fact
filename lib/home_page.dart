@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/app_drawer.dart';
+import 'package:prime_fact/best_effort.dart';
 import 'package:prime_fact/calculator_widget.dart';
 import 'package:prime_fact/daily_banner.dart';
 import 'package:prime_fact/daily_repository.dart';
@@ -77,20 +78,12 @@ class _MyLayoutState extends State<MyLayout> {
   Future<void> _setNumberStyle(NumberStyle style) async {
     _numberStyleTouched = true;
     setState(() => _numberStyle = style);
-    try {
-      await _settings.saveNumberStyle(style);
-    } catch (_) {
-      // 保存に失敗しても、この起動中は切り替えた状態を保つ
-    }
+    await bestEffort(() => _settings.saveNumberStyle(style));
   }
 
   Future<void> _setShowDaily(bool value) async {
     setState(() => _showDaily = value);
-    try {
-      await _settings.saveShowDaily(value);
-    } catch (_) {
-      // 保存に失敗しても、この起動中は切り替えた状態を保つ
-    }
+    await bestEffort(() => _settings.saveShowDaily(value));
   }
 
   Future<void> _addHistory(HistoryEntry entry) async {
@@ -98,11 +91,7 @@ class _MyLayoutState extends State<MyLayout> {
     // 読み込み前に保存すると、保存済みの履歴を上書きしてしまうので待つ
     await _historyLoaded;
     if (_historyLoadFailed) return;
-    try {
-      await _repo.save(_history);
-    } catch (_) {
-      // 保存に失敗しても、この起動中の履歴は保つ
-    }
+    await bestEffort(() => _repo.save(_history));
   }
 
   @override

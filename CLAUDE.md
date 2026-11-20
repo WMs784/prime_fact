@@ -130,6 +130,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 - **`lib/spoken.dart`**: スクリーンリーダー向けの読み上げ文。結果の `^` `x` `=` を「60は2の2乗かける3かける5」のように言葉にする（ARB の `spoken*`）。結果の `Text.semanticsLabel`（`liveRegion` で計算完了も読み上げる）、計算中のインジケーター、履歴の各行に使う。数の整形は、日本語の単位つき（「1万2345」）のときだけ読み上げにも反映し、カンマ・アポストロフィ区切りは素の数字のまま読ませる（指数は整形しない）。表示用の文字列（折り返し用の不可視文字を含む）は変えない。`semanticsLabel` を付けた `Text` は `Semantics` で包まれるので、テストで段落を取るときは `find.descendant(of: ..., matching: find.byType(RichText))` を使う
 - **`lib/share.dart`**: 共有（`shareText`: 共有シート、なければクリップボードにコピーして `ShareOutcome.copied`。`originOf`: iPad のポップオーバーの基準位置）。結果の共有と「今日の素因数分解」のシェアが共有する
 - **`lib/language.dart`**: `isJapanese(loc)`。言語による分岐（単位つきの可否、読み上げなど）はこれで判定する
+- **`lib/best_effort.dart`**: 保存の失敗方針（保存に失敗しても、この起動中の画面の状態は保つ）の `bestEffort` と、Repository ごとの読み込み失敗の扱いの一覧
 - **`lib/links.dart`**: 外部リンク（プライバシーポリシー、Play ストア、Web アプリなど）の定数と、URL を開く `UrlOpener` / `defaultUrlOpener`。ドロワーとシェア文で共有する
 - **`lib/l10n/`**: Internationalization files for Japanese and English support
 
@@ -205,6 +206,7 @@ The app supports Japanese and English:
 - `test/number_style_test.dart`: 各形式の整形、指数の除外、英語での単位つき無効化、設定の保存
 - `test/number_format_ui_test.dart`: ドロワーからの形式選択（カンマ・アポストロフィ・単位つき）、結果・共有・履歴への反映、英語で単位つきが出ないこと、クリアボタン（有効条件: 入力/結果/エラーのいずれか、入力と結果の消去、日本語ラベル）
 - `test/spoken_test.dart`: 読み上げ文（ja/en、べき乗、30 桁、想定外の形式はそのまま）、結果の読み上げラベルと liveRegion、整形形式に依存しないこと、計算中ラベル、履歴の行
+- `test/best_effort_test.dart`: 保存の失敗を握りつぶして続けること
 - `test/settings_test.dart`: daily banner toggle in the drawer and its persistence
 - `test/widget_test.dart`: calculator UI, input validation errors, localized results, history save races (injected `HistoryRepository`), failed and cancelled calculation (injected `Calculator`), drawer links (injected `UrlOpener`), wrapped result (line breaks only before `x`), copy/share buttons, fixed input position
 - Add tests alongside any change to `judge.dart` or the history format
