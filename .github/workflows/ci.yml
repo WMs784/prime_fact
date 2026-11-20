@@ -54,8 +54,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
-  # 依存の向きの検査。上の層は下の層を使えるが、逆（下から上、共通部品から他のファイル）と
-  # 循環依存は落とす。層のルールは tool/deps/build.py の LAYERS / SHARED
+  # 依存の向きの検査。上の層は下の層を使えるが、逆（下から上、共通部品から他のファイル）、
+  # 循環依存、層に未割り当てのファイルは落とす。層のルールは tool/deps/build.py の LAYERS / SHARED
   check-dependencies:
     name: Check dependency direction
     runs-on: ubuntu-24.04

@@ -78,8 +78,8 @@ git config core.hooksPath .githooks
 - **Codecov**: CI の `flutter test --coverage` の結果を `codecov/codecov-action` で送る。リポジトリの Secrets に `CODECOV_TOKEN` が必要。設定は `codecov.yml`
 - **Complexity**: CI の `lizard` が `lib/` の関数ごとの循環的複雑度（CCN）を測り、15 を超えると落とす。手元では `pip install lizard` のあと `lizard lib -l dart -x "lib/l10n/app_localizations*" -C 15 -w`。現状の最大は 14（`triviaFor`）。IBM などが推奨する 10 は目標で、10 超の関数が 5 つある
 
-- **依存図**: master への push のたびに `.github/workflows/pages.yml` が `tool/deps/build.py`（`lakos` + graphviz）を回し、`lib/` のファイル間の import 依存を `/<repo>/deps/` に公開する（層ごとの図、`lib` のみの図、指標の比較）。層の割り当ては `tool/deps/build.py` の `LAYERS` / `SHARED`。`lib/` にファイルを足したらここに書き足す（未割り当てと層の違反は CI の警告に出る。失敗はさせない）。手元では `dart pub global activate lakos` と graphviz を入れて `python3 tool/deps/build.py . /tmp/deps`
-- **依存の向きの検査**: PR ごとに CI の `check-dependencies` が `python3 tool/deps/build.py --check .` を回し、層の違反（下の層から上の層、共通部品から他のファイル）と循環依存があれば落とす（graphviz は不要）。層に未割り当てのファイルは警告だけ。検査ロジックのテストは `tool/deps/test_build.py`（`python3 -m unittest discover -s tool/deps`。同じジョブで回る。Dart の mutation test の対象外）
+- **依存図**: master への push のたびに `.github/workflows/pages.yml` が `tool/deps/build.py`（`lakos` + graphviz）を回し、`lib/` のファイル間の import 依存を `/<repo>/deps/` に公開する（層ごとの図、`lib` のみの図、指標の比較）。層の割り当ては `tool/deps/build.py` の `LAYERS` / `SHARED`。`lib/` にファイルを足したらここに書き足す（Pages の生成では、未割り当てと層の違反は警告に出すだけでデプロイは止めない。PR の検査は下の通り落とす）。手元では `dart pub global activate lakos` と graphviz を入れて `python3 tool/deps/build.py . /tmp/deps`
+- **依存の向きの検査**: PR ごとに CI の `check-dependencies` が `python3 tool/deps/build.py --check .` を回し、層の違反（下の層から上の層、共通部品から他のファイル）と循環依存があれば落とす（graphviz は不要）。層に未割り当てのファイルがあっても落とす（そのファイルが絡む違反を見逃すため。`lib/` にファイルを足す PR で `LAYERS` / `SHARED` に書き足す）。検査ロジックのテストは `tool/deps/test_build.py`（`python3 -m unittest discover -s tool/deps`。同じジョブで回る。Dart の mutation test の対象外）
 
 ## Mutation Testing
 

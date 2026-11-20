@@ -10,8 +10,8 @@
 層の割り当て（LAYERS / SHARED）は仮の設計ルール。lib/ にファイルを足したら、ここに書き足す。
 割り当てのないファイルは「未分類」の行に出し、違反（下の層から上の層への import、
 共通部品から他のファイルへの import）は赤い矢印で示す。HTML を作るときは警告を出すだけで
-失敗させない（サイトのデプロイを止めないため）。--check は違反と循環依存で失敗する
-（未割り当てのファイルは警告だけ）。
+失敗させない（サイトのデプロイを止めないため）。--check は違反・循環依存・未割り当てのファイルで
+失敗する（未割り当てを許すと、そのファイルが絡む違反を見逃し、ルールが形骸化するため）。
 """
 
 import html
@@ -202,7 +202,7 @@ def check(repo):
         data = lakos_json(lib_dir)
     _, _, _, violations, unassigned = classify(data)
     for n in unassigned:
-        print(f"::warning::層が未割り当て: {n}（tool/deps/build.py の LAYERS に追記）")
+        print(f"::error::層が未割り当て: {n}（tool/deps/build.py の LAYERS か SHARED に追記）")
     for a, b in violations:
         print(f"::error::依存の向きの違反: {a} -> {b}")
     cyclic = not data["metrics"]["isAcyclic"]
@@ -214,7 +214,7 @@ def check(repo):
             "逆（下から上、共通部品から他のファイル）は使えません。"
             "ルールは tool/deps/build.py の LAYERS / SHARED にあります。"
         )
-    if violations or cyclic:
+    if violations or cyclic or unassigned:
         return 1
     print(f"OK: {data['metrics']['numNodes']} ファイル、違反なし")
     return 0

@@ -129,10 +129,11 @@ class CheckTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("::error::循環依存", out)
 
-    def test_unassigned_file_only_warns(self):
+    def test_unassigned_file_fails(self):
+        # 割り当てのないファイルは、そのファイルが絡む違反を見逃すので落とす
         code, out = self.run_check(graph(("main", "new_file")))
-        self.assertEqual(code, 0)
-        self.assertIn("::warning::層が未割り当て: new_file", out)
+        self.assertEqual(code, 1)
+        self.assertIn("::error::層が未割り当て: new_file", out)
 
 
 if __name__ == "__main__":
