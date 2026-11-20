@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:prime_fact/app_dependencies.dart';
 import 'package:prime_fact/calculator_widget.dart';
 import 'package:prime_fact/history_entry.dart';
 import 'package:prime_fact/history_repository.dart';
@@ -85,7 +86,9 @@ void main() {
     final loading = Completer<List<HistoryEntry>>();
     final repo = _FakeHistoryRepository(() => loading.future);
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(MyApp(historyRepository: repo));
+    await tester.pumpWidget(
+      MyApp(dependencies: AppDependencies(historyRepository: repo)),
+    );
     await tester.pump();
 
     await tester.enterText(find.byType(TextField), '0');
@@ -111,7 +114,9 @@ void main() {
       () => Future.error(StateError('storage unavailable')),
     );
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(MyApp(historyRepository: repo));
+    await tester.pumpWidget(
+      MyApp(dependencies: AppDependencies(historyRepository: repo)),
+    );
     await tester.pump();
 
     await tester.enterText(find.byType(TextField), '0');
@@ -137,13 +142,15 @@ void main() {
         var calls = 0;
         await tester.pumpWidget(
           MyApp(
-            historyRepository: repo,
-            calculator: (_, cancel) {
-              // 1 回目はすぐ結果を返し、2 回目は止めて待つ
-              if (++calls == 1) return Future.value('10 NP\n10=2x5');
-              token = cancel;
-              return done.future;
-            },
+            dependencies: AppDependencies(
+              historyRepository: repo,
+              calculator: (_, cancel) {
+                // 1 回目はすぐ結果を返し、2 回目は止めて待つ
+                if (++calls == 1) return Future.value('10 NP\n10=2x5');
+                token = cancel;
+                return done.future;
+              },
+            ),
           ),
         );
         await tester.pump();
@@ -200,8 +207,10 @@ void main() {
     _setLocale(tester, const Locale('en'));
     await tester.pumpWidget(
       MyApp(
-        historyRepository: repo,
-        calculator: (_, _) => Future.error(StateError('boom')),
+        dependencies: AppDependencies(
+          historyRepository: repo,
+          calculator: (_, _) => Future.error(StateError('boom')),
+        ),
       ),
     );
     await tester.pump();
@@ -228,10 +237,12 @@ void main() {
       _setLocale(tester, const Locale('en'));
       await tester.pumpWidget(
         MyApp(
-          openUrl: (url) {
-            opened.add(url);
-            return open(url);
-          },
+          dependencies: AppDependencies(
+            openUrl: (url) {
+              opened.add(url);
+              return open(url);
+            },
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -272,7 +283,13 @@ void main() {
 
   testWidgets('A long result wraps at full size', (tester) async {
     _setLocale(tester, const Locale('en'));
-    await tester.pumpWidget(MyApp(calculator: (_, _) async => '${'2x' * 60}2'));
+    await tester.pumpWidget(
+      MyApp(
+        dependencies: AppDependencies(
+          calculator: (_, _) async => '${'2x' * 60}2',
+        ),
+      ),
+    );
     await tester.pump();
 
     await tester.enterText(find.byType(TextField), '12');
@@ -307,7 +324,11 @@ void main() {
       ),
     );
     await tester.pumpWidget(
-      MyApp(calculator: (_, _) async => 'RESULT\n${'2x' * 60}2'),
+      MyApp(
+        dependencies: AppDependencies(
+          calculator: (_, _) async => 'RESULT\n${'2x' * 60}2',
+        ),
+      ),
     );
     await tester.pump();
     expect(find.byIcon(Icons.copy), findsNothing);
@@ -332,7 +353,11 @@ void main() {
     (tester) async {
       _setLocale(tester, const Locale('en'));
       await tester.pumpWidget(
-        MyApp(calculator: (_, _) async => '60 NP\n60=2^2x3x5'),
+        MyApp(
+          dependencies: AppDependencies(
+            calculator: (_, _) async => '60 NP\n60=2^2x3x5',
+          ),
+        ),
       );
       await tester.pump();
       await tester.enterText(find.byType(TextField), '60');
@@ -369,7 +394,11 @@ void main() {
         addTearDown(tester.view.reset);
 
         final result = 'x NP\n$n=99999999999971x99999999999973';
-        await tester.pumpWidget(MyApp(calculator: (_, _) async => result));
+        await tester.pumpWidget(
+          MyApp(
+            dependencies: AppDependencies(calculator: (_, _) async => result),
+          ),
+        );
         await tester.pump();
         await tester.enterText(find.byType(TextField), '12');
         await tester.tap(find.byType(ElevatedButton));
@@ -416,7 +445,12 @@ void main() {
     testWidgets('Share outcome ${c.$1} -> snackbar ${c.$2}', (tester) async {
       _setLocale(tester, const Locale('en'));
       await tester.pumpWidget(
-        MyApp(calculator: (_, _) async => 'R', share: (_, _) async => c.$1),
+        MyApp(
+          dependencies: AppDependencies(
+            calculator: (_, _) async => 'R',
+            share: (_, _) async => c.$1,
+          ),
+        ),
       );
       await tester.pump();
       await tester.enterText(find.byType(TextField), '12');
@@ -434,7 +468,12 @@ void main() {
   ) async {
     _setLocale(tester, const Locale('ja'));
     await tester.pumpWidget(
-      MyApp(calculator: (_, _) async => 'R', share: (_, _) async => throw 'x'),
+      MyApp(
+        dependencies: AppDependencies(
+          calculator: (_, _) async => 'R',
+          share: (_, _) async => throw 'x',
+        ),
+      ),
     );
     await tester.pump();
     await tester.enterText(find.byType(TextField), '12');
@@ -453,7 +492,11 @@ void main() {
   ) async {
     _setLocale(tester, const Locale('en'));
     await tester.pumpWidget(
-      MyApp(calculator: (_, _) async => throw Exception('boom')),
+      MyApp(
+        dependencies: AppDependencies(
+          calculator: (_, _) async => throw Exception('boom'),
+        ),
+      ),
     );
     await tester.pump();
     await tester.enterText(find.byType(TextField), '12');

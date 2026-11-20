@@ -10,6 +10,12 @@ import 'package:prime_fact/daily_stats.dart';
 import 'package:prime_fact/date_key.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 
+/// バナーが読み込んだ、ある日の状態。表示と、タップ先の問題はこの [key] の日に揃える。
+///
+/// [progress] が null なら未開始（または読めなかった）。[stats]（連続日数などの累計）が
+/// null なら、記録を読めなかったので連続の表示を省く。
+typedef _Snapshot = ({int key, DailyProgress? progress, DailyStats? stats});
+
 /// ホーム画面の「今日の素因数分解に挑戦する」バナー。
 class DailyBanner extends StatefulWidget {
   const new({required this.repository, required this.now, super.key});
@@ -21,13 +27,8 @@ class DailyBanner extends StatefulWidget {
 }
 
 class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
-  DailyProgress? _progress;
-
-  /// 連続日数などの累計。記録を読めなかったときは null（連続の表示を省くだけにする）。
-  DailyStats? _stats;
-
-  /// [_progress] を読み込んだ日。表示と、タップ先の問題はこの日に揃える。null は読み込み中。
-  int? _loadedKey;
+  /// 最後に読み込めた、ある日の状態。null は読み込み中（まだ一度も読めていない）。
+  _Snapshot? _snapshot;
   Timer? _dateCheck;
 
   /// 読み込み中の日。null は読み込み中ではない。
@@ -74,11 +75,7 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
     final stats = await loadDailyStats(widget.repository, key, today: progress);
     if (!mounted || generation != _generation) return;
     _loadingKey = null;
-    setState(() {
-      _progress = progress;
-      _stats = stats;
-      _loadedKey = key;
-    });
+    setState(() => _snapshot = (key: key, progress: progress, stats: stats));
   }
 
   /// 前面に出したまま JST 0 時をまたいだり、端末の時計・タイムゾーンを変えたりしても、
@@ -86,11 +83,11 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
   void _checkDate() {
     final today = jstDateKey(widget.now());
     // 同じ日の読み込みが進行中なら待つ（世代で破棄して読み込みを永久に延期しない）
-    if (_loadedKey != today && _loadingKey != today) _reload();
+    if (_snapshot?.key != today && _loadingKey != today) _reload();
   }
 
   Future<void> _open() async {
-    final key = _loadedKey;
+    final key = _snapshot?.key;
     if (key == null) return;
     // 日付が変わっていたら、古い日の問題を開かずに表示を更新するだけにする
     // （「クリア済み」を見てタップしたら新しい日の計時が始まる、を避ける）
@@ -117,8 +114,9 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final loaded = _loadedKey != null;
-    final progress = _progress;
+    final snapshot = _snapshot;
+    final loaded = snapshot != null;
+    final progress = snapshot?.progress;
 
     final String title;
     final String subtitle;
@@ -140,7 +138,7 @@ class _DailyBannerState extends State<DailyBanner> with WidgetsBindingObserver {
       subtitle = loc.dailyBannerStartSub;
     }
     // 連続日数。今日クリア済みなら 2 日以上のとき、未クリアなら昨日までの連続があるときに出す
-    final streak = _stats?.currentStreak ?? 0;
+    final streak = snapshot?.stats?.currentStreak ?? 0;
     final showStreak =
         loaded && streak >= (progress?.isCleared == true ? 2 : 1);
     final subtitleStyle = TextStyle(color: colors.onPrimaryContainer);
