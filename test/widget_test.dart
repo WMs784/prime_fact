@@ -106,7 +106,9 @@ void main() {
     // 読み込みが終わるまでは保存しない
     expect(repo.saved, isEmpty);
 
-    loading.complete([HistoryEntry(input: '7', timestamp: DateTime.utc(2026))]);
+    loading.complete([
+      HistoryEntry.parse(input: '7', timestamp: DateTime.utc(2026)),
+    ]);
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 50)),
     );

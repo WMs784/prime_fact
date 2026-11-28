@@ -102,7 +102,7 @@ void main() {
     test('breakable adds break points after = and before x only', () {
       expect(
         resultLines(en, fact('60', '2^2x3x5'), null, plain, breakable: true),
-        ['60 is not a prime number', '60=​2^2​x3​x5'],
+        ['60 is not a prime number', '60=\u200B2^2\u200Bx3\u200Bx5'],
       );
       // 見出しの行と、因数分解のない結果には入れない
       expect(resultLines(en, fact('7'), null, plain, breakable: true), [

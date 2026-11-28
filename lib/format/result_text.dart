@@ -5,7 +5,7 @@ import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/shared/language.dart';
 
 /// 折り返してよい位置に入れる、幅のない空白。
-const _breakable = '​';
+const _breakable = '\u200B';
 
 /// 数の直後に続く見出し（「は素数です！」など）。[trivia] があればそちらを出す。
 String resultHeader(AppLocalizations loc, Factorization f, Trivia? trivia) {

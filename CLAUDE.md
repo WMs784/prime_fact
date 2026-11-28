@@ -213,7 +213,7 @@ The app supports Japanese and English:
 - `test/trivia_test.dart`: each special-number category and near-miss numbers (e.g. 121, 120, 15)
 - `test/factorization_test.dart`: `isPrime` / `isComposite`、`notation`、`fromNotation`（素数・1 以下、30 桁、往復、壊れた記法は `FormatException`）
 - `test/result_text_test.dart`: 見出し（豆知識が優先）、結果の行（合成数・素数・1 以下）、表示時の言語に従うこと、数の整形と指数の除外、負の数、折り返し位置
-- `test/history_test.dart`: `HistoryEntry` JSON round trip and legacy-format migration, `fromFactorization`, 保存データからの `factorization`, `HistoryRepository` load/save/corrupted data（読めない `factors` を含む）
+- `test/history_test.dart`: `HistoryEntry` JSON round trip and legacy-format migration, 合成数だけ `factors` を保存すること, 保存データからの `factorization`（`HistoryEntry.parse`）, `HistoryRepository` load/save/corrupted data（読めない `factors` を含む）
 - `test/date_key_test.dart`: JST の日付切り替え、タイムゾーン非依存、通し日数（月/年/うるう日またぎ）
 - `test/daily_puzzle_test.dart`: determinism, JST date rollover, p/q ranges, tier ratios, fixed-date regression values
 - `test/calculator_controller_test.dart`: `CalculatorController` の成功・失敗・中止（直前の結果を残す）、特別な数の豆知識、素数の履歴、結果欄の消去、破棄後に通知しないこと

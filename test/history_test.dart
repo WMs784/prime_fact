@@ -14,7 +14,7 @@ void main() {
 
   group('HistoryEntry', () {
     test('toJson / fromJson round trip', () {
-      final e = HistoryEntry(
+      final e = HistoryEntry.parse(
         input: '12',
         factors: '2^2x3',
         timestamp: DateTime.utc(2026, 1, 2, 3, 4, 5),
@@ -56,24 +56,21 @@ void main() {
       expect(prime.factors, isNull);
     });
 
-    test('fromFactorization keeps factors only for a composite', () {
+    test('factors are stored only for a composite', () {
       final t = DateTime.utc(2026);
-      final composite = HistoryEntry.fromFactorization(
-        fact('12', '2^2x3'),
-        timestamp: t,
-      );
+      final composite = HistoryEntry(fact('12', '2^2x3'), timestamp: t);
       expect(composite.input, '12');
       expect(composite.factors, '2^2x3');
       expect(composite.timestamp, t);
       for (final n in ['7', '1']) {
-        final e = HistoryEntry.fromFactorization(fact(n), timestamp: t);
+        final e = HistoryEntry(fact(n), timestamp: t);
         expect(e.input, n);
         expect(e.factors, isNull, reason: n);
       }
     });
 
     test('factorization is restored from the stored data', () {
-      final composite = HistoryEntry(
+      final composite = HistoryEntry.parse(
         input: '12',
         factors: '2^2x3',
         timestamp: DateTime.utc(2026),
@@ -82,7 +79,10 @@ void main() {
       expect(composite.notation, '2^2x3');
       expect(composite.isComposite, isTrue);
 
-      final prime = HistoryEntry(input: '7', timestamp: DateTime.utc(2026));
+      final prime = HistoryEntry.parse(
+        input: '7',
+        timestamp: DateTime.utc(2026),
+      );
       expect(prime.factorization.isPrime, isTrue);
     });
   });
@@ -95,8 +95,8 @@ void main() {
     test('save then load preserves order and content', () async {
       final repo = HistoryRepository();
       final entries = [
-        HistoryEntry(input: '7', timestamp: DateTime.utc(2026)),
-        HistoryEntry(
+        HistoryEntry.parse(input: '7', timestamp: DateTime.utc(2026)),
+        HistoryEntry.parse(
           input: '8',
           factors: '2^3',
           timestamp: DateTime.utc(2026, 1, 2),

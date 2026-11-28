@@ -87,7 +87,7 @@ class CalculatorController extends ChangeNotifier {
     }
     _output = CalculatedOutput(result, triviaFor(n));
     notifyListeners();
-    return HistoryEntry.fromFactorization(result, timestamp: now());
+    return HistoryEntry(result, timestamp: now());
   }
 
   @override

@@ -259,7 +259,7 @@ void main() {
         localizedApp(
           HistoryPage(
             history: [
-              HistoryEntry(
+              HistoryEntry.parse(
                 input: '60',
                 factors: '2^2x3x5',
                 timestamp: DateTime(2026, 11, 17, 9, 5),
