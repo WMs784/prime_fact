@@ -3,34 +3,30 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prime_fact/calculator/factorization.dart';
 import 'package:prime_fact/calculator/judge.dart';
 import 'package:prime_fact/calculator/judge_isolate.dart';
 
-const _notPrime = ' NP';
-const _prime = ' P';
+/// 比べやすい形（n と記法）にする。
+(BigInt, String) _key(Factorization f) => (f.n, f.notation);
 
-FactorRequest _req(BigInt n, [String? special]) =>
-    (n: n, isNotPrime: _notPrime, isPrime: _prime, special: special);
+Factorization run(String n) => factorizeSync(BigInt.parse(n));
 
-String run(String n) => factorizeSync(_req(BigInt.parse(n)));
-
-/// "n NP\nn=factors" 形式の結果から因数分解部分だけを取り出す。
+/// 合成数であることを確かめて、因数分解の記法を返す。
 String factorsOf(String n) {
-  final out = run(n);
-  expect(out, startsWith('$n$_notPrime\n$n='), reason: 'n=$n out=$out');
-  return out.split('=').last;
+  final f = run(n);
+  expect(f.isComposite, isTrue, reason: 'n=$n out=${f.notation}');
+  expect(f.n, BigInt.parse(n));
+  return f.notation;
 }
 
 /// 結果もエラーも送らずに終わる Isolate の入口（異常終了の代わり）。
-void _silentEntry((SendPort, FactorRequest) args) {}
+void _silentEntry((SendPort, BigInt) args) {}
 
 void main() {
-  test('FactorRequest survives the real compute isolate round trip', () async {
-    final result = await compute(
-      factorizeSync,
-      _req(BigInt.from(12), ' special'),
-    );
-    expect(result, '12 special\n12=2^2x3');
+  test('Factorization survives the real compute isolate round trip', () async {
+    final result = await compute(factorizeSync, BigInt.from(12));
+    expect(_key(result), (BigInt.from(12), '2^2x3'));
   });
 
   group('factorizeAsync', () {
@@ -40,10 +36,10 @@ void main() {
 
     test('gives the same result as factorizeSync', () async {
       for (final n in ['0', '1', '97', '360', '1000000007000000063']) {
-        final req = _req(BigInt.parse(n));
+        final v = BigInt.parse(n);
         expect(
-          await factorizeAsync(req, CancelToken()),
-          factorizeSync(req),
+          _key(await factorizeAsync(v, CancelToken())),
+          _key(factorizeSync(v)),
           reason: n,
         );
       }
@@ -57,7 +53,7 @@ void main() {
       );
       // 区切りを 0 にして、短い計算でも毎回の区切りで制御が戻るようにする
       final n = BigInt.parse('999999999989') * BigInt.parse('999999999989');
-      await factorizeAsync(_req(n), CancelToken(), slice: Duration.zero);
+      await factorizeAsync(n, CancelToken(), slice: Duration.zero);
       timer.cancel();
       expect(ticks, greaterThan(0));
     });
@@ -67,7 +63,7 @@ void main() {
       // 中止が効かなければ数秒かかる入力。時間は測らず、完了までに CancelledException が出ることだけ見る
       Timer(const Duration(milliseconds: 50), token.cancel);
       await expectLater(
-        factorizeAsync(_req(heavy), token),
+        factorizeAsync(heavy, token),
         throwsA(isA<CancelledException>()),
       );
     });
@@ -75,7 +71,7 @@ void main() {
     test('an already cancelled token never returns a result', () async {
       final token = CancelToken()..cancel();
       await expectLater(
-        factorizeAsync(_req(BigInt.from(12)), token),
+        factorizeAsync(BigInt.from(12), token),
         throwsA(isA<CancelledException>()),
       );
     });
@@ -83,8 +79,11 @@ void main() {
 
   group('factorizeInIsolate', () {
     test('gives the same result as factorizeSync', () async {
-      final req = _req(BigInt.parse('1000000007000000063'));
-      expect(await factorizeInIsolate(req, CancelToken()), factorizeSync(req));
+      final n = BigInt.parse('1000000007000000063');
+      expect(
+        _key(await factorizeInIsolate(n, CancelToken())),
+        _key(factorizeSync(n)),
+      );
     });
 
     test('kills the isolate and throws when cancelled', () async {
@@ -93,18 +92,14 @@ void main() {
       final token = CancelToken();
       Timer(const Duration(milliseconds: 50), token.cancel);
       await expectLater(
-        factorizeInIsolate(_req(heavy), token),
+        factorizeInIsolate(heavy, token),
         throwsA(isA<CancelledException>()),
       );
     });
 
     test('fails instead of hanging when the isolate exits silently', () async {
       await expectLater(
-        factorizeInIsolate(
-          _req(BigInt.from(12)),
-          CancelToken(),
-          entry: _silentEntry,
-        ),
+        factorizeInIsolate(BigInt.from(12), CancelToken(), entry: _silentEntry),
         throwsA(isA<StateError>()),
       );
     });
@@ -112,7 +107,7 @@ void main() {
     test('an already cancelled token never starts', () async {
       final token = CancelToken()..cancel();
       await expectLater(
-        factorizeInIsolate(_req(BigInt.from(12)), token),
+        factorizeInIsolate(BigInt.from(12), token),
         throwsA(isA<CancelledException>()),
       );
     });
@@ -120,38 +115,32 @@ void main() {
 
   group('factorizeSync: trivial inputs', () {
     test('0 and 1 are neither prime nor factorable', () {
-      expect(run('0'), '0$_notPrime');
-      expect(run('1'), '1$_notPrime');
+      for (final n in ['0', '1']) {
+        final f = run(n);
+        expect(f.n, BigInt.parse(n));
+        expect(f.factors, isEmpty, reason: n);
+        expect(f.isPrime, isFalse, reason: n);
+      }
     });
 
     test('negative numbers are treated as not prime', () {
-      expect(run('-7'), '-7$_notPrime');
-    });
-  });
-
-  group('factorizeSync: special header', () {
-    const s = ' S';
-    String runS(String n) => factorizeSync(_req(BigInt.parse(n), s));
-
-    test('replaces the header of a composite but keeps its factorization', () {
-      expect(runS('57'), '57$s\n57=3x19');
-      expect(runS('28'), '28$s\n28=2^2x7');
+      final f = run('-7');
+      expect(f.factors, isEmpty);
+      expect(f.isPrime, isFalse);
     });
 
-    test('replaces the header of a prime', () {
-      expect(runS('31'), '31$s');
-    });
-
-    test('is ignored when null or omitted', () {
-      expect(factorizeSync(_req(BigInt.from(57))), '57$_notPrime\n57=3x19');
-      expect(run('57'), '57$_notPrime\n57=3x19');
+    test('2, the smallest prime, is factored', () {
+      expect(_key(run('2')), (BigInt.two, '2'));
+      expect(run('2').isPrime, isTrue);
     });
   });
 
   group('factorizeSync: primality', () {
     test('small primes', () {
       for (final p in [2, 3, 5, 7, 11, 13, 97, 997, 1009, 7919]) {
-        expect(run('$p'), '$p$_prime', reason: 'p=$p');
+        final f = run('$p');
+        expect(f.isPrime, isTrue, reason: 'p=$p');
+        expect(f.notation, '$p', reason: 'p=$p');
       }
     });
 
@@ -176,13 +165,15 @@ void main() {
         '2305843009213693951', // 2^61 - 1
         '618970019642690137449562111', // 2^89 - 1
       ]) {
-        expect(run(p), '$p$_prime', reason: 'p=$p');
+        final f = run(p);
+        expect(f.isPrime, isTrue, reason: 'p=$p');
+        expect(f.notation, p, reason: 'p=$p');
       }
     });
 
     test('Carmichael numbers are detected as composite', () {
       for (final c in [561, 1105, 1729, 2465, 2821, 6601, 8911]) {
-        expect(run('$c'), startsWith('$c$_notPrime'), reason: 'c=$c');
+        expect(run('$c').isComposite, isTrue, reason: 'c=$c');
       }
     });
 

@@ -60,10 +60,12 @@ LAYERS = [
         0,
         "純粋ロジック",
         [
+            "factorization",
             "judge",
             "judge_isolate",
             "trivia",
             "number_style",
+            "result_text",
             "spoken",
             "daily_puzzle",
             "calculator",

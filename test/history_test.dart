@@ -5,6 +5,8 @@ import 'package:prime_fact/history/history_entry.dart';
 import 'package:prime_fact/history/history_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'helpers/factorization.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -54,13 +56,34 @@ void main() {
       expect(prime.factors, isNull);
     });
 
-    test('fromResult extracts factors', () {
-      final e = HistoryEntry.fromResult(
-        input: '12',
-        result: '12 is not prime\n12=2^2x3',
-        timestamp: DateTime.utc(2026),
+    test('fromFactorization keeps factors only for a composite', () {
+      final t = DateTime.utc(2026);
+      final composite = HistoryEntry.fromFactorization(
+        fact('12', '2^2x3'),
+        timestamp: t,
       );
-      expect(e.factors, '2^2x3');
+      expect(composite.input, '12');
+      expect(composite.factors, '2^2x3');
+      expect(composite.timestamp, t);
+      for (final n in ['7', '1']) {
+        final e = HistoryEntry.fromFactorization(fact(n), timestamp: t);
+        expect(e.input, n);
+        expect(e.factors, isNull, reason: n);
+      }
+    });
+
+    test('factorization is restored from the stored data', () {
+      final composite = HistoryEntry(
+        input: '12',
+        factors: '2^2x3',
+        timestamp: DateTime.utc(2026),
+      ).factorization;
+      expect(composite.n, BigInt.from(12));
+      expect(composite.notation, '2^2x3');
+      expect(composite.isComposite, isTrue);
+
+      final prime = HistoryEntry(input: '7', timestamp: DateTime.utc(2026));
+      expect(prime.factorization.isPrime, isTrue);
     });
   });
 
@@ -89,6 +112,19 @@ void main() {
     test('load returns empty list for corrupted data', () async {
       SharedPreferences.setMockInitialValues({
         'calculation_history': 'not json',
+      });
+      expect(await HistoryRepository().load(), isEmpty);
+    });
+
+    test('load treats unreadable factors as corrupted data', () async {
+      SharedPreferences.setMockInitialValues({
+        'calculation_history': jsonEncode([
+          {
+            'input': '12',
+            'factors': '2^2*3',
+            'timestamp': '2026-01-02T03:04:05.000Z',
+          },
+        ]),
       });
       expect(await HistoryRepository().load(), isEmpty);
     });

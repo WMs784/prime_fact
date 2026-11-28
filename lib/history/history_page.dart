@@ -2,17 +2,10 @@ import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/calculator/trivia.dart';
 import 'package:prime_fact/format/number_style.dart';
+import 'package:prime_fact/format/result_text.dart';
 import 'package:prime_fact/format/spoken.dart';
 import 'package:prime_fact/history/history_entry.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
-
-/// 保存データから、現在の言語で結果の表示行を組み立てる。
-List<String> _describe(AppLocalizations loc, HistoryEntry entry) {
-  final n = BigInt.tryParse(entry.input) ?? BigInt.zero;
-  final header = '${entry.input}${headerFor(loc, n)}';
-  final factors = entry.factors;
-  return factors == null ? [header] : [header, '${entry.input}=$factors'];
-}
 
 class HistoryPage extends StatefulWidget {
   const new({
@@ -32,21 +25,20 @@ class _HistoryPageState extends State<HistoryPage> {
   /// 新しい順。
   late final List<HistoryEntry> _reversed = widget.history.reversed.toList();
 
-  /// 行ごとの表示文（整形前）。見出しの導出は素数判定を伴い、30 桁では重いので、
+  /// 行ごとの豆知識（なければ null）。導出は素数判定を伴い、30 桁では重いので、
   /// スクロールで再び表示されるたびに計算し直さないよう、初めて表示したときに覚える。
-  final _described = <int, List<String>>{};
-  String? _describedLocale;
+  /// 言語には依存しないので、言語が変わっても覚えたままでよい。
+  final _trivia = <int, Trivia?>{};
+
+  Trivia? _triviaAt(int index, BigInt n) => _trivia.containsKey(index)
+      ? _trivia[index]
+      : (_trivia[index] = triviaFor(n));
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final numberStyle = widget.numberStyle;
     final reversed = _reversed;
-    // 言語が変わったら文言が変わるので、覚えた表示文は捨てる
-    if (_describedLocale != loc.localeName) {
-      _described.clear();
-      _describedLocale = loc.localeName;
-    }
     final dateFormat = DateFormat.yMd(loc.localeName).add_Hm();
 
     return Scaffold(
@@ -57,14 +49,14 @@ class _HistoryPageState extends State<HistoryPage> {
               itemCount: reversed.length,
               itemBuilder: (context, index) {
                 final entry = reversed[index];
-                final raw = _described[index] ??= _describe(loc, entry);
-                final lines = raw
-                    .map((l) => formatForLocale(loc, l, numberStyle))
-                    .toList();
+                final f = entry.factorization;
+                final trivia = _triviaAt(index, f.n);
+                final lines = resultLines(loc, f, trivia, numberStyle);
                 final dateStr = dateFormat.format(entry.timestamp);
                 final spoken = spokenResult(
                   loc,
-                  raw.join('\n'),
+                  f,
+                  trivia,
                   numberStyle: numberStyle,
                 );
 

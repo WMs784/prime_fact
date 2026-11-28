@@ -6,13 +6,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/app/app_dependencies.dart';
 import 'package:prime_fact/app/home_page.dart';
-import 'package:prime_fact/calculator/calculator_form.dart';
+import 'package:prime_fact/calculator/factorization.dart';
 import 'package:prime_fact/calculator/judge.dart'
     show CancelToken, CancelledException;
 import 'package:prime_fact/history/history_entry.dart';
 import 'package:prime_fact/history/history_repository.dart';
 import 'package:prime_fact/main.dart';
 import 'package:prime_fact/shared/share.dart' show ShareOutcome;
+
+import 'helpers/factorization.dart';
+
+/// 1 行に収まらない、長い因数分解（2 を 61 個）。
+final String _manyTwos = List.filled(61, '2').join('x');
 
 void main() {
   testWidgets('App renders calculator UI', (tester) async {
@@ -121,7 +126,7 @@ void main() {
         dependencies: AppDependencies(
           historyRepository: repo,
           now: () => t0,
-          calculator: (_, _) async => '7 is a prime number',
+          calculator: (_, _) async => fact('7'),
         ),
       ),
     );
@@ -163,7 +168,7 @@ void main() {
       (tester) async {
         final repo = _FakeHistoryRepository(() async => []);
         _setLocale(tester, const Locale('en'));
-        final done = Completer<String>();
+        final done = Completer<Factorization>();
         CancelToken? token;
         var calls = 0;
         await tester.pumpWidget(
@@ -172,7 +177,7 @@ void main() {
               historyRepository: repo,
               calculator: (_, cancel) {
                 // 1 回目はすぐ結果を返し、2 回目は止めて待つ
-                if (++calls == 1) return Future.value('10 NP\n10=2x5');
+                if (++calls == 1) return Future.value(fact('10', '2x5'));
                 token = cancel;
                 return done.future;
               },
@@ -202,7 +207,7 @@ void main() {
         await tester.tap(find.text('Cancel'));
         expect(token!.isCancelled, isTrue);
         if (ignoresCancel) {
-          done.complete('12 NP\n12=2^2x3');
+          done.complete(fact('12', '2^2x3'));
         } else {
           done.completeError(const CancelledException());
         }
@@ -312,7 +317,7 @@ void main() {
     await tester.pumpWidget(
       PrimeFactApp(
         dependencies: AppDependencies(
-          calculator: (_, _) async => '${'2x' * 60}2',
+          calculator: (_, _) async => fact('12', _manyTwos),
         ),
       ),
     );
@@ -352,7 +357,7 @@ void main() {
     await tester.pumpWidget(
       PrimeFactApp(
         dependencies: AppDependencies(
-          calculator: (_, _) async => 'RESULT\n${'2x' * 60}2',
+          calculator: (_, _) async => fact('12', _manyTwos),
         ),
       ),
     );
@@ -370,8 +375,33 @@ void main() {
     expect(find.byIcon(Icons.share), findsOneWidget);
     await tester.tap(find.byIcon(Icons.copy));
     await tester.pump();
-    expect(copied, startsWith('RESULT\n'));
+    expect(copied, startsWith('12 is not a prime number\n12=2x2x'));
+    // 折り返し用の不可視文字はコピーに混ぜない
+    expect(copied, isNot(contains('\u200B')));
     expect(find.text('Copied'), findsOneWidget);
+  });
+
+  testWidgets('A shown result follows a language change', (tester) async {
+    _setLocale(tester, const Locale('en'));
+    await tester.pumpWidget(
+      PrimeFactApp(
+        dependencies: AppDependencies(
+          calculator: (_, _) async => fact('12', '2^2x3'),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), '12');
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('12 is not a prime number'), findsOneWidget);
+
+    // 計算し直さなくても、表示中の結果が新しい言語で出る
+    tester.platformDispatcher.localesTestValue = [const Locale('ja')];
+    await tester.pumpAndSettle();
+    expect(find.textContaining('12は素数ではありません'), findsOneWidget);
+    expect(find.textContaining('12 is not a prime number'), findsNothing);
   });
 
   testWidgets(
@@ -381,7 +411,7 @@ void main() {
       await tester.pumpWidget(
         PrimeFactApp(
           dependencies: AppDependencies(
-            calculator: (_, _) async => '60 NP\n60=2^2x3x5',
+            calculator: (_, _) async => fact('60', '2^2x3x5'),
           ),
         ),
       );
@@ -392,15 +422,12 @@ void main() {
       await tester.pump();
 
       final text = tester.widget<Text>(find.byKey(const ValueKey('result')));
-      expect(text.data, '60 NP\n60=\u200B2^2\u200Bx3\u200Bx5');
+      expect(
+        text.data,
+        '60 is not a prime number\n60=\u200B2^2\u200Bx3\u200Bx5',
+      );
     },
   );
-
-  test('wrapAtTimes adds break points after = and before x, except on the first line', () {
-    const header = 'a=b is a header with an equals sign';
-    expect(wrapAtTimes('$header\n10=2x5'), '$header\n10=\u200B2\u200Bx5');
-    expect(wrapAtTimes(header), header);
-  });
 
   // flutter test のフォント(Ahem)は全角 20dp 幅。実機の 360dp(20sp の数字で約 29 文字)に
   // 近い状況は、32 文字(30 桁の n と「=」に少し余裕を足した幅)にすると再現できる。
@@ -419,7 +446,7 @@ void main() {
         );
         addTearDown(tester.view.reset);
 
-        final result = 'x NP\n$n=99999999999971x99999999999973';
+        final result = fact(n, '99999999999971x99999999999973');
         await tester.pumpWidget(
           PrimeFactApp(
             dependencies: AppDependencies(calculator: (_, _) async => result),
@@ -473,7 +500,7 @@ void main() {
       await tester.pumpWidget(
         PrimeFactApp(
           dependencies: AppDependencies(
-            calculator: (_, _) async => 'R',
+            calculator: (_, _) async => fact('12', '2^2x3'),
             share: (_, _) async => c.$1,
           ),
         ),
@@ -496,7 +523,7 @@ void main() {
     await tester.pumpWidget(
       PrimeFactApp(
         dependencies: AppDependencies(
-          calculator: (_, _) async => 'R',
+          calculator: (_, _) async => fact('12', '2^2x3'),
           share: (_, _) async => throw 'x',
         ),
       ),

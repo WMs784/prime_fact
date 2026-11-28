@@ -4,24 +4,16 @@ import 'package:prime_fact/format/number_style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test('plain leaves text unchanged', () {
-    expect(
-      formatNumbers('12345=3x5', NumberStyle.plain, ja: true),
-      '12345=3x5',
-    );
+  test('plain leaves digits unchanged', () {
+    expect(formatDigits('12345', NumberStyle.plain, ja: true), '12345');
   });
 
-  test('comma groups by three and skips exponents', () {
+  test('comma and apostrophe group by three', () {
+    expect(formatDigits('1234567', NumberStyle.comma, ja: true), '1,234,567');
+    expect(formatDigits('123', NumberStyle.comma, ja: true), '123');
     expect(
-      formatNumbers('1234567=1000x2^1234', NumberStyle.comma, ja: true),
-      '1,234,567=1,000x2^1234',
-    );
-  });
-
-  test('apostrophe groups by three and skips exponents', () {
-    expect(
-      formatNumbers('1234567=1000x2^1234', NumberStyle.apostrophe, ja: false),
-      "1'234'567=1'000x2^1234",
+      formatDigits('1234567', NumberStyle.apostrophe, ja: false),
+      "1'234'567",
     );
     expect(
       effectiveStyle(NumberStyle.apostrophe, ja: false),
@@ -43,7 +35,6 @@ void main() {
 
   test('units are not used in English', () {
     expect(formatDigits('1234567', NumberStyle.units, ja: false), '1234567');
-    expect(formatNumbers('1234567', NumberStyle.units, ja: false), '1234567');
     expect(effectiveStyle(NumberStyle.units, ja: false), NumberStyle.plain);
     expect(effectiveStyle(NumberStyle.comma, ja: false), NumberStyle.comma);
   });

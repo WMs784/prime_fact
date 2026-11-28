@@ -3,28 +3,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/calculator/calculator.dart';
 import 'package:prime_fact/calculator/calculator_controller.dart';
 import 'package:prime_fact/format/number_style.dart';
+import 'package:prime_fact/format/result_text.dart';
 import 'package:prime_fact/format/spoken.dart';
 import 'package:prime_fact/history/history_entry.dart';
 import 'package:prime_fact/l10n/app_localizations.dart';
 import 'package:prime_fact/shared/share.dart';
-
-/// 因数分解の行（2 行目以降）で、「=」の直後と「x」の直前だけ折り返せるようにする。
-/// 数字や「^」の途中では折り返さない。
-///
-/// 「=」でも折り返すのは、`n=` と最初の因数が続けて 1 行に収まらないため。
-/// これで `n=`（30 桁なら 31 文字）が 1 行に入る幅（20sp で約 350dp）なら、
-/// 数字の途中で折り返さない。それより狭い画面では 30 桁の n だけは途中で折り返す。
-String wrapAtTimes(String result) {
-  final i = result.indexOf('\n');
-  if (i < 0) return result;
-  return result.substring(0, i) +
-      result
-          .substring(i)
-          .replaceAllMapped(
-            RegExp('[x=]'),
-            (m) => m[0] == 'x' ? '\u200Bx' : '=\u200B',
-          );
-}
 
 class CalculatorForm extends StatefulWidget {
   const new({
@@ -92,7 +75,7 @@ class _CalculatorFormState extends State<CalculatorForm> {
       _calc.clearOutput();
       return;
     }
-    final entry = await _calc.calculate(inputNumber, loc);
+    final entry = await _calc.calculate(inputNumber);
     if (!mounted || entry == null) return;
     widget.onCalculated?.call(entry);
   }
@@ -119,9 +102,20 @@ class _CalculatorFormState extends State<CalculatorForm> {
     }
   }
 
-  /// 表示・コピー・共有に使う、形式を適用した結果。
-  String _displayed(AppLocalizations loc) =>
-      formatForLocale(loc, _calc.output?.text ?? '', widget.numberStyle);
+  /// 表示・コピー・共有に使う、形式を適用した結果。[breakable] は画面に出すときだけ
+  /// （折り返し用の不可視文字をコピー・共有に混ぜない）。
+  String _displayed(AppLocalizations loc, {bool breakable = false}) =>
+      switch (_calc.output) {
+        null => '',
+        FailedOutput() => loc.calcFailed,
+        CalculatedOutput(:final factorization, :final trivia) => resultLines(
+          loc,
+          factorization,
+          trivia,
+          widget.numberStyle,
+          breakable: breakable,
+        ).join('\n'),
+      };
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -223,14 +217,15 @@ class _CalculatorFormState extends State<CalculatorForm> {
                         child: Semantics(
                           liveRegion: true,
                           child: Text(
-                            wrapAtTimes(_displayed(loc)),
-                            semanticsLabel: output == null
-                                ? null
-                                : spokenResult(
+                            _displayed(loc, breakable: true),
+                            semanticsLabel: output is CalculatedOutput
+                                ? spokenResult(
                                     loc,
-                                    output.text,
+                                    output.factorization,
+                                    output.trivia,
                                     numberStyle: widget.numberStyle,
-                                  ),
+                                  )
+                                : null,
                             key: const ValueKey('result'),
                             style: const TextStyle(fontSize: 20),
                           ),
