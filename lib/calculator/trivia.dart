@@ -57,13 +57,7 @@ bool _isPalindrome(BigInt n) {
   return s.length >= 2 && s == s.split('').reversed.join();
 }
 
-/// [n] の素数判定の見出し（数の直後に続く文言）。
-String headerFor(AppLocalizations loc, BigInt n) {
-  final trivia = triviaFor(n);
-  if (trivia != null) return triviaHeader(loc, trivia);
-  return n >= _two && isProbablePrime(n) ? loc.isPrime : loc.isNotPrime;
-}
-
+/// [trivia] の見出し（数の直後に続く文言。素数/合成数の見出しの代わりに出す）。
 String triviaHeader(AppLocalizations loc, Trivia trivia) => switch (trivia) {
   Trivia.ramanujan => loc.isRamanujanNumber,
   Trivia.grothendieck => loc.isGrothendieckPrime,

@@ -3,20 +3,20 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
+import 'package:prime_fact/calculator/factorization.dart';
 import 'package:prime_fact/calculator/judge.dart';
 
-void _entry((SendPort, FactorRequest) args) =>
-    args.$1.send(factorizeSync(args.$2));
+void _entry((SendPort, BigInt) args) => args.$1.send(factorizeSync(args.$2));
 
 /// `factorizeSync` を別 Isolate で実行する。[token] が中止されたら Isolate を止めて
 /// [CancelledException] を投げる。Web では Isolate が使えないので `factorizeAsync` を使うこと。
 ///
 /// Isolate が結果もエラーも送らずに終了したとき（メモリ不足など）は [StateError] を投げる。
 /// [entry] はテスト用に差し替える。
-Future<String> factorizeInIsolate(
-  FactorRequest request,
+Future<Factorization> factorizeInIsolate(
+  BigInt n,
   CancelToken token, {
-  @visibleForTesting void Function((SendPort, FactorRequest)) entry = _entry,
+  @visibleForTesting void Function((SendPort, BigInt)) entry = _entry,
 }) async {
   if (token.isCancelled) throw const CancelledException();
   final result = ReceivePort();
@@ -24,13 +24,13 @@ Future<String> factorizeInIsolate(
   final exit = ReceivePort();
   final isolate = await Isolate.spawn(
     entry,
-    (result.sendPort, request),
+    (result.sendPort, n),
     onError: errors.sendPort,
     onExit: exit.sendPort,
   );
-  final done = Completer<String>();
+  final done = Completer<Factorization>();
   result.listen((m) {
-    if (!done.isCompleted) done.complete(m as String);
+    if (!done.isCompleted) done.complete(m as Factorization);
   });
   errors.listen((e) {
     if (!done.isCompleted) done.completeError(StateError('isolate failed: $e'));

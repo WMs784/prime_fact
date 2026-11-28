@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:prime_fact/calculator/factorization.dart';
+
 BigInt _gcd(BigInt a, BigInt b) {
   while (b != BigInt.zero) {
     final t = b;
@@ -162,52 +164,24 @@ Iterable<void> _factorHelper(BigInt n, Map<BigInt, int> factors) sync* {
   yield* _factorHelper(n ~/ f.value, factors);
 }
 
-/// `factorizeSync` への入力（isolate に渡せるよう record にしている）。
-///
-/// [special] は、素数/合成数の見出しを差し替える（完全数や 57 など）。因数分解の結果はそのまま出す。
-typedef FactorRequest = ({
-  BigInt n,
-  String isNotPrime,
-  String isPrime,
-  String? special,
-});
-
-Iterable<void> _factorize(FactorRequest request, _Box<String> out) sync* {
-  final n = request.n;
-  final isNotPrime = request.isNotPrime;
-  final isPrime = request.isPrime;
-  final special = request.special;
-
-  final nStr = n.toString();
-  if (n <= BigInt.one) {
-    out.value = nStr + isNotPrime;
-    return;
-  }
-  if (isProbablePrime(n)) {
-    out.value = nStr + (special ?? isPrime);
-    return;
-  }
-
+Iterable<void> _factorize(BigInt n, _Box<Factorization?> out) sync* {
   final factors = <BigInt, int>{};
-  yield* _factorHelper(n, factors);
+  // 1 以下は素因数を持たない（0 は試し割りが終わらないので、ここで除く）
+  if (n >= BigInt.two) yield* _factorHelper(n, factors);
 
-  final sortedEntries = factors.entries.toList()
+  final sorted = factors.entries.toList()
     ..sort((a, b) => a.key.compareTo(b.key));
-
-  final factStr = sortedEntries
-      .map((e) {
-        return e.value == 1 ? e.key.toString() : '${e.key}^${e.value}';
-      })
-      .join('x');
-
-  out.value = '$nStr${special ?? isNotPrime}\n$nStr=$factStr';
+  out.value = Factorization(
+    n,
+    sorted.map((e) => (prime: e.key, exponent: e.value)).toList(),
+  );
 }
 
-/// 最後まで同期で計算する。isolate（`compute`）に渡せるトップレベル関数。
-String factorizeSync(FactorRequest request) {
-  final out = _Box('');
-  for (final _ in _factorize(request, out)) {}
-  return out.value;
+/// [n] を最後まで同期で因数分解する。isolate（`compute`）に渡せるトップレベル関数。
+Factorization factorizeSync(BigInt n) {
+  final out = _Box<Factorization?>(null);
+  for (final _ in _factorize(n, out)) {}
+  return out.value!;
 }
 
 /// 計算の中止の合図。[cancel] を呼ぶと、実行中の [factorizeAsync] が次の区切りで止まる。
@@ -236,14 +210,14 @@ class CancelledException implements Exception {
 /// こちらは区切りのたびにイベントループへ戻るので、描画も入力も止まらず、
 /// [token] による中止もできる（中止されると [CancelledException]）。
 /// Web 以外では別 Isolate で動く `factorizeInIsolate` を使う（区切りで描画が落ちないため）。
-Future<String> factorizeAsync(
-  FactorRequest request,
+Future<Factorization> factorizeAsync(
+  BigInt n,
   CancelToken token, {
   Duration slice = const Duration(milliseconds: 50),
 }) async {
-  final out = _Box('');
+  final out = _Box<Factorization?>(null);
   final watch = Stopwatch()..start();
-  for (final _ in _factorize(request, out)) {
+  for (final _ in _factorize(n, out)) {
     if (token.isCancelled) throw const CancelledException();
     if (watch.elapsed >= slice) {
       await Future<void>.delayed(Duration.zero);
@@ -251,5 +225,5 @@ Future<String> factorizeAsync(
     }
   }
   if (token.isCancelled) throw const CancelledException();
-  return out.value;
+  return out.value!;
 }

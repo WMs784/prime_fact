@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ミューテーションテストを実行する。引数なしで全ファイル、引数があればそのファイルだけ。
-#   mutation_test/run.sh              # trivia number_style daily_puzzle date_key daily_stats judge spoken
+#   mutation_test/run.sh              # trivia number_style daily_puzzle date_key daily_stats judge spoken factorization result_text
 #   mutation_test/run.sh trivia       # 1 ファイルだけ
 # レポートは mutation-test-report/<name>/ に出る（.gitignore 済み）。
 #
@@ -13,17 +13,16 @@ set -u
 cd "$(dirname "$0")/.."
 
 # 許容する生き残り数。どれも結果が変わらない等価変異（理由は各 XML のコメントと PR #69）。
-#   trivia: n > 2（2 にはトリビアがあり到達しない）
 #   judge : aBig == n（結果が変わらない）
 max_survivors() {
   case "$1" in
-    trivia | judge) echo 1 ;;
+    judge) echo 1 ;;
     *) echo 0 ;;
   esac
 }
 
 targets=("$@")
-[ ${#targets[@]} -eq 0 ] && targets=(trivia number_style daily_puzzle date_key daily_stats judge spoken)
+[ ${#targets[@]} -eq 0 ] && targets=(trivia number_style daily_puzzle date_key daily_stats judge spoken factorization result_text)
 log=$(mktemp)
 trap 'rm -f "$log"' EXIT
 status=0

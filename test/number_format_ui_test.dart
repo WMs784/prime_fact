@@ -2,11 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:prime_fact/app/app_dependencies.dart';
 import 'package:prime_fact/app/home_page.dart';
-import 'package:prime_fact/calculator/judge.dart'
-    show CancelToken, FactorRequest;
+import 'package:prime_fact/calculator/factorization.dart';
+import 'package:prime_fact/calculator/judge.dart' show CancelToken;
 import 'package:prime_fact/main.dart';
 import 'package:prime_fact/shared/share.dart' show ShareOutcome;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers/factorization.dart';
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
@@ -16,9 +18,9 @@ void main() {
     addTearDown(tester.platformDispatcher.clearLocalesTestValue);
   }
 
-  // 計算結果は固定（整形前の素の数字）。
-  Future<String> fakeCalc(FactorRequest r, CancelToken _) async =>
-      '${r.n}${r.isNotPrime}\n${r.n}=127x9721';
+  // 計算結果は固定（1234567 = 127 x 9721）。
+  Future<Factorization> fakeCalc(BigInt n, CancelToken _) async =>
+      fact('$n', '127x9721');
 
   Future<void> pump(WidgetTester tester, {List<String>? shared}) async {
     await tester.pumpWidget(

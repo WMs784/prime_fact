@@ -5,6 +5,8 @@ import 'package:prime_fact/history/history_entry.dart';
 import 'package:prime_fact/history/history_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'helpers/factorization.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -12,7 +14,7 @@ void main() {
 
   group('HistoryEntry', () {
     test('toJson / fromJson round trip', () {
-      final e = HistoryEntry(
+      final e = HistoryEntry.parse(
         input: '12',
         factors: '2^2x3',
         timestamp: DateTime.utc(2026, 1, 2, 3, 4, 5),
@@ -54,13 +56,34 @@ void main() {
       expect(prime.factors, isNull);
     });
 
-    test('fromResult extracts factors', () {
-      final e = HistoryEntry.fromResult(
+    test('factors are stored only for a composite', () {
+      final t = DateTime.utc(2026);
+      final composite = HistoryEntry(fact('12', '2^2x3'), timestamp: t);
+      expect(composite.input, '12');
+      expect(composite.factors, '2^2x3');
+      expect(composite.timestamp, t);
+      for (final n in ['7', '1']) {
+        final e = HistoryEntry(fact(n), timestamp: t);
+        expect(e.input, n);
+        expect(e.factors, isNull, reason: n);
+      }
+    });
+
+    test('factorization is restored from the stored data', () {
+      final composite = HistoryEntry.parse(
         input: '12',
-        result: '12 is not prime\n12=2^2x3',
+        factors: '2^2x3',
+        timestamp: DateTime.utc(2026),
+      ).factorization;
+      expect(composite.n, BigInt.from(12));
+      expect(composite.notation, '2^2x3');
+      expect(composite.isComposite, isTrue);
+
+      final prime = HistoryEntry.parse(
+        input: '7',
         timestamp: DateTime.utc(2026),
       );
-      expect(e.factors, '2^2x3');
+      expect(prime.factorization.isPrime, isTrue);
     });
   });
 
@@ -72,8 +95,8 @@ void main() {
     test('save then load preserves order and content', () async {
       final repo = HistoryRepository();
       final entries = [
-        HistoryEntry(input: '7', timestamp: DateTime.utc(2026)),
-        HistoryEntry(
+        HistoryEntry.parse(input: '7', timestamp: DateTime.utc(2026)),
+        HistoryEntry.parse(
           input: '8',
           factors: '2^3',
           timestamp: DateTime.utc(2026, 1, 2),
@@ -89,6 +112,19 @@ void main() {
     test('load returns empty list for corrupted data', () async {
       SharedPreferences.setMockInitialValues({
         'calculation_history': 'not json',
+      });
+      expect(await HistoryRepository().load(), isEmpty);
+    });
+
+    test('load treats unreadable factors as corrupted data', () async {
+      SharedPreferences.setMockInitialValues({
+        'calculation_history': jsonEncode([
+          {
+            'input': '12',
+            'factors': '2^2*3',
+            'timestamp': '2026-01-02T03:04:05.000Z',
+          },
+        ]),
       });
       expect(await HistoryRepository().load(), isEmpty);
     });

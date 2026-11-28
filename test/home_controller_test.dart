@@ -50,7 +50,7 @@ class _Settings extends SettingsRepository {
 }
 
 HistoryEntry _entry(String input) =>
-    HistoryEntry(input: input, timestamp: DateTime.utc(2026));
+    HistoryEntry.parse(input: input, timestamp: DateTime.utc(2026));
 
 void main() {
   late _Settings settings;
